@@ -1,0 +1,67 @@
+PEPMASS;RT;IONMODE;ADDUCT;CHARGE;ID;INSTRUMENT;DATACOLLECTOR;SAMPLEID;ORGANISM;SUBMITUSER;SMILES;FORMULA;COMPOUND
+114.091336;N/A;Positive;M+H;1;1;Q Exactive;Thermo;MIX2;Standards;Adrem;C1CCC(=O)NCC1;C6H11NO;Caprolactam E
+152.070606;2.4;Positive;M+H;1;2;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(=O)NC1=CC=C(C=C1)O;C8H9NO2;Acetaminophen
+161.107326;N/A;Positive;M+H;1;3;Q Exactive;Thermo;MIX2;Standards;Adrem;C1=CC=C2C(=C1)C(=CN2)CCN;C10H12N2;tryptamine
+176.070606;N/A;Positive;M+H;1;4;Q Exactive;Thermo;MIX2;Standards;Adrem;C1=CC=C2C(=C1)C(=CN2)CC(=O)O;C10H9NO2;3-Indoleacetic acid
+181.049536;N/A;Positive;M+H;1;5;Q Exactive;Thermo;MIX2;Standards;Adrem;CC(=O)OC1=CC=CC=C1C(=O)O;C9H8O4;acetyl sialic acid
+195.087656;N/A;Positive;M+H;1;6;Q Exactive;Thermo;MIX2;Standards;Adrem;CN1C=NC2=C1C(=O)N(C(=O)N2C)C;C8H10N4O2;caffeine
+205.079396;5.74;Positive;M+H;1;7;Q Exactive;Thermo;MIX1;Standards;Adrem;C1CSC2=NC(CN21)C3=CC=CC=C3;C11H12N2S;Levamisole
+235.180486;N/A;Positive;M+H;1;8;Q Exactive;Thermo;MIX2;Standards;Adrem;CCN(CC)CC(=O)NC1=C(C=CC=C1C)C;C14H22N2O;lidocaine
+257.109611;8.69;Positive;M+H;1;9;Q Exactive;Thermo;JNJ42165;Standards;Adrem;FC1(F)OC2=CC=C(CN3CCNCC3)C=C2O1;C12H14F2N2O2;JNJ-39544258-AAA
+264.195806;N/A;Positive;M+H;1;10;Q Exactive;Thermo;MIX2;Standards;Adrem;CN(C)CC(C1=CC=C(C=C1)O)C2(CCCCC2)O;C16H25NO2;Desvenlafaxine
+267.170316;2.75;Positive;M+H;1;11;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(C)NCC(COC1=CC=C(C=C1)CC(=O)N)O;C14H22N2O3;Atenolol
+279.093326;N/A;Positive;M+H;1;12;Q Exactive;Thermo;MIX2;Standards;Adrem;C1=CC=C(C=C1)P(=O)(C2=CC=CC=C2)C3=CC=CC=C3;C18H15OP;triphenylphosphine oxide
+288.159416;4.92;Positive;M+H;1;13;Q Exactive;Thermo;MIX1;Standards;Adrem;CN1CCC23C=CC(CC2OC4=C(C=CC(=C34)C1)OC)O;C17H21NO3;Galantamine
+290.175066;N/A;Positive;M+H;1;14;Q Exactive;Thermo;MIX2;Standards;Adrem;CN1C2CCC1CC(C2)OC(=O)C(CO)C3=CC=CC=C3;C17H23NO3;atropine
+296.102966;N/A;Positive;M+H;1;15;Q Exactive;Thermo;MIX2;Standards;Adrem;COC(=O)NC1=NC2=C(N1)C=C(C=C2)C(=O)C3=CC=CC=C3;C16H13N3O3;mebendazole
+297.055596;10.34;Positive;M+H;1;16;Q Exactive;Thermo;MIX1;Standards;Adrem;C=CCOC(CN1C=CN=C1)C2=C(C=C(C=C2)Cl)Cl;C14H14Cl2N2O;Enilconazole
+297.971746;N/A;Positive;M+H;1;17;Q Exactive;Thermo;MIX2;Standards;Adrem;C1NC2=CC(=C(C=C2S(=O)(=O)N1)S(=O)(=O)N)Cl;C7H8ClN3O4S2;hydrochlorothiazide
+300.030106;8.11;Positive;M+H;1;18;Q Exactive;Thermo;MIX1;Standards;Adrem;C1COC(O1)(CN2C=NC=N2)C3=C(C=C(C=C3)Cl)Cl;C12H11Cl2N3O2;Aconazole
+308.091086;N/A;Positive;M+H;1;19;Q Exactive;Thermo;MIX2;Standards;Adrem;C(CC(=O)NC(CS)C(=O)NCC(=O)O)C(C(=O)O)N;C10H17N3O6S;Gluthathione
+330.073027;N/A;Positive;M+Na;1;19;Q Exactive;Thermo;MIX2;Standards;Adrem;C(CC(=O)NC(CS)C(=O)NCC(=O)O)C(C(=O)O)N;C10H17N3O6S;Gluthathione
+310.141326;N/A;Positive;M+H;1;20;Q Exactive;Thermo;MIX2;Standards;Adrem;CNCCC(C1=CC=CC=C1)OC2=CC=C(C=C2)C(F)(F)F;C17H18F3NO;fluoxetine
+311.080856;N/A;Positive;M+H;1;21;Q Exactive;Thermo;MIX2;Standards;Adrem;COC1=NC(=NC(=C1)NS(=O)(=O)C2=CC=C(C=C2)N)OC;C12H14N4O4S;sulfadimethoxine
+313.191056;N/A;Positive;M+H;1;22;Q Exactive;Thermo;MIX2;Standards;Adrem;C1CCC(CC1)C(=O)N2CC3C4=CC=CC=C4CCN3C(=O)C2;C19H24N2O2;Praziquantel
+314.093546;8.06;Positive;M+H;1;23;Q Exactive;Thermo;MIX1;Standards;Adrem;COC(=O)NC1=NC2=C(N1)C=C(C=C2)C(=O)C3=CC=C(C=C3)F;C16H12FN3O3;Flubendazole
+320.188806;N/A;Positive;M+H;1;24;Q Exactive;Thermo;MIX2;Standards;Adrem;CCN(CC)CCCC(C)NC1=C2C=CC(=CC2=NC=C1)Cl;C18H26ClN3;chloroquine
+325.191056;N/A;Positive;M+H;1;25;Q Exactive;Thermo;MIX2;Standards;Adrem;COC1=CC2=C(C=CN=C2C=C1)C(C3CC4CCN3CC4C=C)O;C20H24N2O2;quinine
+326.993276;N/A;Positive;M+H;1;26;Q Exactive;Thermo;MIX2;Standards;Adrem;C1=CC(=C(C=C1[N+](=O)[O-])Cl)NC(=O)C2=C(C=CC(=C2)Cl)O;C13H8Cl2N2O4;niclosamide
+328.154336;N/A;Positive;M+H;1;27;Q Exactive;Thermo;MIX2;Standards;Adrem;C=CCN1CCC23C4C(=O)CCC2(C1CC5=C3C(=C(C=C5)O)O4)O;C19H21NO4;Naloxone
+346.121986;7.42;Positive;M+H;1;28;Q Exactive;Thermo;MIX1;Standards;Adrem;CC1=CN=C(C(=C1OC)C)CS(=O)C2=NC3=C(N2)C=C(C=C3)OC;C17H19N3O3S;Omeprazole
+349.054376;N/A;Positive;M+H;1;29;Q Exactive;Thermo;MIX2;Standards;Adrem;C1=NC(=O)C2=C(N1)N(C=N2)C3C(C(C(O3)COP(=O)(O)O)O)O;C10H13N4O8P;inosine monophosphate
+363.216596;N/A;Positive;M+H;1;30;Q Exactive;Thermo;MIX2;Standards;Adrem;CC12CCC(=O)C=C1CCC3C2C(CC4(C3CCC4(C(=O)CO)O)C)O;C21H30O5;hydrocortizone
+367.166566;9.24;Positive;M+H;1;31;Q Exactive;Thermo;MIX1;Standards;Adrem;CC1=CC(=CC(=C1NC2=NC(=NC=C2)NC3=CC=C(C=C3)C#N)C)C=CC#N;C22H18N6;Rilpivirine
+368.173546;N/A;Positive;M+H;1;32;Q Exactive;Thermo;MIX2;Standards;Adrem;COCCCN1CCC(CC1)NC(=O)C2=CC(=C(C3=C2OCC3)N)Cl;C18H26ClN3O3;prucalopride
+369.232476;12.56;Positive;M+H;1;33;Q Exactive;Thermo;MIX1;Standards;Adrem;C1CN(CCN1CC=CC2=CC=CC=C2)C(C3=CC=CC=C3)C4=CC=CC=C4;C26H28N2;Cinnarizine
+370.212516;N/A;Positive;M+H;1;34;Q Exactive;Thermo;MIX2;Standards;Adrem;CCOC(=O)C1=CC=C(C=C1)OCCC2CCN(CC2)C3=NN=C(C=C3)C;C21H27N3O3;pirodavir
+376.147376;8.33;Positive;M+H;1;35;Q Exactive;Thermo;MIX1;Standards;Adrem;C1CN(CCC1(C2=CC=C(C=C2)Cl)O)CCCC(=O)C3=CC=C(C=C3)F;C21H23ClFNO2;Haloperidol
+382.083159;N/A;Positive;M+H;1;36;Q Exactive;Thermo;MIX2;Standards;Adrem;CC1=CC=C(C=C1)C2=CC(=NN2C3=CC=C(C=C3)S(=O)(=O)N)C(F)(F)F;C17H14F3N3O2S;Celecoxib
+392.258406;13.11;Positive;M+H;1;37;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(=O)OC1CCC2(C3CCC4(C(C3CC=C2C1)CC=C4C5=CN=CC=C5)C)C;C26H33NO2;Abiraterone_acetate
+393.136888;6.92;Positive;M+H;1;38;Q Exactive;Thermo;GMP;Standards;Adrem;N/A;N/A;GMP_unknown_1
+393.207176;N/A;Positive;M+H;1;39;Q Exactive;Thermo;MIX2;Standards;Adrem;CC1CC2C3CCC4=CC(=O)C=CC4(C3(C(CC2(C1(C(=O)CO)O)C)O)F)C;C22H29FO5;dexamethasone
+406.182436;N/A;Positive;M+H;1;40;Q Exactive;Thermo;MIX2;Standards;Adrem;C1CC2=C(C=CC(=C2)F)OC1C(CNCC(C3CCC4=C(O3)C=CC(=C4)F)O)O;C22H25F2NO4;Nebuvolol
+411.103001;9.67;Positive;M+H;1;41;Q Exactive;Thermo;JNJ42165;Standards;Adrem;ClC1=CC=NC=C1NC(N2CCN(CC3=CC4=C(OC(F)(F)O4)C=C3)CC2)=O;C18H17ClF2N4O3;JNJ-42165279-AAA
+411.219076;7.7;Positive;M+H;1;42;Q Exactive;Thermo;MIX1;Standards;Adrem;CC1=C(C(=O)N2CCCCC2=N1)CCN3CCC(CC3)C4=NOC5=C4C=CC(=C5)F;C23H27FN4O2;Risperidone
+414.993296;11.97;Positive;M+H;1;43;Q Exactive;Thermo;MIX1;Standards;Adrem;C1=CC(=C(C(=C1)Cl)COC(CN2C=CN=C2)C3=C(C=C(C=C3)Cl)Cl)Cl;C18H14Cl4N2O;Isoconazole
+426.169126;8.23;Positive;M+H;1;44;Q Exactive;Thermo;MIX1;Standards;Adrem;C1CN(CCC1N2C3=C(C=C(C=C3)Cl)NC2=O)CCCN4C5=CC=CC=C5NC4=O;C22H24ClN5O2;Domperidone
+431.388356;N/A;Positive;M+H;1;45;Q Exactive;Thermo;MIX2;Standards;Adrem;CC1=C(C(=C2CCC(OC2=C1C)(C)CCCC(C)CCCC(C)CCCC(C)C)C)O;C29H50O2;A-tocopherol
+441.20335;N/A;Positive;M+H;1;46;Q Exactive;Thermo;MIX2;Standards;Adrem;C=CC(=O)N1CCCC(C1)N2C3=C(C(=N2)C4=CC=C(C=C4)OC5=CC=CC=C5)C(=NC=N3)N;C25H24N6O2;Ibrutinib
+455.290434;9.08;Positive;M+H;1;47;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(C)C(CCCN(C)CCC1=CC(=C(C=C1)OC)OC)(C#N)C2=CC(=C(C=C2)OC)OC;C27H38N2O4;Verapamil
+472.321006;10.73;Positive;M+H;1;48;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O;C32H41NO2;Terfenadine
+477.230336;9.33;Positive;M+H;1;49;Q Exactive;Thermo;MIX1;Standards;Adrem;CN(C)C(=O)C(CCN1CCC(CC1)(C2=CC=C(C=C2)Cl)O)(C3=CC=CC=C3)C4=CC=CC=C4;C29H33ClN2O2;Loperamide
+516.298946;N/A;Positive;M+H;1;50;Q Exactive;Thermo;MIX2;Standards;Adrem;CC(CCC(=O)NCCS(=O)(=O)O)C1CCC2C1(C(CC3C2C(CC4C3(CCC(C4)O)C)O)O)C;C26H45NO7S;Taurocholic acid
+531.156036;9.99;Positive;M+H;1;51;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(=O)N1CCN(CC1)C2=CC=C(C=C2)OCC3COC(O3)(CN4C=CN=C4)C5=C(C=C(C=C5)Cl)Cl;C26H28Cl2N4O4;Ketoconazole
+531.477176;N/A;Positive;M+H;1;52;Q Exactive;Thermo;MIX2;Standards;Adrem;CCCCCCCCCCCCCCCCCCOC(=O)CCC1=CC(=C(C(=C1)C(C)(C)C)O)C(C)(C)C;C35H62O3;RALOX
+548.242496;8.69;Positive;M+H;1;53;Q Exactive;Thermo;MIX1;Standards;Adrem;CC(C)CN(CC(C(CC1=CC=CC=C1)NC(=O)OC2COC3C2CCO3)O)S(=O)(=O)C4=CC=C(C=C4)N;C27H37N3O7S;Darunavir
+555.164166;14.12;Positive;M+H;1;54;Q Exactive;Thermo;MIX1;Standards;Adrem;CN(C)CCC(C1=CC=CC2=CC=CC=C21)(C(C3=CC=CC=C3)C4=C(N=C5C=CC(=CC5=C4)Br)OC)O;C32H31BrN2O2;Bedaquiline
+556.276576;N/A;Positive;M+H;1;55;Q Exactive;Thermo;MIX2;Standards;Adrem;CC(C)CC(C(=O)O)NC(=O)C(CC1=CC=CC=C1)NC(=O)CNC(=O)CNC(=O)C(CC2=CC=C(C=C2)O)N;C28H37N5O7;leucine-enkephalin
+609.280656;N/A;Positive;M+H;1;56;Q Exactive;Thermo;MIX2;Standards;Adrem;COC1C(CC2CN3CCC4=C(C3CC2C1C(=O)OC)NC5=C4C=CC(=C5)OC)OC(=O)C6=CC(=C(C(=C6)OC)OC)OC;C33H40N2O9;reserpine
+665.443656;N/A;Positive;M+H;1;57;Q Exactive;Thermo;MIX2;Standards;Adrem;CCCCCCCCCCCCCCCC(=O)OC1CCCN2C1=NC(=C(C2=O)CCN3CCC(CC3)C4=NOC5=C4C=CC(=C5)F)C;C39H57FN4O4;paliperidone palmitate
+673.169786;N/A;Positive;M+H;1;58;Q Exactive;Thermo;MIX2;Standards;Adrem;CC1=C(C(=CC(=C1)C2(C3=CC=CC=C3S(=O)(=O)O2)C4=CC(=C(C(=C4)CN(CC(=O)O)CC(=O)O)O)C)CN(CC(=O)O)CC(=O)O)O;C31H32N2O13S;xylenol orange
+705.246586;11.35;Positive;M+H;1;59;Q Exactive;Thermo;MIX1;Standards;Adrem;CCC(C)N1C(=O)N(C=N1)C2=CC=C(C=C2)N3CCN(CC3)C4=CC=C(C=C4)OCC5COC(O5)(CN6C=NC=N6)C7=C(C=C(C=C7)Cl)Cl; C35H38Cl2N8O4;Itraconazole
+717.273276;N/A;Positive;M+H;1;60;Q Exactive;Thermo;MIX2;Standards;Adrem;CCC(C)N1C(=O)N(C=N1)C2=CC=C(C=C2)N3CCN(CC3)C4=CC=C(C=C4)OCC5COC(O5)(CSC6=NN=CN6C)C7=CC=C(C=C7)Cl;C36H41ClN8O4S;Mitratapide
+734.468516;N/A;Positive;M+H;1;61;Q Exactive;Thermo;MIX2;Standards;Adrem;CCC1C(C(C(C(=O)C(CC(C(C(C(C(C(=O)O1)C)OC2CC(C(C(O2)C)O)(C)OC)C)OC3C(C(CC(O3)C)N(C)C)O)(C)O)C)C)O)(C)O;C37H67NO13;erythromycin
+750.298966;11.92;Positive;M+H;1;62;Q Exactive;Thermo;MIX1;Standards;Adrem;CC1=C(C=CC2=C1N=C(C=C2OC3CC4C(C3)C(=O)N(CCCCC=CC5CC5(NC4=O)C(=O)NS(=O)(=O)C6CC6)C)C7=NC(=CS7)C(C)C)OC;C38H47N5O7S2;Simeprevir
+478.0957;N/A;Positive;M+H;1;63;Q Exactive;Thermo;GMP;Standards;Adrem;N/A;N/A;GMP_unknown_2
+557.205361;5.45;Positive;M+H;1;64;Q Exactive;Thermo;GMP;Standards;Adrem;N/A;N/A;GMP_unknown_3
+631.228657;14.37;Positive;M+H;1;65;Q Exactive;Thermo;GMP;Standards;Adrem;N/A;N/A;GMP_unknown_4
