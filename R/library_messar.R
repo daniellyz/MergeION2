@@ -53,7 +53,6 @@ library_messar<-function(library, ppm_search = 10, tops = 3, metrics = "PRECISIO
       stop("Please make sure your input library is a valid output of library_generator()!")
     }}
 
-
   library = library_manager(library, query = "MSLEVEL = 1")
 
   if (nrow(library$LEFT$metadata)==0){stop("No MS/MS records!")}
