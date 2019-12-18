@@ -27,7 +27,7 @@
 #'
 #' @export
 
-library_messar_drug<-function(library, ppm_search = 10, tops = 3, max_peak = 200, min_relative = 0.1, output="library_messar_drug.mgf"){
+library_messar_drug<-function(library, ppm_search = 10, neutral_loss = TRUE, tops = 3, max_peaks = 200, min_relative = 0.1, output="library_messar_drug.mgf"){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -98,20 +98,19 @@ library_messar_drug<-function(library, ppm_search = 10, tops = 3, max_peak = 200
     
       # Search fragments:
     
-      if (search_frag){
-        frags = sp[,1]
-        frags = frags[frags <= lib_mz[i]-0.5]
-        for (frag in frags){
-          error = abs(rule_fragments$Mass-frag)
-          valid = which.min(error)
-          if (error[valid]<0.01){
-            id_matched = c(id_matched, rule_fragments$ID[valid])
-          }
-      }}
+      frags = sp[,1]
+      frags = frags[frags <= lib_mz[i]-0.5]
+      for (frag in frags){
+        error = abs(rule_fragments$Mass-frag)
+        valid = which.min(error)
+        if (error[valid]<0.01){
+          id_matched = c(id_matched, rule_fragments$ID[valid])
+        }
+      }
     
       # Search NLoss:
     
-      if (search_nloss){
+      if (neutral_loss){
         nloss = lib_mz[i] - sp[,1]
         nloss = nloss[nloss>0.5] # Must higher than 0.5
         for (nl in nloss){
@@ -125,11 +124,11 @@ library_messar_drug<-function(library, ppm_search = 10, tops = 3, max_peak = 200
      # Match to rules and scoring:
     
       matched_rule_score = lapply(rules_id_list, function(x) intersect(as.character(id_matched), x))
-      matched_rule_score = sapply(matched_rule_score,length)/log2(rules$SIZE)
+      matched_rule_score = sapply(matched_rule_score,length)/log2(rules0$SIZE)
 
      # Scoring substructures:
     
-      substructure_estimated = cbind.data.frame(SUBSTRUCTURE = rules$SUBSTRUCTURE, SCORE = matched_rule_score)
+      substructure_estimated = cbind.data.frame(SUBSTRUCTURE = rules0$SUBSTRUCTURE, SCORE = matched_rule_score)
       substructure_estimated = substructure_estimated[substructure_estimated[,2]>0,,drop=FALSE]
       substructure_estimated = substructure_estimated[order(substructure_estimated[,2], decreasing=T),]
 
@@ -137,7 +136,7 @@ library_messar_drug<-function(library, ppm_search = 10, tops = 3, max_peak = 200
         sub_extracted_list[[i]] = substructure_estimated
         tops1 = min(nrow(substructure_estimated), tops)
         substructures = substructure_estimated[1:tops1,1]
-        substructures = paste0(substructures, "-")
+        substructures = paste0(substructures, collapse = ":")
         estimation_list[i] = substructures
       }
     }
