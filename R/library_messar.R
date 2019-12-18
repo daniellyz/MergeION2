@@ -126,7 +126,7 @@ library_messar<-function(library, ppm_search = 10, tops = 3, metrics = "PRECISIO
   #####Output###
   ##############
 
-  test_data$metadata = cbind.data.frame(new_metadata, OUTPUT_MESSAR = estimation_list)
+  test_data$metadata = cbind.data.frame(new_metadata, OUTPUT_SUBSTRUCTURE = estimation_list)
   writeMGF2(test_data, con = output)
   return(list(library_annotated = test_data, rules_extracted =  rules_extracted_list, sub_extracted = sub_extracted_list))
 }

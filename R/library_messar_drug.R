@@ -9,7 +9,7 @@
 #'
 #' @return
 #' \itemize{
-#'    \item{rules_extracted:}{ Matched rule list}
+#'    \item{library_annotated:}{ Library annotated}
 #'    \item{sub_extracted:}{ Library object that contain found scans.}
 #'    \item{MGF FILE:}{ A MGF file with annotated substructures will be written in user's folder.}
 #' }
@@ -27,7 +27,7 @@
 #'
 #' @export
 
-library_messar_drug<-function(library, ppm_search = 10, neutral_loss = TRUE, tops = 3, max_peaks = 200, min_relative = 0.1, output="library_messar_drug.mgf"){
+library_messar_drug<-function(library, ppm_search = 10, tops = 5, max_peaks = 200, min_relative = 0.1, output="library_messar_drug.mgf"){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -103,23 +103,22 @@ library_messar_drug<-function(library, ppm_search = 10, neutral_loss = TRUE, top
       for (frag in frags){
         error = abs(rule_fragments$Mass-frag)
         valid = which.min(error)
-        if (error[valid]<0.01){
+        if (error[valid]<0.003){
           id_matched = c(id_matched, rule_fragments$ID[valid])
         }
       }
     
       # Search NLoss:
     
-      if (neutral_loss){
-        nloss = lib_mz[i] - sp[,1]
-        nloss = nloss[nloss>0.5] # Must higher than 0.5
-        for (nl in nloss){
-          error = abs(rule_nloss$Mass - nl)
-          valid = which.min(error)
-          if (error[valid]<0.01){
-            id_matched = c(id_matched, rule_nloss$ID[valid])
-          }
-      }}
+      nloss = lib_mz[i] - sp[,1]
+      nloss = nloss[nloss>0.5] # Must higher than 0.5
+      for (nl in nloss){
+        error = abs(rule_nloss$Mass - nl)
+        valid = which.min(error)
+        if (error[valid]<0.003){
+          id_matched = c(id_matched, rule_nloss$ID[valid])
+        }
+     }
     
      # Match to rules and scoring:
     
@@ -146,7 +145,7 @@ library_messar_drug<-function(library, ppm_search = 10, neutral_loss = TRUE, top
   #####Output###
   ##############
   
-  lib_metadata = cbind.data.frame(lib_metadata, OUTPUT_MESSAR_DRUG = estimation_list)
+  lib_metadata = cbind.data.frame(lib_metadata, OUTPUT_SUBSTRUCTURE = estimation_list)
   test_data$metadata = lib_metadata
   
   writeMGF2(test_data, con = output)
