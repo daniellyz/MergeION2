@@ -1,13 +1,13 @@
 Package: MergeION
 Type: Package
-Title: Merge Scans from Multiple LC-MS/MS Raw Data Files
-Version: 0.1
+Title: Merging and Networking Scans from Multiple LC-MS/MS Raw Data Files
+Version: 0.2
 Date: 2018-07-20
 Author: Youzhong LIU <Youzhong.Liu@uantwerpen.be>
 Maintainer: Youzhong LIU <Youzhong.Liu@uantwerpen.be>
 Depends: R (>= 3.5.1)
-Imports: MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA
-Description: In tandem mass spectrometry-based metabolomics, automated structure identification is usually performed by spectral library search and in silico fragmentation (smart algorithms). For both approaches, the missing steps towards automation are the pre-processing and format conversion of raw chromatograms acquired in DDA (Data-driven acquisition) or targeted MS/MS-mode. As for, following steps are usually performed chromatogram by chromatogram, spectrum by spectrum in vendor software & text editors: selecting MS/MS scans, processing spectra, copying them along with metadata (e.g.ion mode, compound name...) into in-house database (for knowns) or structure identification software (for unknowns). Our package fills these gaps and enables: i) automated spectral library generation; ii) batch-processing LC-MS/MS data on commonly used structure elucidation software (CSI:FingerID, MSFinder, GNPS and Metfrag).    
+Imports: MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
+Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GPL-2
 LazyData: true
 RoxygenNote: 6.1.1

@@ -35,7 +35,12 @@ library_messar2<-function(library, type = c("drug", "metabolite"), tops = 5, max
   
   if (type=="drug"){
     data(DRUG_RULE_DB)
-  } else {data(DRUG_RULE_DB)}
+    rules0 = drug_rules0
+    rules_id_list = drug_rules_id_list
+    rule_fragments = drug_rule_fragments
+    rule_nloss = drug_rule_nloss
+    rules_training = drug_rules_training
+  } else {data(METABOLITE_RULE_DB)}
   
   #################
   ### Check inputs:
