@@ -108,7 +108,7 @@ write.table(library1$metadata,output_metadata,col.names = T,row.names=F,dec=".",
 ```
 Two files are added in the working directory: 1) The library file "library_V1.mgf". The library format is inspired from GNPS database (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash.jsp) and it consists of both metadata and spectra data. The "scans" are copies of MS1/MS2 spectra detected in raw LC-MS/MS files together with user-provided metadata. For MS1 scans, only the part of spectrum where isotopic patterns are located is saved. Segment of spectrum that contains fragments and precursor ion are saved for MS2 scans. 2) Metadata file "library_V1.mgf.txt", a tab-separated that can be read into a matrix in Excel. It contains metadata of all targeted scans (MS1 and MS2) with additional information: 
 
-![choose](library.png)
+![choose](inst/library.png)
 
 Added metadata:
 * FILENAME: from which file the metabolic feature is detected
@@ -190,7 +190,7 @@ for (id in id_found){
 }
 
 ```
-![choose](search.png)
+![choose](inst/search.png)
 
 # Managing the library
 
