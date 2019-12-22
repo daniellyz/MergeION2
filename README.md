@@ -108,9 +108,6 @@ write.table(library1$metadata,output_metadata,col.names = T,row.names=F,dec=".",
 ```
 Two files are added in the working directory: 1) The library file "library_V1.mgf". The library format is inspired from GNPS database (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash.jsp) and it consists of both metadata and spectra data. The "scans" are copies of MS1/MS2 spectra detected in raw LC-MS/MS files together with user-provided metadata. For MS1 scans, only the part of spectrum where isotopic patterns are located is saved. Segment of spectrum that contains fragments and precursor ion are saved for MS2 scans. 2) Metadata file "library_V1.mgf.txt", a tab-separated that can be read into a matrix in Excel. It contains metadata of all targeted scans (MS1 and MS2) with additional information: 
 
-![choose](inst/library.png)
-
-Added metadata:
 * FILENAME: from which file the metabolic feature is detected
 * MSLEVEL: 1: MS1 scan or 2: MS/MS scan
 * TIC: Total ion intensity of scans before normalization
@@ -171,7 +168,9 @@ library2 = library2$complete
 Searching in the raw data Mix2 the precursor mass 279.094:
 
 ```R
+
 # We first query scans of the precursor mass detected in MIX2 from library2:
+
 query = library_manager(library2, query = c("PEPMASS = 279.094", "FILENAME=MIX2.mzXML"), logical = "AND", ppm_search = 20)
 
 # Create a summary of compound found:
@@ -183,7 +182,7 @@ id_found = query$ID_SELECTED
 # Visualized spectra of the first compound (ID) found:
 library_visualizer(query$SELECTED, id = id_found[1])
 
-# Visualized compound (ID) by compound the spectra found:
+# Visualized compound (ID) by compound the spectra found using a loop:
 
 for (id in id_found){
  library_visualizer(query$SELECTED, id = id)
