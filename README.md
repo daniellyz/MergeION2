@@ -117,6 +117,8 @@ Two files are added in the working directory: 1) The library file "library_V1.mg
 * PARAM_CREATION_TIME: the time when the record is added to the library
 * SCANS: integer, a unique identifier for each record in the library
 
+![choose](inst/search.png)
+
 # Update the spectral library
 
 Now we process and add a new data GMP.mzXML in the existing library as another user. Following metadata are changed:
@@ -189,7 +191,7 @@ for (id in id_found){
 }
 
 ```
-![choose](inst/search.png)
+![choose](inst/search1.png)
 
 # Managing the library
 
@@ -199,4 +201,9 @@ The mass 279.094 is detected in both MIX1 and MIX2. We can remove the scans in M
 library3 = query$LEFT
 library_reporter(library3)
 ```
+
+# Searching unknown spectrum in the library (Important)
+
+
+
 
