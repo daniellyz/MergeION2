@@ -6,7 +6,7 @@ Our package fills these gaps and enables building local spectral libraries witho
 
 In addition, several spectral search algorithms are available, allowing users to search an unknown spectrum in their local database or public databases (i.e. drug structures in GNPS, MASSBANK and DrugBANK).
   
-1-4 are the steps that need to be performed before generating local spectral library:
+# Preparation before library generation
 
 ## 1. Installation from Github in Rstudio
 
@@ -43,7 +43,7 @@ It must be a semicolon-separated .csv file where each row represents a targeted 
 
 ![choose](inst/meta.png)
 
-## Tutorial 1: Generating an in-house spectral library of drug standardss
+# Tutorial 1: Generating an in-house spectral library of drug standardss
 
 The datasets for Example 1 are provided by Janssen Pharmaceutica. It consists of known standard pharmaceutical compounds for which high quality Q-Exactive MS/MS data is provided. Names and structures of these compounds can be found in the metadata. All datasets were acquired in positive ion mode through either DDA (data-dependent acquisition) or targeted MS/MS. Raw data in profile mode were converted into centroid-mode mzML or mzXML files using MSConvertGUI. Please execute following commands (once only) to download raw datasets.
 
@@ -65,7 +65,7 @@ url2 = "https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/library
 download.file(url2,destfile="library_metadata.csv") # Download and rename the files
 
 ```
-# Building the first spectral library: library1
+## Building the first spectral library: library1
 
 ```R
 raw_data_files = c("MIX2.mzXML","JNJ.mzXML")
@@ -95,7 +95,7 @@ library1 = library_generator(raw_data_files, metadata_file, mslevel, MS1.screene
 library1 = library1$complete # Important! We extract the library object. "$complete" for extracting the entire library including historical mass spectra. Here since we create a brand-new library, "library1$complete" and "library1$current" are the same. 
 
 ```
-# Writing library files
+## Writing library files
 
 ```R
 # Writing the library (.mgf):
@@ -119,7 +119,7 @@ Two files are added in the working directory: 1) The library file "library_V1.mg
 
 ![choose](inst/search.png)
 
-# Update the spectral library
+## Update the spectral library
 
 Now we process and add a new data GMP.mzXML in the existing library as another user. Following metadata are changed:
 
@@ -165,9 +165,9 @@ library2 = library2$complete
 
 ```
 
-# Searching the library
+## Quick query based on precursor mass
 
-Searching in the raw data Mix2 the precursor mass 279.094:
+Searching in the raw data Mix2 spectra of the precursor mass 279.094:
 
 ```R
 
@@ -193,7 +193,7 @@ for (id in id_found){
 ```
 ![choose](inst/search1.png)
 
-# Managing the library
+## Managing the library
 
 The mass 279.094 is detected in both MIX1 and MIX2. We can remove the scans in MIX2 from the library by creating a new library WITHOUT scans found:
 
@@ -202,7 +202,7 @@ library3 = query$LEFT
 library_reporter(library3)
 ```
 
-# Searching unknown spectrum in the library (Important)
+# Tutorial 2: Searching and annnotating unknown spectrum/spectra
 
 
 
