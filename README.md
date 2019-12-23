@@ -43,9 +43,9 @@ It must be a semicolon-separated .csv file where each row represents a targeted 
 
 ![choose](inst/meta.png)
 
-# Tutorial 1: Generating an in-house spectral library of drug standardss
+# Tutorial 1: Generating an in-house spectral library of drug standards
 
-The datasets for Example 1 are provided by Janssen Pharmaceutica. It consists of known standard pharmaceutical compounds for which high quality Q-Exactive MS/MS data is provided. Names and structures of these compounds can be found in the metadata. All datasets were acquired in positive ion mode through either DDA (data-dependent acquisition) or targeted MS/MS. Raw data in profile mode were converted into centroid-mode mzML or mzXML files using MSConvertGUI. Please execute following commands (once only) to download raw datasets.
+The datasets for Tutorial 1 are provided by Janssen Pharmaceutica. It consists of known standard pharmaceutical compounds for which high quality Q-Exactive MS/MS data is provided. Names and structures of these compounds can be found in the metadata. All datasets were acquired in positive ion mode through either DDA (data-dependent acquisition) or targeted MS/MS. Raw data in profile mode were converted into centroid-mode mzML or mzXML files using MSConvertGUI. Please execute following commands (once only) to download raw datasets.
 
 ```R
 
@@ -165,7 +165,7 @@ library2 = library2$complete
 
 ```
 
-## Quick query based on precursor mass
+## Library query based on a precursor mass
 
 Searching in the raw data Mix2 spectra of the precursor mass 279.094:
 
@@ -193,7 +193,7 @@ for (id in id_found){
 ```
 ![choose](inst/search1.png)
 
-## Managing the library
+## Deleting a record from the library
 
 The mass 279.094 is detected in both MIX1 and MIX2. We can remove the scans in MIX2 from the library by creating a new library WITHOUT scans found:
 
@@ -202,7 +202,8 @@ library3 = query$LEFT
 library_reporter(library3)
 ```
 
-# Tutorial 2: Searching and annnotating unknown spectrum/spectra
+# Tutorial 2: Searching and annnotating unknown spectra
+
 
 
 
