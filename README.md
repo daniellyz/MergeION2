@@ -204,7 +204,116 @@ library_reporter(library3)
 
 # Tutorial 2: Searching and annnotating unknown spectra
 
+In the tutorial, we are going to annotate an “unknown spectrum” through i) searching similar spectra in the local spectral library built in Tutorial 1; ii) searching spectra in the public domain; iii) a substructure annotation algorithm developped in this package. The data is downloaded from https://massbank.eu/MassBank/RecordDisplay.jsp?id=SM866601&dsn=CASMI_2016. The underlying compound behind the "unknown spectrum" is actually caffeine. 
 
+## Reading the unknown spectrum 
+
+```R
+
+url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/caffeine.txt"
+
+# The query spectrum should be a two-column matrix mass-intensity
+
+test = read.table(url_test, header = F, sep='\t')
+
+```
+## Loading the local library
+
+For users that have completed the Tutorial 1, we can directly use the object library2 as local database. You can also load the library2 through:
+
+```R
+
+data(DRUG_THERMO_LIBRARY) # Load library2
+
+```
+
+## Searching in local library
+
+Here we use cosine score from OrgMassSpecR for spectral similarity calculation:
+
+```R
+
+# We first search the precursor mass to narrow down the search space:
+query = library_search_engine(library_type = "Local", local_library = library2, 
+query_spectrum = test, method = "Cosine", prec_mz = 195.087, use.prec = T, mirror.plot = F)
+
+# Check the summary of query result:
+library_reporter(query$SELECTED)
+
+# ID of the compound found that has a cosine similarity score higher than 5:
+print(query$ID_SELECTED)
+
+# Name of the compound found:
+print(query$SELECTED$metadata$COMPOUND)
+
+# The similarity score is 0.55
+print(query$SCORES)
+
+# Mirror plot: query spectrum against compound found in the library
+library_visualizer_similarity(query$SELECTED, id= query$ID_SELECTED[1], query_spectrum = test)
+```
+![choose](inst/search2.png)
+
+## Searching in public library
+
+For searching drug-related compounds in the public library (i.e. standard drug compounds in GNPS, MASSBANK and DrugBANK), we have developed a fast search method based on number of common fragments (and neutral losses). For the moment, only positive ion mode is developped for fast public library search. Cosine similarity search is also still under development.
+
+```R
+
+# No local library is needed for public library search
+# The method we use is "Simple" - the similarity is measured as the number of common fragments and neutral losses between query spectrum and public spectra.
+# Here we don't narrow down the search space by precursor mass.
+
+query = library_search_engine(library_type = "Public", local_library = NULL, 
+query_spectrum = test, method = "Simple", prec_mz = 195.087, use.prec = F, mirror.plot = F)
+
+# Name of the compounds found (ranked by score):
+print(query$SELECTED$metadata$COMPOUND)
+
+# ID of the compounds found (here the inchikeys):
+print(query$SELECTED$metadata$ID)
+
+# The similarity score of the candidates found (8 means 8 common fragments+neutral losses):
+print(query$SCORES)
+
+# Mirror plot: query spectrum against the "best" compound found in the library
+library_visualizer_similarity(query$SELECTED, id= query$ID_SELECTED[1], query_spectrum = test)
+
+# Query spectrum against the second best compound found in the library
+library_visualizer_similarity(query$SELECTED, id= query$ID_SELECTED[2], query_spectrum = test)
+
+```
+![choose](inst/search3.png)
+
+## Recommending substructures
+
+Here we apply a partial identificiation (substructure recommendation) function for the unknown spectrum. This algorithm also works for spectra of unseen compounds (compounds not recorded in any spectral library yet).
+
+```R
+
+results = library_messar_simple(query_spectrum = test, prec_mz = 195.088, type = "drug", tops = 3)
+print(results)
+
+# Visualize recommended substructures 
+# (Please install ChemmineR and ChemmineOB for structure visualization)
+
+library(ChemmineR)
+plotStruc(smiles2sdf(results$SUBSTRUCTURE)[[1]]) #  The top substructure
+plotStruc(smiles2sdf(results$SUBSTRUCTURE)[[2]]) #  The second substructures
+
+# Checking the recommended substructure against the ground truth:
+# (Please install fmcsR for structure mapping)
+
+library(fmcsR)
+ref_caffeine = "CN1C=NC2=C1C(=O)N(C(=O)N2C)C" # Structure of caffeine
+sdfset = smiles2sdf(c(results$SUBSTRUCTURE[1], ref_caffeine))
+mcs <- fmcs(sdfset[[1]], sdfset[[2]], au=0, bu=0) 
+plotMCS(mcs, mcs=1)
+
+```
+On the left is top-recommended substructure, on the right is the ground-truth. The red part of the molecule indicates that the recommended substructure shows a partial agreement with the ground truth. 
+
+![choose](inst/search4.png)
 
 
 
