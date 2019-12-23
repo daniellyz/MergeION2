@@ -212,7 +212,7 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
 
     for (i in 1:NS){
       if (method == "Fragment"){
-        dist_spec = sapply(spectrum_list[[i]][,1],ppm_distance, frags)
+        dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance, frags)
         dist_spec[lower.tri(dist_spec)] = 10000000 # Remove redundant matches
         sim_scores[i] = sum(dist_spec<=0.005)
       }
@@ -311,5 +311,5 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
 ###########################
 
 ppm_distance<-function(x,y){
-  return(abs((x-y)/y*1000000))
+  return(abs(x-y))
 }
