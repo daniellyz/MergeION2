@@ -10,6 +10,6 @@ Imports: MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassS
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GPL-2
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
