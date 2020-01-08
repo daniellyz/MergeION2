@@ -181,7 +181,7 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
   
   # Top peaks, normalize, cut only masses smaller than precursor and filter background noise:
   
-  dat = dat[order(query_spectrum[,2], decreasing = T),] # Filter>0.1
+  dat = dat[order(dat[,2], decreasing = T),] # Filter>0.1
   dat = dat[1:min(max_peaks, XP),]
   dat[,2] = dat[,2]/max(dat[,2])*100
   dat = dat[dat[,2]>min_relative,,drop = FALSE]
@@ -208,21 +208,23 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
     sim_scores = rep(0, NS) # Similarity score per each element in the library
     
     nloss_list = lapply(1:NS, function(i) as.numeric(metadata$PEPMASS[i])-spectrum_list[[i]][,1])
-    mdiff_list = lapply(1:NS, function(i) unique(unlist(dist(spectrum_list[[i]][,1]))))
 
     for (i in 1:NS){
       if (method == "Fragment"){
         dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance, frags)
-        dist_spec[lower.tri(dist_spec)] = 10000000 # Remove redundant matches
-        sim_scores[i] = sum(dist_spec<=0.005)
+        temp = which(dist_spec<0.005, arr.ind = T)
+        score = length(unique(temp[,2]))
+        sim_scores[i] = score
       }
     
       if (method == "Simple"){
         dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance, frags)
-        dist_spec[lower.tri(dist_spec)] = 10000000 # Remove redundant matches
+        temp = which(dist_spec<0.005, arr.ind = T)
+        score1 = length(unique(temp[,2]))
         dist_loss = sapply(nloss_list[[i]], ppm_distance, nls)
-        dist_loss[lower.tri(dist_loss)] = 10000000 # Remove redundant matches
-        sim_scores[i] = sum(dist_spec<=0.005) + sum(dist_loss<=0.005)
+        temp = which(dist_loss<0.005, arr.ind = T)
+        score2= length(unique(temp[,2]))
+        sim_scores[i] = score1 + score2
     }
     
     if (method == "Cosine"){
