@@ -5,7 +5,8 @@
 #' @param raw_data_files A character vector of file names of chromatograms from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
 #' @param metadata_file A single character or NULL. If provided, it must be the metadata file name with csv extension. The first six columns of the metadata must be (in order): "PEPMASS" (precursor masses that we want to find in chromatograms), "RT" (retention time of metabolic features to be found, in minute, please put it to N/A if unknown), "IONMODE" (must be "Positive" or "Negative"),"ADDUCT" (precursor ion adduct type, must be one of "M+H","M+Na","M+K","M-H" and "M+Cl"), "CHARGE" (charge number, please keep it at 1) and "ID" (A unique identifier for targeted compounds in spectral library). If NULL, please set MS1.screener = TRUE, a non-targeted feature screening will be performed using centWave from XCMS. In current release, this functionality only works when all input files are acquired on the same instrument and from the same ion mode, and they must all contain MS1 scans.
 #' @param mslevel Must be 1 (if only MS1 scans/isotopic patterns of targeted m/z are extracted), 2 (if only MS2 scans are extracted) or c(1,2) (if both MS1 and MS2 scans are extracted). Note: Isotopic patterns in MS1 scans are useful for determining precursor formula!
-#' @param MS1.screener Logical. TRUE if centWave algorithm from XCMS is used to detect LC-MS feature peaks based on MS1 scans in the data. The detected feature peaks are used as metadata to assist the generation of spectral library.
+#' @param MS1.screener Logical. TRUE if centWave algorithm from XCMS or DDA algorithm is used to detect LC-MS feature peaks based on MS1 scans in the data. The detected feature peaks are used as metadata to assist the generation of spectral library.
+#' @param MS1.screener.mode Character. "XCMS" or "DDA". "XCMS" for centWave algorithm from XCMS, snthrehold needs to be set. "DDA" simply detects m/z and retention time of fragmented precursor ions.
 #' @param MS2_type  A single character ("DDA" or "Targeted") if all raw_dat_files are acquired in the same mode; A character vector precising the acquisition mode of each file in raw_data_files (e.g. c("DDA","Targeted","DDA"))
 #' @param adduct_type Vector of character. Adduct types of ions considered. Its elements must be among "Default","M+H","M+Na","M+K","M+NH4","M-H" and "M+Cl". No additional ion species will be calculated if "Default".
 #' @param max.charge Integer. Maximal charge number. Must be a positive integer e.g. 2 if +1, +2 (or -1, -2) ions are consired.
@@ -14,7 +15,7 @@
 #' @param ppm_search m/z search tolerance (in ppm) for targeted m/z
 #' @param baseline Numeric. The absolute intensity threshold) that is considered as a mass peak and written into the library. Peaks above both absolute and relative thresholds are saved in the library.
 #' @param relative Numeric between 0 and 100. The relative intensity threshold of the highest peak in each spectrum). Peaks above both absolute and relative thresholds are saved in the library
-#' @param snthrehold Numeric higher than 1. Only used when MS1.screener = TRUE. Parameter used by centWave in XCMS to define chromatogram peaks.
+#' @param snthrehold Numeric higher than 1. Only used when MS1.screener = TRUE and MS1.screener.mode = "XCMS". Parameter used by centWave in XCMS to define chromatogram peaks.
 #' @param normalized Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100
 #' @param user Character. Name or ID of the user(s) that created or updated the library.
 #' @param write_files Logical. TRUE if user wishes to write the mgf and metadata (txt) file in the folder
@@ -47,8 +48,11 @@
 #' ### We create the first library
 #' raw_data_files = c("MIX1.mzML","MIX2.mzXML","JNJ.mzXML")
 #' metadata_file = "https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/library_metadata.csv"
-#'
 #' mslevel = c(1,2)  # Both MS1 and MS2 scans are extracted!
+#' 
+#' MS1.screener = FALSE # Since metadata is provided, no peak picking from MS1 scan is not necessary
+#' MS1.screener.mode = "XCMS" 
+#' 
 #' MS2_type = c("DDA","DDA","Targeted") # Mode of MS/MS experiment for the three files
 #' adduct_type = c("Default") # Only looking for default ion types (ion types provided by users in metadata)
 #' max.charge = 1 # Only looking for +1 charged ions
@@ -58,6 +62,7 @@
 #' ppm_search = 10  # Mass tolerance (ppm)
 #' baseline = 1000  # Baseline level 1000 is fixed for 3 datasets.
 #' relative = 1 # Relative intensitiy level 1% is fixed. All peaks under both baseline and relative level are considered as noise.
+#' snthreshold = 30
 #' normalized = TRUE # The intensities of extracted spectra will be normalized to 100 (the highest peak)
 #'
 #' write_files = FALSE # The library(mgf) and metadata will not be writen in user's folder
@@ -65,9 +70,12 @@
 #' output_library = "library_V1.mgf" # Name of the library
 #' user_name = "Florian" # User name for uploading
 #'
-#' library1 = library_generator(raw_data_files, metadata_file, mslevel, MS2_type, adduct_type, max.charge, isomers,
-#'                             rt_search, ppm_search, baseline, relative, normalized,
-#'                             user = user_name, write_files, input_library, output_library)
+#' library1 = library_generator(raw_data_files, metadata_file, mslevel, 
+#'                              MS1.screener, MS1.screener.mode, 
+#'                              MS2_type, isomers, adduct_type, max.charge,
+#'                              rt_search, ppm_search, 
+#'                              baseline, relative, snthreshold, normalized,
+#'                              user = user_name, write_files, input_library, output_library)
 #'
 #' library1 = library1$complete # Important! We extract the library object. "$complete" for extracting the entire library including historical mass spectra. Here since we create a brand-new library, "library1$complete" and "library1$current" are the same.
 #'
@@ -81,9 +89,12 @@
 #' input_library = library1
 #' output_library = "library_V2.mgf"
 #' user_name = "Thomas" # Another user adds records into the library
-#' library2 = library_generator(raw_data_files, metadata_file, mslevel, MS2_type, isomers, adduct_type, max.charge,
-#'                             rt_search, ppm_search, baseline, relative, normalized,
-#'                             user = user_name, write_files, input_library, output_library)
+#' library2 = library_generator(raw_data_files, metadata_file, mslevel, 
+#'                              MS1.screener, MS1.screener.mode,
+#'                              MS2_type, isomers, adduct_type, max.charge,
+#'                              rt_search, ppm_search, 
+#'                              baseline, relative, snthreshold, normalized,
+#'                              user = user_name, write_files, input_library, output_library)
 #'
 #' # In the end, "library_V2.mgf" should appear in the working directory along with its metadata table (txt files)
 #'
@@ -101,7 +112,8 @@
 #'
 #' @export
 #'
-library_generator<-function(raw_data_files, metadata_file, mslevel = c(1,2), MS1.screener = FALSE,
+library_generator<-function(raw_data_files, metadata_file, mslevel = c(1,2), 
+                            MS1.screener = FALSE, MS1.screener.mode = c("XCMS", "DDA"),
                             MS2_type = "DDA", isomers = TRUE, adduct_type = "M+H", max.charge = 1,
                             rt_search = 12,ppm_search = 20,
                             baseline = 1000, relative =5, snthreshold = 30, normalized = T,
@@ -254,7 +266,7 @@ library_generator<-function(raw_data_files, metadata_file, mslevel = c(1,2), MS1
     # Define metadata before processing each individual file:
 
     if (MS1.screener){ # Redefine metadata if MS1 screener is on
-      targeted.ref = metadata_MS1_screener(raw_data_files[ff], ref = ref,
+      targeted.ref = metadata_MS1_screener(raw_data_files[ff], screener = MS1.screener.mode, ref = ref,
                           max.charge = max.charge, ppm_search = ppm_search, rt_search = rt_search,
                           baseline = baseline[ff], snthreshold = snthreshold[ff])
     } else {targeted.ref = ref}

@@ -154,7 +154,6 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
   }
   
   if (library_type=="Local"){
-    data(DRUG_PLUS)
     library = local_library
   }
   
@@ -211,17 +210,17 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
 
     for (i in 1:NS){
       if (method == "Fragment"){
-        dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance, frags)
+        dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance12, frags)
         temp = which(dist_spec<0.005, arr.ind = T)
         score = length(unique(temp[,2]))
         sim_scores[i] = score
       }
     
       if (method == "Simple"){
-        dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance, frags)
+        dist_spec = sapply(spectrum_list[[i]][,1], ppm_distance12, frags)
         temp = which(dist_spec<0.005, arr.ind = T)
         score1 = length(unique(temp[,2]))
-        dist_loss = sapply(nloss_list[[i]], ppm_distance, nls)
+        dist_loss = sapply(nloss_list[[i]], ppm_distance12, nls)
         temp = which(dist_loss<0.005, arr.ind = T)
         score2= length(unique(temp[,2]))
         sim_scores[i] = score1 + score2
@@ -312,6 +311,6 @@ library_search_engine <- function(library_type = c("Private", "Public", "Local")
 ### Internal functions:####
 ###########################
 
-ppm_distance<-function(x,y){
+ppm_distance12<-function(x,y){
   return(abs(x-y))
 }

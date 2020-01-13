@@ -5,11 +5,11 @@
 \title{Generating spectral library from raw LC-MS/MS chromatograms}
 \usage{
 library_generator(raw_data_files, metadata_file, mslevel = c(1, 2),
-  MS1.screener = FALSE, MS2_type = "DDA", isomers = TRUE,
-  adduct_type = "M+H", max.charge = 1, rt_search = 12,
-  ppm_search = 20, baseline = 1000, relative = 5, snthreshold = 30,
-  normalized = T, user = "", write_files = TRUE,
-  input_library = "", output_library = "")
+  MS1.screener = FALSE, MS1.screener.mode = c("XCMS", "DDA"),
+  MS2_type = "DDA", isomers = TRUE, adduct_type = "M+H",
+  max.charge = 1, rt_search = 12, ppm_search = 20, baseline = 1000,
+  relative = 5, snthreshold = 30, normalized = T, user = "",
+  write_files = TRUE, input_library = "", output_library = "")
 }
 \arguments{
 \item{raw_data_files}{A character vector of file names of chromatograms from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!}
@@ -18,7 +18,9 @@ library_generator(raw_data_files, metadata_file, mslevel = c(1, 2),
 
 \item{mslevel}{Must be 1 (if only MS1 scans/isotopic patterns of targeted m/z are extracted), 2 (if only MS2 scans are extracted) or c(1,2) (if both MS1 and MS2 scans are extracted). Note: Isotopic patterns in MS1 scans are useful for determining precursor formula!}
 
-\item{MS1.screener}{Logical. TRUE if centWave algorithm from XCMS is used to detect LC-MS feature peaks based on MS1 scans in the data. The detected feature peaks are used as metadata to assist the generation of spectral library.}
+\item{MS1.screener}{Logical. TRUE if centWave algorithm from XCMS or DDA algorithm is used to detect LC-MS feature peaks based on MS1 scans in the data. The detected feature peaks are used as metadata to assist the generation of spectral library.}
+
+\item{MS1.screener.mode}{Character. "XCMS" or "DDA". "XCMS" for centWave algorithm from XCMS, snthrehold needs to be set. "DDA" simply detects m/z and retention time of fragmented precursor ions.}
 
 \item{MS2_type}{A single character ("DDA" or "Targeted") if all raw_dat_files are acquired in the same mode; A character vector precising the acquisition mode of each file in raw_data_files (e.g. c("DDA","Targeted","DDA"))}
 
@@ -46,7 +48,7 @@ library_generator(raw_data_files, metadata_file, mslevel = c(1, 2),
 
 \item{output_library}{Character.Name of the output library, the file extension must be mgf}
 
-\item{snthrehold}{Numeric higher than 1. Only used when MS1.screener = TRUE. Parameter used by centWave in XCMS to define chromatogram peaks.}
+\item{snthrehold}{Numeric higher than 1. Only used when MS1.screener = TRUE and MS1.screener.mode = "XCMS". Parameter used by centWave in XCMS to define chromatogram peaks.}
 }
 \value{
 \itemize{
@@ -75,8 +77,11 @@ download.file(paste0(url,original_files[4]),destfile="GMP.mzXML")
 ### We create the first library
 raw_data_files = c("MIX1.mzML","MIX2.mzXML","JNJ.mzXML")
 metadata_file = "https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/library_metadata.csv"
-
 mslevel = c(1,2)  # Both MS1 and MS2 scans are extracted!
+
+MS1.screener = FALSE # Since metadata is provided, no peak picking from MS1 scan is not necessary
+MS1.screener.mode = "XCMS" 
+
 MS2_type = c("DDA","DDA","Targeted") # Mode of MS/MS experiment for the three files
 adduct_type = c("Default") # Only looking for default ion types (ion types provided by users in metadata)
 max.charge = 1 # Only looking for +1 charged ions
@@ -86,6 +91,7 @@ rt_search = 12 # Retention time tolerance (s)
 ppm_search = 10  # Mass tolerance (ppm)
 baseline = 1000  # Baseline level 1000 is fixed for 3 datasets.
 relative = 1 # Relative intensitiy level 1\% is fixed. All peaks under both baseline and relative level are considered as noise.
+snthreshold = 30
 normalized = TRUE # The intensities of extracted spectra will be normalized to 100 (the highest peak)
 
 write_files = FALSE # The library(mgf) and metadata will not be writen in user's folder
@@ -93,9 +99,12 @@ input_library = "" # A brand new library, there's no previous dependency
 output_library = "library_V1.mgf" # Name of the library
 user_name = "Florian" # User name for uploading
 
-library1 = library_generator(raw_data_files, metadata_file, mslevel, MS2_type, adduct_type, max.charge, isomers,
-                            rt_search, ppm_search, baseline, relative, normalized,
-                            user = user_name, write_files, input_library, output_library)
+library1 = library_generator(raw_data_files, metadata_file, mslevel, 
+                             MS1.screener, MS1.screener.mode, 
+                             MS2_type, isomers, adduct_type, max.charge,
+                             rt_search, ppm_search, 
+                             baseline, relative, snthreshold, normalized,
+                             user = user_name, write_files, input_library, output_library)
 
 library1 = library1$complete # Important! We extract the library object. "$complete" for extracting the entire library including historical mass spectra. Here since we create a brand-new library, "library1$complete" and "library1$current" are the same.
 
@@ -109,9 +118,12 @@ write_files = TRUE # We want to directly write the library mgf + metadata files
 input_library = library1
 output_library = "library_V2.mgf"
 user_name = "Thomas" # Another user adds records into the library
-library2 = library_generator(raw_data_files, metadata_file, mslevel, MS2_type, isomers, adduct_type, max.charge,
-                            rt_search, ppm_search, baseline, relative, normalized,
-                            user = user_name, write_files, input_library, output_library)
+library2 = library_generator(raw_data_files, metadata_file, mslevel, 
+                             MS1.screener, MS1.screener.mode,
+                             MS2_type, isomers, adduct_type, max.charge,
+                             rt_search, ppm_search, 
+                             baseline, relative, snthreshold, normalized,
+                             user = user_name, write_files, input_library, output_library)
 
 # In the end, "library_V2.mgf" should appear in the working directory along with its metadata table (txt files)
 
