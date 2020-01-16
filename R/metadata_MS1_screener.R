@@ -113,15 +113,15 @@ metadata_MS1_screener<-function(raw_data_file, screener = c("XCMS", "DDA"), ref 
 
     # Intergrate MS1 area
 
-    mz_range = cbind(MS1_metadata$PEPMASS - 0.005, MS1_metadata$PEPMASS +0.005)
-    rt_range = cbind(MS1_metadata$RT - rt_search, MS1_metadata$RT + rt_search)*60
+    mz_range = cbind(as.numeric(MS1_metadata$PEPMASS) - 0.005, as.numeric(MS1_metadata$PEPMASS) +0.005)
+    rt_range = cbind(as.numeric(MS1_metadata$RT) - rt_search, as.numeric(MS1_metadata$RT) + rt_search)*60
     chrs = chromatogram(MS1_Janssen, mz = mz_range, rt = rt_range)
 
     for (cc in 1:NC){
       x = chrs[cc,1]@rtime
       y = chrs[cc,1]@intensity
       y[is.na(y)] = 0
-      MS1_metadata$MS1_ABUNDNCE[cc] = trapz(x, y)
+      MS1_metadata$MS1_ABUNDANCE[cc] = trapz(x, y)
     }
 
     if (polarity==1){

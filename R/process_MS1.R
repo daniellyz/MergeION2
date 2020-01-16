@@ -40,7 +40,7 @@ process_MS1<-function(mzdatafiles, ref, rt_search=10, ppm_search=20,
 
     ### Extract ref:
 
-    prec_theo=ref$PEPMASS
+    prec_theo=as.numeric(ref$PEPMASS)
     prec_rt=as.numeric(ref$RT)*60 # Allow N/A
     int_max_list = c() # Maximal intensity of MS1 mass
 

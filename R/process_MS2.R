@@ -40,13 +40,13 @@ process_MS2<-function(mzdatafiles, ref, rt_search=10, ppm_search=20,
 
   ### Filter ref because not all targeted m/z exists or fragmented in the sample! Important for not to search whatever
 
-    dev_targets = sapply(ref$PEPMASS,function(x) min(abs(x-targets)))
+    dev_targets = sapply(as.numeric(ref$PEPMASS),function(x) min(abs(x-targets)))
     valid = which(dev_targets <= 1) #  Find targeted metadata in experimental file!! - faster!
     if (polarity==1){valid = intersect(valid, which(ref$IONMODE=="Positive"))}
     if (polarity==-1){valid = intersect(valid, which(ref$IONMODE=="Negative"))}
 
     ref = ref[valid,]
-    prec_theo=ref$PEPMASS
+    prec_theo= as.numeric(ref$PEPMASS)
     prec_rt=as.numeric(ref$RT)*60 # Allow N/A
 
     if (nrow(ref)>0){
