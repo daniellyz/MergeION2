@@ -4,8 +4,11 @@
 \alias{metadata_adduct_editor}
 \title{Create additional metadata for library generation}
 \usage{
-metadata_adduct_editor(ref, adducts = c("Default", "M+H", "M+Na", "M+K",
-  "M+NH4", "M-H", "M+Cl"), max.charge = 1)
+metadata_adduct_editor(
+  ref,
+  adducts = c("Default", "M+H", "M+Na", "M+K", "M+NH4", "M-H", "M+Cl"),
+  max.charge = 1
+)
 }
 \description{
 Function used by library_generator() to create adducts and multiple charged features

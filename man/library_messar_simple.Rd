@@ -4,9 +4,14 @@
 \alias{library_messar_simple}
 \title{Substructure recommendation for unknown spectrum}
 \usage{
-library_messar_simple(query_spectrum = NULL, prec_mz = 0,
-  type = c("drug", "metabolite"), tops = 5, max_peaks = 200,
-  min_relative = 0.1)
+library_messar_simple(
+  query_spectrum = NULL,
+  prec_mz = 0,
+  type = c("drug", "metabolite"),
+  tops = 5,
+  max_peaks = 200,
+  min_relative = 0.1
+)
 }
 \arguments{
 \item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided}
@@ -31,7 +36,7 @@ The function recommends substructures for an unknown spectrum
 
 url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/caffeine.txt"
 
-test = read.table(url_test, header = F, sep='\\t')
+test = read.table(url_test, header = F, sep='\t')
 
 results = library_messar_simple(query_spectrum = test, prec_mz = 195.088, type = "drug", tops = 3)
 

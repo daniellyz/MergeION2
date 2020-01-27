@@ -4,8 +4,16 @@
 \alias{process_MS1}
 \title{Read and combine targeted MS1 scans from one LC-MS/MS file}
 \usage{
-process_MS1(mzdatafiles, ref, rt_search = 10, ppm_search = 20,
-  isomers = T, baseline = 1000, relative = 5, normalized = T)
+process_MS1(
+  mzdatafiles,
+  ref,
+  rt_search = 10,
+  ppm_search = 20,
+  isomers = T,
+  baseline = 1000,
+  relative = 5,
+  normalized = T
+)
 }
 \description{
 Function used by library_generator to detect MS1 scans

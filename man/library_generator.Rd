@@ -4,12 +4,27 @@
 \alias{library_generator}
 \title{Generating spectral library from raw LC-MS/MS chromatograms}
 \usage{
-library_generator(raw_data_files, metadata_file, mslevel = c(1, 2),
-  MS1.screener = FALSE, MS1.screener.mode = c("XCMS", "DDA"),
-  MS2_type = "DDA", isomers = TRUE, adduct_type = "M+H",
-  max.charge = 1, rt_search = 12, ppm_search = 20, baseline = 1000,
-  relative = 5, snthreshold = 30, normalized = T, user = "",
-  write_files = TRUE, input_library = "", output_library = "")
+library_generator(
+  raw_data_files,
+  metadata_file,
+  mslevel = c(1, 2),
+  MS1.screener = FALSE,
+  MS1.screener.mode = c("XCMS", "DDA"),
+  MS2_type = "DDA",
+  isomers = TRUE,
+  adduct_type = "M+H",
+  max.charge = 1,
+  rt_search = 12,
+  ppm_search = 20,
+  baseline = 1000,
+  relative = 5,
+  snthreshold = 30,
+  normalized = T,
+  user = "",
+  write_files = TRUE,
+  input_library = "",
+  output_library = ""
+)
 }
 \arguments{
 \item{raw_data_files}{A character vector of file names of chromatograms from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!}
