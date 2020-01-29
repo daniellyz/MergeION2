@@ -24,7 +24,7 @@ library_messar(
 
 \item{min_relative}{Numeric between 0.1 and 1. Minimum relative intensity of peaks to not be considered as noise.}
 
-\item{output}{String. File name of output library.}
+\item{output}{String. File name of output library with substructure result.}
 }
 \value{
 \itemize{

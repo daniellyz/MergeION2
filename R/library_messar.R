@@ -7,7 +7,7 @@
 #' @param tops Integer. Top recommended substructures in the output mgf file
 #' @param max_peaks Integer. Top most intense peaks kept in the spectra
 #' @param min_relative Numeric between 0.1 and 1. Minimum relative intensity of peaks to not be considered as noise.
-#' @param output String. File name of output library.
+#' @param output String. File name of output library with substructure result.
 #'
 #' @return
 #' \itemize{
@@ -29,7 +29,9 @@
 #'
 #' @export
 
-library_messar<-function(library, type = c("drug", "metabolite"), tops = 5, max_peaks = 200, min_relative = 0.1, output="library_messar_drug.mgf"){
+library_messar<-function(library, type = c("drug", "metabolite"), 
+                         tops = 5, max_peaks = 200, min_relative = 0.1, 
+                         output="library_messar_drug.mgf"){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -96,6 +98,7 @@ library_messar<-function(library, type = c("drug", "metabolite"), tops = 5, max_
 
   for (i in 1:NT){
     
+    print("Predict substructure:")
     print(i)
     
     sp = lib_sp[[i]]

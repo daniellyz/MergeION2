@@ -42,7 +42,7 @@ library_search_engine(
 
 \item{ppm_search}{Numeric. Mass tolerance in ppm for precursor search.}
 
-\item{tops}{Integer. Number of top compound candidates kept in the output mgf file}
+\item{tops}{Integer. Number of top compound candidates kept.}
 
 \item{max_peaks}{Integer. Top most intense peaks kept in the query spectrum}
 
@@ -61,7 +61,7 @@ library_search_engine(
 }
 }
 \description{
-The function searches unknown MS/MS spectra in a spectral library
+The function searches a query MS/MS spectrum in a spectral library
 }
 \examples{
 
