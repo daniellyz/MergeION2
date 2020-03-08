@@ -122,7 +122,7 @@ metadata_MS1_screener<-function(raw_data_file, screener = c("XCMS", "DDA"), ref 
     rt_range = cbind(as.numeric(MS1_metadata$RT) - rt_search, as.numeric(MS1_metadata$RT) + rt_search)*60
     chrs = chromatogram(MS1_Janssen, mz = mz_range, rt = rt_range)
 
-    for (cc in 1:NC){
+    for (cc in 1:nrow(MS1_metadata)){
       x = chrs[cc,1]@rtime
       y = chrs[cc,1]@intensity
       y[is.na(y)] = 0
