@@ -57,7 +57,7 @@ metadata_adduct_editor<-function(ref, adducts = c("Default","M+H","M+Na","M+K","
            if (adduct == "M-H"){
             new_pep = c(new_pep, (NM - 1.007276*charge)/charge)
             new_ions = c(new_ions, "Negative")
-            new_adducts = c(new_adducts, "M+K")
+            new_adducts = c(new_adducts, "M-H")
             new_charges = c(new_charges, charge)}
 
            if (adduct == "M+Cl"){
