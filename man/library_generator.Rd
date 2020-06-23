@@ -23,7 +23,7 @@ library_generator(
 
 \item{raw_data_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!}
 
-\item{metadata_file}{A single character. It should be the metadata file name. The file should be txt, csv or xlsx format. The txt or csv file can be tab, comma or semi-colon separated. The xlsx file must be a single sheet. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.}
+\item{metadata_file}{A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.}
 
 \item{polarity}{A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files.}
 
@@ -66,7 +66,7 @@ The function proposes three data processing algorithms to pick up MS1/MS2 scans 
 
 input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 raw_data_files <- list.files(system.file("spectra", package = "MergeION"),".mzML", full.names = TRUE)
-metadata_file <- list.files(system.file(package = "MergeION"),".xlsx", full.names = TRUE)
+metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names = TRUE)
 
 polarity = "Positive"
 mslevel= 2 # Only MS2 scans are extracted!

@@ -4,7 +4,7 @@
 #' 
 #' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf; please set to empty string "" or NULL if the new library has no dependency with previous ones.
 #' @param raw_data_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
-#' @param metadata_file A single character. It should be the metadata file name. The file should be txt, csv or xlsx format. The txt or csv file can be tab, comma or semi-colon separated. The xlsx file must be a single sheet. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
+#' @param metadata_file A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
 #' @param mslevel A numeric vector. Must contain 2 (if only MS2 scans are extracted) and can be c(1,2) if isotopic pattern in MS1 scans are also extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
 #' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M-2H", "M+COO-", "M+Cl" and "M-" for negative ion mode. If FALSE, no additional adduct types will be searched.
@@ -36,7 +36,6 @@
 #'
 #' @examples
 #'
-#' @importFrom XLConnect loadWorkbook readWorksheet
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils read.csv
 #' @importFrom plyr rbind.fill
@@ -47,7 +46,7 @@
 #'
 #' input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 #' raw_data_files <- list.files(system.file("spectra", package = "MergeION"),".mzML", full.names = TRUE)
-#' metadata_file <- list.files(system.file(package = "MergeION"),".xlsx", full.names = TRUE)
+#' metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names = TRUE)
 #' 
 #' polarity = "Positive"
 #' mslevel= 2 # Only MS2 scans are extracted!
@@ -118,11 +117,11 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   }
   
   if (length(metadata_file)>1){
-      stop("Metadata must be written in one csv, txt or single-sheet xlsx file!")
+      stop("Metadata must be written in one csv, txt or dat file!")
   } 
   
-  if (file_ext(metadata_file)!="csv" & file_ext(metadata_file)!="txt" & file_ext(metadata_file)!="xlsx"){
-    stop("Metadata must be written in one csv, txt or single-sheet xlsx file!")
+  if (file_ext(metadata_file)!="csv" & file_ext(metadata_file)!="txt" & file_ext(metadata_file)!="dat"){
+    stop("Metadata must be written in one csv, txt or dat file!")
   } 
   
   if (length(polarity)!=1){
@@ -183,14 +182,9 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   ### Load and edit metadata###
   #############################
   
-  if (file_ext(metadata_file)=="csv" || file_ext(metadata_file)=="txt"){
-    ref = read.csv(metadata_file,sep=";",dec=".",header=T)
-    if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
-    if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
-  } 
-  
-  if (file_ext(metadata_file)=="xlsx"){ref = readWorksheet(loadWorkbook(metadata_file), sheet = 1, header = TRUE)}
-  
+  ref = read.csv(metadata_file,sep=";",dec=".",header=T)
+  if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
+  if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
   if (ncol(ref)<2){stop("Input metadata format not valid!")}
   
   if (!("ID" %in% colnames(ref))){stop("Input metadata must contain a column ID!")}
