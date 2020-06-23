@@ -2,17 +2,18 @@
 % Please edit documentation in R/process_MS2.R
 \name{process_MS2}
 \alias{process_MS2}
-\title{Read and combine targeted MS2 scans from one LC-MS/MS file}
+\title{Read and combine targeted MS2 scans from one LC-MS/MS file using default MergeION algorithm}
 \usage{
 process_MS2(
-  mzdatafiles,
-  ref,
+  mzdatafiles = NULL,
+  ref = NULL,
   rt_search = 10,
-  ppm_search = 20,
-  MS2_type = c("DDA", "Targeted"),
-  isomers = T,
+  rt_gap = 30,
+  ppm_search = 10,
+  mz_search = 0.01,
   baseline = 1000,
   relative = 5,
+  max_peaks = 200,
   normalized = T
 )
 }

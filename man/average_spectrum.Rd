@@ -4,18 +4,20 @@
 \alias{average_spectrum}
 \title{Generating consensus spectra}
 \usage{
-average_spectrum(splist, ppm_window = 10, clean = F)
+average_spectrum(splist, mz_window = 0.01)
 }
 \arguments{
 \item{splist}{List of extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
 
-\item{ppm_window}{m/z tolerance window (in ppm) for spectra alignment}
-
-\item{clean}{Logical. TRUE if peaks not present in all spectra are filtered.}
+\item{mz_window}{m/z tolerance window (in da) for spectra alignment}
 }
 \value{
-new_spectrum ~ The aligned, (filtered) and averaged consensus spectra: data matrix with two columns (m/z and intensity)
+\itemize{
+  \item{new_spectrum:}{The aligned and averaged consensus spectra: data matrix with two columns (averaged m/z and intensity)}
+  \item{I_matrix:}{The aligned intensity matrix: intensity of aligned m/z in in each MS record}
+  \item{dev_matrix:}{The mass deviation matrix: mass deviation of each m/z in each MS record}
+}
 }
 \description{
-Internal function that merges a list of normalized spectra that belong to the same ID
+Function that merges a list of normalized spectra that belong to the same ID
 }

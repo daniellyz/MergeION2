@@ -75,8 +75,8 @@ mslevel = c(1,2) # Both MS1 and MS2 scans are extracted!
 MS2_type = c("DDA","Targeted") # Mode of MS/MS experiment for the three files
 adduct_type = "Default" # Only looking for default ion types (ion types provided by users in metadata)
 max.charge = 1
-MS1.screener = FALSE # Since metadata is provided, no peak picking from MS1 scan is not necessary
-MS1.screener.mode = "XCMS" 
+screener = FALSE # Since metadata is provided, no peak picking from MS1 scan is not necessary
+screener.mode = "XCMS" 
 
 isomers = F # If isomers are present, only the peak with higher TIC is extracted.
 normalized = T # Spectra are normalized to the highest peak
@@ -85,13 +85,14 @@ ppm_search = 10  # Mass tolerance (ppm)
 baseline = 1000  # Baseline level 1000 is fixed for 3 datasets.
 relative = 1 # Relative intensitiy level 1% is fixed. All peaks under both baseline and relative level are considered as noise.
 snthreshold = 0 # Only used for chromatogram peak picking, here not useful
+max_peaks = 100 # Maximum number of abundant peaks kept 
 
 write_files = F # The library(mgf) and metadata will not be writen in user's folder
 input_library = "" # A brand new library, there's no previous dependency
 output_library = "library_V1.mgf" # Name of the library
 user_name = "Adrem" # User name for uploading
 
-library1 = library_generator(raw_data_files, metadata_file, mslevel, MS1.screener, MS1.screener.mode, MS2_type, isomers, adduct_type, max.charge, rt_search, ppm_search, baseline, relative, snthreshold, normalized, user = user_name, write_files, input_library, output_library)
+library1 = library_generator(raw_data_files, metadata_file, mslevel, screener, screener.mode, MS2_type, isomers, adduct_type, max.charge, rt_search, ppm_search, baseline, relative, snthreshold, max_peaks, normalized, user = user_name, write_files, input_library, output_library)
 
 library1 = library1$complete # Important! We extract the library object. "$complete" for extracting the entire library including historical mass spectra. Here since we create a brand-new library, "library1$complete" and "library1$current" are the same. 
 
@@ -136,7 +137,7 @@ input_library = library1
 output_library = "library_V2.mgf"
 user_name = "Daniel"
 
-library2 = library_generator(raw_data_files, metadata_file, mslevel, MS1.screener, MS1.screener.mode, MS2_type, isomers, adduct_type, max.charge, rt_search, ppm_search, baseline, relative, snthreshold, normalized, user = user_name, write_files, input_library, output_library)
+library2 = library_generator(raw_data_files, metadata_file, mslevel, screener, screener.mode, MS2_type, isomers, adduct_type, max.charge, rt_search, ppm_search, baseline, relative, snthreshold, max_peaks, normalized, user = user_name, write_files, input_library, output_library)
 
 ```
 Two new files should appear in the working directory that contain historical and updated scans: 1) Library file "library_V2.mgf". 2) "library_V2.mgf.txt".

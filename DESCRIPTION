@@ -2,14 +2,14 @@ Package: MergeION
 Type: Package
 Title: Merging and Networking Scans from Multiple LC-MS/MS Raw Data Files
 Version: 0.2
-Date: 2018-07-20
-Author: Youzhong LIU <Youzhong.Liu@uantwerpen.be>
-Maintainer: Youzhong LIU <Youzhong.Liu@uantwerpen.be>
+Date: 2020-06-20
+Author: Youzhong LIU <YLiu186@ITS.JNJ.com>
+Maintainer: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Depends: R (>= 3.5.1)
-Imports: MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
+Imports: BiocGenerics, RMassBank, XLConnect, compMS2Miner, mzR, rcdk, webchem, MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GPL-2
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

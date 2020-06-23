@@ -2,16 +2,18 @@
 % Please edit documentation in R/process_MS1.R
 \name{process_MS1}
 \alias{process_MS1}
-\title{Read and combine targeted MS1 scans from one LC-MS/MS file}
+\title{Read and combine targeted MS1 scans from one LC-MS/MS file using default MergeION algorithm}
 \usage{
 process_MS1(
-  mzdatafiles,
-  ref,
+  mzdatafiles = NULL,
+  ref = NULL,
   rt_search = 10,
-  ppm_search = 20,
-  isomers = T,
+  rt_gap = 30,
+  ppm_search = 10,
+  mz_search = 0.01,
   baseline = 1000,
   relative = 5,
+  max_peaks = 200,
   normalized = T
 )
 }

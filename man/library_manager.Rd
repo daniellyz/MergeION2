@@ -39,7 +39,7 @@ The function queries and selects or removes scans from the spectral library that
 data(DRUG_THERMO_LIBRARY)
 
 # Search library using query command lines:
-query = library_manager(library2,query=c("IONMODE=Positive","RT=1.2"), logical="AND", rt_search=6)
+query = library_manager(library2, query=c("IONMODE=Positive", "RT=1.2"), logical="AND", rt_search=6)
 
 # Create a new library from query:
 new_library1 = query$SELECTED

@@ -1,309 +1,358 @@
 #' Generating spectral library from raw LC-MS/MS chromatograms
 #'
-#' The function picks up targeted MS1/MS2 scans and merge them into a spcetral library (new or existing). The raw LC-MS/MS files must be centroid-mode mzML, mzMXL or mzData. Ions are selected based on m/z (and retention time) specified in the metadata (recommended) or by automatic peak picking in XCMS package.
-#'
-#' @param raw_data_files A character vector of file names of chromatograms from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
-#' @param metadata_file A single character or NULL. If provided, it must be the metadata file name with csv extension. The first six columns of the metadata must be (in order): "PEPMASS" (precursor masses that we want to find in chromatograms), "RT" (retention time of metabolic features to be found, in minute, please put it to N/A if unknown), "IONMODE" (must be "Positive" or "Negative"),"ADDUCT" (precursor ion adduct type, must be one of "M+H","M+Na","M+K","M-H" and "M+Cl"), "CHARGE" (charge number, please keep it at 1) and "ID" (A unique identifier for targeted compounds in spectral library). If NULL, please set MS1.screener = TRUE, a non-targeted feature screening will be performed using centWave from XCMS. In current release, this functionality only works when all input files are acquired on the same instrument and from the same ion mode, and they must all contain MS1 scans.
-#' @param mslevel Must be 1 (if only MS1 scans/isotopic patterns of targeted m/z are extracted), 2 (if only MS2 scans are extracted) or c(1,2) (if both MS1 and MS2 scans are extracted). Note: Isotopic patterns in MS1 scans are useful for determining precursor formula!
-#' @param MS1.screener Logical. TRUE if centWave algorithm from XCMS or DDA algorithm is used to detect LC-MS feature peaks based on MS1 scans in the data. The detected feature peaks are used as metadata to assist the generation of spectral library.
-#' @param MS1.screener.mode Character. "XCMS" or "DDA". "XCMS" for centWave algorithm from XCMS, snthrehold needs to be set. "DDA" simply detects m/z and retention time of fragmented precursor ions.
-#' @param MS2_type  A single character ("DDA" or "Targeted") if all raw_dat_files are acquired in the same mode; A character vector precising the acquisition mode of each file in raw_data_files (e.g. c("DDA","Targeted","DDA"))
-#' @param adduct_type Vector of character. Adduct types of ions considered. Its elements must be among "Default","M+H","M+Na","M+K","M+NH4","M-H" and "M+Cl". No additional ion species will be calculated if "Default".
-#' @param max.charge Integer. Maximal charge number. Must be a positive integer e.g. 2 if +1, +2 (or -1, -2) ions are consired.
-#' @param isomers Logical. TRUE if isomers are kept (scans with same precursor mass but with difference in retention time higher than 2 * rt_search). If FALSE, only the isomer with highest TIC is kept.
-#' @param rt_search Retention time search tolerance (in second) for targeted RT
-#' @param ppm_search m/z search tolerance (in ppm) for targeted m/z
-#' @param baseline Numeric. The absolute intensity threshold) that is considered as a mass peak and written into the library. Peaks above both absolute and relative thresholds are saved in the library.
-#' @param relative Numeric between 0 and 100. The relative intensity threshold of the highest peak in each spectrum). Peaks above both absolute and relative thresholds are saved in the library
-#' @param snthrehold Numeric higher than 1. Only used when MS1.screener = TRUE and MS1.screener.mode = "XCMS". Parameter used by centWave in XCMS to define chromatogram peaks.
-#' @param normalized Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100
-#' @param user Character. Name or ID of the user(s) that created or updated the library.
-#' @param write_files Logical. TRUE if user wishes to write the mgf and metadata (txt) file in the folder
+#' The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data and merge them into a spectral library (new or existing).
+#' 
 #' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf; please set to empty string "" or NULL if the new library has no dependency with previous ones.
-#' @param output_library Character.Name of the output library, the file extension must be mgf
-#'
+#' @param raw_data_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
+#' @param metadata_file A single character. It should be the metadata file name. The file should be txt, csv or xlsx format. The txt or csv file can be tab, comma or semi-colon separated. The xlsx file must be a single sheet. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
+#' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
+#' @param mslevel A numeric vector. Must contain 2 (if only MS2 scans are extracted) and can be c(1,2) if isotopic pattern in MS1 scans are also extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
+#' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M-2H", "M+COO-", "M+Cl" and "M-" for negative ion mode. If FALSE, no additional adduct types will be searched.
+#' @param processing.algorithm A single character. "Default", "compMS2Miner" or "RMassBank". 
+#' @param params.search Parameters for searching and collecting ions from chromatogram files in a list. These parameters define the tolerance window when input metadata is searched. The list must contain following elements:
+#' \itemize{
+#'  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da.}
+#'  \item{ppm_search:}{ Numeric. Absolute mass tolerance in ppm.} 
+#'  \item{rt_search":}{ Numeric. Absolute retention time tolerance in second.}
+#'  \item{rt_gap:}{ Numeric. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked. This parameter is not used for RMassBank.}
+#' }
+#' @param params.ms.preprocessing Paremters for post-processing scans found in chromatogram files in a list. It must contain:
+#' \itemize{
+#'  \item{normalized:}{ Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100.}
+#'  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
+#'  \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
+#'  \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
+#'  \item{recalibration:}{ Logical. TRUE if recalibration is performed using RMassBank algorithm.}
+#' } 
+#' @param params.user A single character. User name who processed the data.
+#' 
 #' @return
 #' \itemize{
-#'   \item{complete:}{ Entire spectra library (historical + newly added records) is a list object of two elements: "library$sp" ~ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity; "library$metadata" ~ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following metadata columns are added: FILENAME (which raw data file the scan is isolated), MSLEVEL (1 or 2), TIC, PEPMASS_DEV (ppm error for detected precursor mass) and SCANNUMBER (scan number in raw chromatogram). Parameters used for library generation were appended. The last three columns were PARAM_USER (user name), PARAM_CREATION_TIME (date and time when the MS record was added) and SCANS (unique identifier for each record, unchanged) }
+#'   \item{complete:}{ Entire spectra library (historical + newly added records) is a list object of two elements: "library$sp" ~ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity; "library$metadata" ~ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on scans detected in the chromatogram files. Following metadata columns are updated/added: FILENAME (which raw data file the scan is isolated), MSLEVEL (1 or 2), TIC, PEPMASS_DEV (ppm error for detected precursor mass) and SCANNUMBER (scan number in raw chromatogram). The last three columns were PARAM_SUBMIT_USER (user name), PARAM_ALGORITHM (algorithm of processing), PARAM_CREATION_TIME (date and time when the MS record was added) and SCANS (unique identifier for each record)}
 #'   \item{current:}{ Temporary spectra library that only contains newly added scans.}
-#'   \item{<ouput_library>:}{ A mgf spectral library file (complete spectralibrary) will be written in user's working directory. It contains both spectra and metadata}
-#'   \item{<ouput_library.txt>:}{ Metadata will be written as a tab-seperated .txt file in user's working directory. Users can check this file in excel or open office.}
 #' }
 #'
-#' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
+#' @author Youzhong Liu, \email{YLiu186@ITS.JNJ.com}
 #'
 #' @examples
-#' ### We download four test data sets:
 #'
-#' url = "https://zenodo.org/record/2581847/files/"
-#' original_files = c("NA_170405_MAS006_10.mzML",
-#'                   "TESTMIX2_180504_MAS011_06.mzXML",
-#'                   "JNJ42165279_171214_MAS006_14.mzXML",
-#'                   "GMP_R601592_150925_MAS006_04.mzXML")
-#' download.file(paste0(url,original_files[1]),destfile="MIX1.mzML") # Download and rename the files
-#' download.file(paste0(url,original_files[2]),destfile="MIX2.mzXML")
-#' download.file(paste0(url,original_files[3]),destfile="JNJ.mzXML")
-#' download.file(paste0(url,original_files[4]),destfile="GMP.mzXML")
-#'
-#' ### We create the first library
-#' raw_data_files = c("MIX1.mzML","MIX2.mzXML","JNJ.mzXML")
-#' metadata_file = "https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/library_metadata.csv"
-#' mslevel = c(1,2)  # Both MS1 and MS2 scans are extracted!
-#' 
-#' MS1.screener = FALSE # Since metadata is provided, no peak picking from MS1 scan is not necessary
-#' MS1.screener.mode = "XCMS" 
-#' 
-#' MS2_type = c("DDA","DDA","Targeted") # Mode of MS/MS experiment for the three files
-#' adduct_type = c("Default") # Only looking for default ion types (ion types provided by users in metadata)
-#' max.charge = 1 # Only looking for +1 charged ions
-#' isomers = FALSE # If isomers are present, only the peak with higher TIC is extracted.
-#'
-#' rt_search = 12 # Retention time tolerance (s)
-#' ppm_search = 10  # Mass tolerance (ppm)
-#' baseline = 1000  # Baseline level 1000 is fixed for 3 datasets.
-#' relative = 1 # Relative intensitiy level 1% is fixed. All peaks under both baseline and relative level are considered as noise.
-#' snthreshold = 30
-#' normalized = TRUE # The intensities of extracted spectra will be normalized to 100 (the highest peak)
-#'
-#' write_files = FALSE # The library(mgf) and metadata will not be writen in user's folder
-#' input_library = "" # A brand new library, there's no previous dependency
-#' output_library = "library_V1.mgf" # Name of the library
-#' user_name = "Florian" # User name for uploading
-#'
-#' library1 = library_generator(raw_data_files, metadata_file, mslevel, 
-#'                              MS1.screener, MS1.screener.mode, 
-#'                              MS2_type, isomers, adduct_type, max.charge,
-#'                              rt_search, ppm_search, 
-#'                              baseline, relative, snthreshold, normalized,
-#'                              user = user_name, write_files, input_library, output_library)
-#'
-#' library1 = library1$complete # Important! We extract the library object. "$complete" for extracting the entire library including historical mass spectra. Here since we create a brand-new library, "library1$complete" and "library1$current" are the same.
-#'
-#' ### Now we process and add a new data GMP.mzXML in the existing library:
-#' raw_data_files = "GMP.mzXML"
-#' adduct_type = c("M+H", "M+Na") # Two adduct types are now considered
-#' MS2_type = "Targeted"
-#' isomers = TRUE # We would like now to record all isomers in the library
-#'
-#' write_files = TRUE # We want to directly write the library mgf + metadata files
-#' input_library = library1
-#' output_library = "library_V2.mgf"
-#' user_name = "Thomas" # Another user adds records into the library
-#' library2 = library_generator(raw_data_files, metadata_file, mslevel, 
-#'                              MS1.screener, MS1.screener.mode,
-#'                              MS2_type, isomers, adduct_type, max.charge,
-#'                              rt_search, ppm_search, 
-#'                              baseline, relative, snthreshold, normalized,
-#'                              user = user_name, write_files, input_library, output_library)
-#'
-#' # In the end, "library_V2.mgf" should appear in the working directory along with its metadata table (txt files)
-#'
-#' # Now we check in the newly added scans whether the desired precursor mz is in:
-#'
-#' tmp_library = library2$current
-#' query = library_manager(tmp_library, query = c("PEPMASS = 478.096"), ppm_search = 20)
-#' library_visualizer(query)
-#'
-#' @importFrom MSnbase readMSData rtime tic fData readMgfData precursorMz polarity
-#' @importFrom tools file_ext
-#' @importFrom utils write.table read.csv menu
+#' @importFrom XLConnect loadWorkbook readWorksheet
+#' @importFrom tools file_ext file_path_sans_ext
+#' @importFrom utils read.csv
 #' @importFrom plyr rbind.fill
-#' @importFrom pracma findpeaks
-#'
+#' 
 #' @export
 #'
-library_generator<-function(raw_data_files, metadata_file, mslevel = c(1,2), 
-                            MS1.screener = FALSE, MS1.screener.mode = c("XCMS", "DDA"),
-                            MS2_type = "DDA", isomers = TRUE, adduct_type = "M+H", max.charge = 1,
-                            rt_search = 12,ppm_search = 20,
-                            baseline = 1000, relative =5, snthreshold = 30, normalized = T,
-                            user = "", write_files = TRUE, input_library = "", output_library = ""){
+#' @examples
+#'
+#' input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
+#' raw_data_files <- list.files(system.file("spectra", package = "MergeION"),".mzML", full.names = TRUE)
+#' metadata_file <- list.files(system.file(package = "MergeION"),".xlsx", full.names = TRUE)
+#' 
+#' polarity = "Positive"
+#' mslevel= 2 # Only MS2 scans are extracted!
+#' add.adduct = F # No additional adducts are searched besides M+H 
+#' 
+#' params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
+#' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = F)
+#' params.user = "DANIEL"
+#' 
+#' processing.algorithm = "Default"
+#' lib = library_generator(input_library, raw_data_files, metadata_file, 
+#'                        polarity = "Positive", mslevel, add.adduct, processing.algorithm,
+#'                        params.search, params.ms.preprocessing, params.user)
+#' lib1 = lib$complete
+#' save(lib1, file = "test_Default.RData") # Save the library as RData
+#' 
+#' processing.algorithm = "compMS2Miner"
+#' lib = library_generator(input_library, raw_data_files, metadata_file, 
+#'                        polarity = "Positive", mslevel, add.adduct, processing.algorithm,
+#'                        params.search, params.ms.preprocessing, params.user)
+#' lib2 = lib$complete
+#' save(lib2, file = "test_compMS2Miner.RData")  # Save the library as RData
+#'
+#' # Processing with RMassBank without recalibration:
+#' processing.algorithm = "RMassBank"
+#' lib = library_generator(input_library, raw_data_files, metadata_file, 
+#'                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
+#'                       params.search, params.ms.preprocessing, params.user)
+#' lib3 = lib$complete
+#' save(lib3, file = "test_RMassBank.RData")  # Save the library as RData
+#' 
+#' # Processing with RMassBank with the recalibration function:
+#' params.ms.preprocessing$recalibration = TRUE
+#' lib = library_generator(input_library, raw_data_files, metadata_file, 
+#'                      polarity = "Positive", mslevel, add.adduct, processing.algorithm,
+#'                      params.search, params.ms.preprocessing, params.user)
+#" lib4 = lib$complete
+#' save(lib4, file = "test_RMassBank_calibrated.RData")  
+#' 
+library_generator<-function(input_library = NULL, raw_data_files = NULL, metadata_file = NULL, 
+                  polarity = c("Positive", "Negative"), mslevel = c(1, 2), add.adduct = TRUE,
+                  processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
+                  params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30), 
+                  params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = F),
+                  params.user = ""){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-  FF = length(raw_data_files)
-  spectrum_list = list()
-  metadata = c()
-  NN = 0
-  max_scan = 0 #  Highest scan ID
-  old_lib = NULL # Previous library
-  LL1 = LL2 = 0
-  #unlink(output_library)
 
-  ##############################
-  ### Check function inputs:
-  ##############################
-
-  if (missing(raw_data_files) || (!is.vector(raw_data_files))){
-    stop("Please provide a list of chromatogram files!")}
-
-  if (!all(file_ext(raw_data_files) %in% c("mzML","mzXML","mzData"))){
-    stop("Chromatogram files must be in mzML, mzXML or mzData format!")}
-
-  if (!is.null(metadata_file)){
-    if ((!is.character(metadata_file)) || (length(metadata_file)!=1) || file_ext(metadata_file)!="csv"){
-      stop("Metadata must be written in one single csv!")
-    } else {
-    ref<-read.csv(metadata_file,sep=";",dec=".",header=T,stringsAsFactors = F)}
-  } else {ref = NULL}
-
-  if (!all(mslevel %in% c(1,2))){
-    stop("mslevel must be 1 or 2!")}
-
-  if (is.null(metadata_file) && !MS1.screener){
-    stop("No metadata is available! Please provide metadatafile or set MS1.screener = TRUE!")
-  }
-
-  if (length(MS2_type)==1){
-    MS2_type = rep(MS2_type,FF)
-  } else {
-    if (length(MS2_type)!=FF){
-      stop("The length of MS2_type must be the same as raw_data_files!")}}
-
-  if (!all(adduct_type %in% c("Default","M+H","M+Na","M+K","M+NH4","M-H","M+Cl"))){
-    stop("adduct_type not valid!")}
-
-  if ((max.charge%%1 != 0) || (max.charge<=0)){
-    stop("max.charge must be a positive integer!")
-  }
-
-  if (length(baseline)==1){
-    baseline = rep(baseline,FF)
-  } else {
-    if (length(baseline)!=FF){
-      stop("The length of baseline must be the same as raw_data_files!")}}
-
-  if (length(relative)==1){
-    relative = rep(relative,FF)
-  } else {
-    if (length(relative)!=FF){
-      stop("The length of relative must be the same as raw_data_files!")}}
-
-  if (length(snthreshold)==1){
-    snthreshold = rep(snthreshold,FF)
-  } else {
-    if (length(snthreshold)!=FF){
-      stop("The length of snthreshold must be the same as raw_data_files!")}}
-
-  MS2_type = match.arg(MS2_type,choices=c("DDA","Targeted"),several.ok = TRUE)
+  #####################################
+  ### Check general function inputs:###
+  #####################################
 
   if (is.character(input_library)){
     if (input_library!=""){
-      if (file_ext(input_library)!="mgf"){
-        stop("The input library must be mgf format!")
-  }}}
+      if (file_ext(input_library)!="mgf" & file_ext(input_library)!="RData"){
+        stop("The input library must be mgf or RData format!")
+   }}}
+  
+  if (!is.vector(raw_data_files)){
+    stop("Please provide a list of chromatogram files!")}
 
-  #######################################
-  ### Read from metadata and old library:
-  #######################################
+  if (!all(file_ext(raw_data_files) %in% c("mzML", "mzXML"))){
+    stop("Chromatogram files must be in mzML or mzXML format!")}
 
-  if (!is.null(ref)){
-
-    if (is.null(nrow(ref))){ # Only one row...
-      labels=names(ref)
-      ref=data.frame(matrix(ref,nrow=1))
-      colnames(ref)=labels
-    }
-
-    ref[,6]=as.character(ref[,6]) # Make sure IDs are characters
-
-    colnames(ref)[1]="PEPMASS"  # Make sure column name is correct!
-    colnames(ref)[2]="RT"
-    colnames(ref)[3]="IONMODE"
-    colnames(ref)[4]="ADDUCT"
-    colnames(ref)[5]="CHARGE"
-    colnames(ref)[6]="ID"
-
-    for (j in 1:ncol(ref)){  # Change column names to avoid duplicates
-      if (colnames(ref)[j] %in% c("FILENAME","MSLEVEL","TIC","PEPMASS_DEV","PEPMASS_DEV","SCAN_NUMBER","SCANS")){
-      colnames(ref)[j]=paste0(colnames(ref)[j],"_000")
-    }}
-
-    if (ncol(ref)<6){
-      stop("Metadata must contain at least 6 columns!")}
-
-    if (!is.numeric(ref$PEPMASS)){
-      stop("Precursor masses (PEPMASS) must be numeric!")}
-
-    if (!all(ref$IONMODE %in% c("Positive","Negative"))){
-      stop("Ion mode must be Postive or Negative!")}
-
-    if (!all(ref$ADDUCT %in% c("M+H","M+Na","M+K","M-H","M+Cl"))){
-      stop("Metadata contain non valid adduct types!")}
-
-    # Calculate multicharge:
-    ref = metadata_adduct_editor(ref, adducts = adduct_type, max.charge = max.charge)
+  if (!is.character(metadata_file)){
+    stop("You must provide the name of the csv or excel file that contains targeted metabolic features!")
   }
-
+  
+  if (length(metadata_file)>1){
+      stop("Metadata must be written in one csv, txt or single-sheet xlsx file!")
+  } 
+  
+  if (file_ext(metadata_file)!="csv" & file_ext(metadata_file)!="txt" & file_ext(metadata_file)!="xlsx"){
+    stop("Metadata must be written in one csv, txt or single-sheet xlsx file!")
+  } 
+  
+  if (length(polarity)!=1){
+    stop("Polarity must be either Positive or Negative")
+  }
+  
+  if (!(polarity %in% c("Positive", "Negative"))){
+    stop("Polarity must be either Positive or Negative")
+  }
+  
+  if (!(2 %in% mslevel)){
+    stop("2 must in mslevel!")
+  }
+  
+  if (length(processing.algorithm)!=1){
+    stop("Please choose one processing algorithm!")
+  }
+  
+  if (!(processing.algorithm %in% c("Default", "compMS2Miner", "RMassBank"))){
+    processing.algorithm = "Default"
+    message("Default algorithm is set, otherwise please set processing.algoroithm as compMS2Miner or RMassBank")
+  }
+  
+  if (!(processing.algorithm == "RMassBank") & params.ms.preprocessing$recalibration){
+    message("No recalibration is provided! Recalibration only available for RMassBank algorithm!")
+  }
+  
+  ###############################
+  ### Read and check old library:
+  ###############################
+  
   if (is.character(input_library)){
-   if (input_library!=""){
-      old_lib=readMGF2(input_library)
-   }} else {
-   if (!is.null(input_library)){
-      old_lib=input_library}}
-
+    if (file_ext(input_library)=="mgf"){
+      old_lib = readMGF2(input_library)}
+    if (file_ext(input_library)=="RData"){
+      old_lib = load_object(input_library)
+    }
+  } else {old_lib=input_library}
+  
   if (!is.null(old_lib)){
     if (length(old_lib)==2 & "complete" %in% names(old_lib)){
-      old_lib = old_lib$complete
-    }
+      old_lib = old_lib$complete}
     spectrum_list=old_lib$sp
     metadata=old_lib$metadata
-    max_scan = max(as.numeric(metadata$SCANS))
-    #metadata_items=colnames(metadata)[1:(ncol(metadata)-13)]
-    #metadata=metadata[,1:(ncol(metadata)-1)] # Remove LAST COLUMN SCANS!
+    max_scan = max(as.numeric(metadata$SCANS)) # Maximal scan
     NN = length(spectrum_list)
+  } else {
+    spectrum_list = list()
+    metadata = c()
+    max_scan = 0
+    NN= 0 
   }
-
+  
   # Old library size:
   NN0 = NN
 
-  ##################
-  ### Batch process:
-  ##################
+  #############################
+  ### Load and edit metadata###
+  #############################
+  
+  if (file_ext(metadata_file)=="csv" || file_ext(metadata_file)=="txt"){
+    ref = read.csv(metadata_file,sep=";",dec=".",header=T)
+    if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
+    if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
+  } 
+  
+  if (file_ext(metadata_file)=="xlsx"){ref = readWorksheet(loadWorkbook(metadata_file), sheet = 1, header = TRUE)}
+  
+  if (ncol(ref)<2){stop("Input metadata format not valid!")}
+  
+  if (!("ID" %in% colnames(ref))){stop("Input metadata must contain a column ID!")}
+  
+  if (processing.algorithm=="Default"){
+    if (!("PEPMASS" %in% colnames(ref))){stop("To use Default algorithm, PEPMASS must be provided! You could set it to N/A if SMILES is known!")}
+  }
+  
+  if (processing.algorithm=="compMS2Miner"){
+    if (!("PEPMASS" %in% colnames(ref))){stop("To use compMS2Miner algorithm, PEPMASS must be provided!")}
+    if (!("RT" %in% colnames(ref))){stop("To use compMS2Miner algorithm, retention time (RT) must be provided!")}
+  }
+  
+  if (processing.algorithm=="RMassBank"){
+    if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, SMILES must be provided!")}
+    if (!("FILENAME" %in% colnames(ref))){stop("To use RMassBank algorithm, please provide LC-MS file name corresponding to each compound!")}
+  }
+  
+  target.ref = metadata_editor(ref, processing.algorithm, polarity, add.adduct)
+  
+  if (nrow(target.ref)==0){
+    stop("No valid metadata available!")
+  }
 
-  for (ff in 1:FF){
+  #################
+  ### MergeION#####
+  #################
 
-    # Define metadata before processing each individual file:
-
-    if (MS1.screener){ # Redefine metadata if MS1 screener is on
-      targeted.ref = metadata_MS1_screener(raw_data_files[ff], screener = MS1.screener.mode, ref = ref,
-                          max.charge = max.charge, ppm_search = ppm_search, rt_search = rt_search,
-                          baseline = baseline[ff], snthreshold = snthreshold[ff])
-    } else {targeted.ref = ref}
-
-    # Extract MS2 scans:
-
-    if (!is.null(targeted.ref)){
-
+  if (processing.algorithm=="Default"){
+  
+    FF = length(raw_data_files)
+    temp_metadata = c() # Temporary metadata
+  
+    for (ff in 1:FF){
+      
+      print(ff)
+      # Extract MS2 scans:
+      
       if (2 %in% mslevel){
-        dat2 = process_MS2(raw_data_files[ff], targeted.ref, rt_search, ppm_search, MS2_type[ff], isomers, baseline[ff], relative[ff])
+    
+        dat2 = process_MS2(raw_data_files[ff], ref = target.ref, 
+                           rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+                           baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
+        
         LL2 = length(dat2$sp) # Added library size
+        
         if (LL2>0){
-          targeted.ref = dat2$ref_MS2 # Filter again metadata data for MS1 searcch
-          new_scans2 = (max_scan+1):(max_scan+LL2)
-          max_scan = max_scan+LL2
-          metadata2 = cbind.data.frame(dat2$metadata, PARAM_SUBMIT_USER = user, PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans2)
-          for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
-            metadata=rbind.fill(metadata,metadata2) # Update metadata
+            temp.ref = dat2$ref_MS2 # Filter again metadata data for MS1 searcch
+            new_scans2 = (max_scan+1):(max_scan+LL2)
+            max_scan = max_scan+LL2
+            metadata2 = cbind.data.frame(dat2$metadata, 
+                                         PARAM_SUBMIT_USER = params.user, 
+                                         PARAM_ALGORITHM = "MergeION",
+                                         PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans2)
+            for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
+            temp_metadata = rbind(temp_metadata, metadata2)
             NN=NN+LL2
-        }}
+    }}
 
-    # Extract MS1 scans:
+     # Extract MS1 scans:
 
-      if (1 %in% mslevel){ # We search MS1 only for compounds that are fragmented to provide isotopic pattern knowledge
-        dat1 = process_MS1(raw_data_files[ff], targeted.ref, rt_search, ppm_search, isomers, baseline[ff], relative[ff])
+     if (1 %in% mslevel){ # We search MS1 only for compounds that are fragmented to provide isotopic pattern knowledge
+        
+        dat1 = process_MS1(raw_data_files[ff], ref = temp.ref,
+                           rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+                           baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
+        
         LL1= length(dat1$sp) # Added library size
         if (LL1>0){
           new_scans1 = (max_scan+1):(max_scan+LL1)
           max_scan = max_scan+LL1
-          metadata1 = cbind.data.frame(dat1$metadata, PARAM_SUBMIT_USER = user, PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans1)
+          metadata1 = cbind.data.frame(dat1$metadata, 
+                                       PARAM_SUBMIT_USER = params.user, 
+                                       PARAM_ALGORITHM = "MergeION",
+                                       PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans1)
           for (n in 1:LL1){spectrum_list[[NN+n]]=dat1$sp[[n]]} # Update spectrum list
-          metadata=rbind.fill(metadata,metadata1) # Update metadata
+          temp_metadata =  rbind.data.frame(temp_metadata, metadata1)
           NN=NN+LL1
         }}
-      }
-    }
+     }
+  
+    metadata = rbind.fill(metadata, temp_metadata)
+  }
+  
+  #################
+  ### compMS2######
+  #################
+  
+  if (processing.algorithm=="compMS2Miner"){
+    
+    FF = length(raw_data_files)
+    temp_metadata = c() # Temporary metadata
+    
+    include.MS1 = FALSE
+    if (1 %in% mslevel){include.MS1 = TRUE}
+    
+    for (ff in 1:FF){
+      
+      print(ff)
+      
+      dat12 = process_compMS2Miner(raw_data_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
+         rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+         baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
+    
+      LL12 = length(dat12$sp) # Added library size
+      
+      if (LL12>0){
+        new_scans12 = (max_scan+1):(max_scan+LL12)
+        max_scan = max_scan+LL12
+        metadata12 = cbind.data.frame(dat12$metadata, 
+                                      PARAM_SUBMIT_USER = params.user,
+                                      PARAM_ALGORITHM = "compMS2Miner",
+                                      PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans12)
+        for (n in 1:LL12){spectrum_list[[NN+n]]=dat12$sp[[n]]} # Update spectrum list
+        temp_metadata = rbind(temp_metadata, metadata12)
+        NN=NN+LL12
+      }}
+    metadata = rbind.fill(metadata, temp_metadata)
+  }
+  
+  ###################
+  ### RMassBank######
+  ###################
+  
+  if (processing.algorithm=="RMassBank"){
+    
+    if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, valid SMILES code must be provided!")}
+        
+    FF = length(raw_data_files)
+    temp_metadata = c() # Temporary metadata
+    
+    include.MS1 = FALSE
+    if (1 %in% mslevel){include.MS1 = TRUE}
 
+    for (ff in 1:FF){
+      
+      print(ff)
+      
+      dat12 = process_RMassBank(raw_data_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
+                                add.adduct = add.adduct, rt_search = params.search$rt_seach, ppm_search = params.search$ppm_search, 
+                                baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
+                                recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
+      
+      LL12 = length(dat12$sp) # Added library size
+      
+      if (LL12>0){
+        new_scans12 = (max_scan+1):(max_scan+LL12)
+        max_scan = max_scan+LL12
+        metadata12 = cbind.data.frame(dat12$metadata, 
+                                      PARAM_SUBMIT_USER = params.user,
+                                      PARAM_ALGORITHM = "RMassBank",
+                                      PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans12)
+        for (n in 1:LL12){spectrum_list[[NN+n]]=dat12$sp[[n]]} # Update spectrum list
+        temp_metadata = rbind(temp_metadata, metadata12)
+        NN=NN+LL12
+    }}
+    metadata = rbind.fill(metadata, temp_metadata)
+    
+    unlink("mysettings.ini")
+    unlink("Compoundlist.csv")
+  }
+  
   ####################
   ### Return results:
   ####################
@@ -318,8 +367,18 @@ library_generator<-function(raw_data_files, metadata_file, mslevel = c(1,2),
   library_current$sp = spectrum_list[(NN0+1):NN]
   library_current$metadata = metadata[(NN0+1):NN,]
 
-  if (write_files){
-    writeMGF2(library,output_library)
-    write.table(library$metadata,paste0(output_library,".txt"),col.names = T,row.names=F,dec=".",sep="\t")}
+  #writeMGF2(library,output_library)
+  #write.table(library$metadata,paste0(file_path_sans_ext(output_library),".txt"),col.names = T,row.names=F,dec=".",sep="\t")
+  
   return(list(complete = library, current = library_current))
+}
+
+######################
+### Internal function:
+######################
+
+load_object <- function(file) {
+  tmp <- new.env()
+  load(file = file, envir = tmp)
+  tmp[[ls(tmp)[1]]]
 }
