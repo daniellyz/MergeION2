@@ -5,12 +5,12 @@ Version: 0.2
 Date: 2020-06-20
 Author: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Maintainer: Youzhong LIU <YLiu186@ITS.JNJ.com>
-Depends: Rcpp
+Depends: R (>= 3.5.1), Rcpp
 Imports: BiocGenerics, RMassBank, mzR, rcdk, webchem, MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
 Remotes: WMBEdmands/compMS2Miner
-SystemRequirements: Java JDK 8 or higher
+SystemRequirements: OpenBabel
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
-License: GPL-2
+License: Artistic-2.0
 LazyData: true
 RoxygenNote: 7.1.0
 Suggests: knitr, rmarkdown
