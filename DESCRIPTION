@@ -7,6 +7,7 @@ Author: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Maintainer: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Depends: R (>= 3.5.1), rJava(>= 0.9-8)
 Imports: BiocGenerics, RMassBank, compMS2Miner, mzR, rcdk, webchem, MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
+Remotes: WMBEdmands/compMS2Miner
 SystemRequirements: Java JDK 8 or higher
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GPL-2
