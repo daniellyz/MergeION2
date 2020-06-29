@@ -5,8 +5,13 @@ Version: 0.2
 Date: 2020-06-20
 Author: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Maintainer: Youzhong LIU <YLiu186@ITS.JNJ.com>
+<<<<<<< HEAD
 Depends: R (>= 3.5.1), Rcpp, rcdklibs
 Imports: BiocGenerics, RMassBank, mzR, rcdk, webchem, MSnbase, tools, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, proxy, stringr
+=======
+Depends: R (>= 3.5.1), Rcpp
+Imports: BiocGenerics, RMassBank, mzR, rcdk, webchem, MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy
+>>>>>>> 8bc273d5e33da1e30b65acad175a174c6bd09601
 Remotes: WMBEdmands/compMS2Miner
 SystemRequirements: OpenBabel
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
