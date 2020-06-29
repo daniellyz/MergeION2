@@ -1,13 +1,13 @@
 #' Extracting metadata and a list of spectra from mgf file
 #'
-#' The function extracts a dataframe of metadata and a list of spectra from mgf file or
+#' The function extracts a dataframe of metadata and a list of spectra from mgf file
 #'
 #' @param con Name of the input library, the file extension must be mgf
 #'
 #' @return
 #' \itemize{
 #'   \item{sp:}{ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
-#'   \item{metadata:}{ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following five columns are added: FILENAME, MSLEVEL, TIC, MASS_DEV, SCANNUMBER and SCANS}
+#'   \item{metadata:}{ Data frame containing metadata of extracted scans.}
 #' }
 #'
 #' @importFrom tools file_ext
@@ -28,7 +28,7 @@ readMGF2<-function(con){
       stop("The input must be the name of the mgf file!")}
 
   #####################################
-  ### Reading from spectral library:
+  ### Reading from spectral library:###
   #####################################
 
   db = readMgfData(con, verbose = FALSE)
@@ -42,7 +42,7 @@ readMGF2<-function(con){
   }
 
   ####################
-  ### Return results:
+  ### Return results:#
   ####################
 
   library = list()

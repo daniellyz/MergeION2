@@ -17,7 +17,7 @@ process_MS2<-function(mzdatafiles = NULL, ref = NULL,
  options(warn=-1)
  
  if ("FILENAME" %in% colnames(ref)){
-   valid = which(basename(ref$FILENAME) == basename(mzdatafiles)) 
+   valid = c(which(basename(ref$FILENAME) == basename(mzdatafiles)),  which(ref$FILENAME =="N/A"))
    ref = ref[valid,,drop=FALSE]
  }
 
@@ -36,7 +36,7 @@ process_MS2<-function(mzdatafiles = NULL, ref = NULL,
  #####################
  
  MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE),silent=T)
- 
+
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
  if (nrow(ref)==0){MS2_Janssen=NULL}
@@ -190,16 +190,16 @@ process_MS2<-function(mzdatafiles = NULL, ref = NULL,
         }
     }
     
-   new_MS2_meta_data = new_MS2_meta_data[included,,drop=FALSE]
-   id_kept = unique(new_MS2_meta_data$ID)
-   ref = ref[match(id_kept,ref$ID),,drop=FALSE]
-  } 
-
- }}
-    
-  if (nrow(new_MS2_meta_data)==0){  
-    print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))
-  }
+    new_MS2_meta_data = new_MS2_meta_data[included,,drop=FALSE]
+    id_kept = unique(new_MS2_meta_data$ID)
+    ref = ref[match(id_kept,ref$ID),,drop=FALSE]
+   } 
+  }}
+  
+  if (!is.null(new_MS2_meta_data)){
+    if (nrow(new_MS2_meta_data)==0){  
+      print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))
+  }} else { print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))}
 
   return(list(sp=spectrum_list,metadata=new_MS2_meta_data,ref_MS2=ref))
 }

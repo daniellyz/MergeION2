@@ -99,15 +99,3 @@ cut_mz_list<-function(mzlist, mz_window){
   mz_feature[t0:N] = f
   return(mz_feature)
 }
-
-custom.dist <- function(my.list, my.function) {
-  n <- length(my.list)
-  mat <- matrix(0, ncol = n, nrow = n)
-  colnames(mat) <- rownames(mat) <- names(my.list)
-  for(i in 1:nrow(mat)) {
-    for(j in 1:ncol(mat)) {
-      mat[i,j] <- my.function(my.list[i],my.list[j])
-    }}
-  return(as.dist(mat))
-}
-

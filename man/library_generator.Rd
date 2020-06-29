@@ -19,7 +19,7 @@ library_generator(
 )
 }
 \arguments{
-\item{input_library}{Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf; please set to empty string "" or NULL if the new library has no dependency with previous ones.}
+\item{input_library}{Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.}
 
 \item{raw_data_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!}
 
@@ -41,7 +41,7 @@ library_generator(
  \item{rt_gap:}{ Numeric. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked. This parameter is not used for RMassBank.}
 }}
 
-\item{params.ms.preprocessing}{Paremters for post-processing scans found in chromatogram files in a list. It must contain:
+\item{params.ms.preprocessing}{Paremeters for post-processing scans found in chromatogram files in a list. It must contain:
 \itemize{
  \item{normalized:}{ Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100.}
  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}

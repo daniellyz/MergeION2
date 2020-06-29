@@ -17,7 +17,7 @@ process_MS1<-function(mzdatafiles = NULL, ref = NULL,
   options(warn=-1)
 
   if ("FILENAME" %in% colnames(ref)){
-    valid = which(basename(ref$FILENAME) == basename(mzdatafiles)) 
+    valid = c(which(basename(ref$FILENAME) == basename(mzdatafiles)),  which(ref$FILENAME =="N/A"))
     ref = ref[valid,,drop=FALSE]
   }
   
@@ -166,10 +166,11 @@ process_MS1<-function(mzdatafiles = NULL, ref = NULL,
    new_MS1_meta_data = new_MS1_meta_data[included,,drop=FALSE]
    }
   }
-    
-  if (nrow(new_MS1_meta_data)==0){  
-    print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))
-  }
+  
+  if (!is.null(new_MS1_meta_data)){
+    if (nrow(new_MS1_meta_data)==0){  
+      print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))
+  }} else {print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))}
 
   return(list(sp=spectrum_list,metadata=new_MS1_meta_data))
 }

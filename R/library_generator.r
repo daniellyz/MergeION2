@@ -2,7 +2,7 @@
 #'
 #' The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data and merge them into a spectral library (new or existing).
 #' 
-#' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf; please set to empty string "" or NULL if the new library has no dependency with previous ones.
+#' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.
 #' @param raw_data_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
 #' @param metadata_file A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
@@ -16,7 +16,7 @@
 #'  \item{rt_search":}{ Numeric. Absolute retention time tolerance in second.}
 #'  \item{rt_gap:}{ Numeric. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked. This parameter is not used for RMassBank.}
 #' }
-#' @param params.ms.preprocessing Paremters for post-processing scans found in chromatogram files in a list. It must contain:
+#' @param params.ms.preprocessing Paremeters for post-processing scans found in chromatogram files in a list. It must contain:
 #' \itemize{
 #'  \item{normalized:}{ Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100.}
 #'  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
@@ -102,8 +102,8 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
 
   if (is.character(input_library)){
     if (input_library!=""){
-      if (file_ext(input_library)!="mgf" & file_ext(input_library)!="RData"){
-        stop("The input library must be mgf or RData format!")
+      if (file_ext(input_library)!="mgf" & file_ext(input_library)!="RData" & file_ext(input_library)!="msp"){
+        stop("The input library must be mgf, msp or RData format!")
    }}}
   
   if (!is.vector(raw_data_files)){
@@ -158,6 +158,8 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
       old_lib = readMGF2(input_library)}
     if (file_ext(input_library)=="RData"){
       old_lib = load_object(input_library)
+    if (file_ext(input_library)=="msp"){
+      old_lib = readMSP2(input_library)}
     }
   } else {old_lib=input_library}
   
@@ -186,7 +188,7 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
   if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
   if (ncol(ref)<2){stop("Input metadata format not valid!")}
-  
+
   if (!("ID" %in% colnames(ref))){stop("Input metadata must contain a column ID!")}
   
   if (processing.algorithm=="Default"){
@@ -204,7 +206,6 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   }
   
   target.ref = metadata_editor(ref, processing.algorithm, polarity, add.adduct)
-  
   if (nrow(target.ref)==0){
     stop("No valid metadata available!")
   }
@@ -361,9 +362,6 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   library_current$sp = spectrum_list[(NN0+1):NN]
   library_current$metadata = metadata[(NN0+1):NN,]
 
-  #writeMGF2(library,output_library)
-  #write.table(library$metadata,paste0(file_path_sans_ext(output_library),".txt"),col.names = T,row.names=F,dec=".",sep="\t")
-  
   return(list(complete = library, current = library_current))
 }
 

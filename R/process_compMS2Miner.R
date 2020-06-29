@@ -27,7 +27,7 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
   ###########################
   
   if ("FILENAME" %in% colnames(ref)){
-    valid = which(basename(ref$FILENAME) == basename(mzdatafiles)) 
+    valid = c(which(basename(ref$FILENAME) == basename(mzdatafiles)),  which(ref$FILENAME =="N/A"))
     ref = ref[valid,,drop=FALSE]
   }
   

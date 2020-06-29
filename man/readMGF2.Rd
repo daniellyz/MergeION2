@@ -12,9 +12,9 @@ readMGF2(con)
 \value{
 \itemize{
   \item{sp:}{ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
-  \item{metadata:}{ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following five columns are added: FILENAME, MSLEVEL, TIC, MASS_DEV, SCANNUMBER and SCANS}
+  \item{metadata:}{ Data frame containing metadata of extracted scans.}
 }
 }
 \description{
-The function extracts a dataframe of metadata and a list of spectra from mgf file or
+The function extracts a dataframe of metadata and a list of spectra from mgf file
 }

@@ -97,7 +97,6 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
     ref$FILENAME[nonvalid] = "N/A"
   } else {ref$FILENAME = "N/A"}
   
-  
   # Calculate PEPMASS from smiles if PEPMASS not available:
   
   for (i in 1:nrow(ref)){
@@ -165,8 +164,6 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
 ########################
 
 cas_name_generator<-function(smiles){
-  
-  # Input can be any of smiles/inchi/inchikey
   
   options(stringsAsFactors = F)
   options(warn = -1)
