@@ -18,6 +18,7 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 # Install MergeION:
 install.packages("remote")
 install.packages("Rcpp")
+install.packages("multtest")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
 BiocManager::install("daniellyz/MergeION2")
 ```
