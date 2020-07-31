@@ -8,36 +8,34 @@
 #' @export
 #' 
 process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positive", "Negative"), include.MS1 = FALSE,
-                            add.adduct = FALSE, rt_search = 10, ppm_search = 10, 
-                            baseline= 1000, relative = 5, max_peaks = 200, recalibration = F, normalized=T){
+                            rt_search = 10, ppm_search = 10, 
+                            baseline= 1000, relative = 5, max_peaks = 200, recalibration = 0, normalized=T){
   
   options(stringsAsFactors = F)
   options(warn=-1)
   library(RMassBank)
   
-  # @importFrom RMassBank ppm RmbSettingsTemplate loadRmbSettings loadList newMsmsWorkspace analyzeMsMs aggregateSpectra makeRecalibration recalibrateSpectra findLevel findMz findRt findName findMsMsHRperxcms findFormula archiveResults cleanElnoise reanalyzeFailpeaks filterMultiplicity processProblematicPeaks deprofile.scan
+  if (polarity=="Positive"){mode = "pM"}
+  if (polarity=="Negative"){mode = "mH"}
   
-  if (add.adduct){mode = c("pH", "pNa", "pM")}
-  if (!add.adduct){mode = c("pH")}
-  
-  if (polarity=="Positive"){ref = ref[ref$ADDUCT=="M+H",,drop=FALSE]}
-  if (polarity=="Negative"){ref = ref[ref$ADDUCT=="M-H",,drop=FALSE]}
+  if (polarity=="Positive"){ref = ref[ref$IONMODE =="Positive",,drop=FALSE]}
+  if (polarity=="Negative"){ref = ref[ref$IONMODE =="Negative",,drop=FALSE]}
   
   output_metadata = c()
   output_sp = list()
   kkk = 0
 
+  valid = which(basename(ref$FILENAME) == basename(mzdatafiles))
+  ref = ref[valid,,drop=FALSE]
+
   ###########################
   ######Prepare metadata#####
   ###########################
   
-  valid = which(basename(ref$FILENAME) == basename(mzdatafiles)) 
-
-  if (length(valid)>0){
+  if (nrow(ref)>0){
   
-    ref = ref[valid,,drop=FALSE]
     ref0 = ref # Backup!
-    
+
     ref$ID = 1:nrow(ref)
     
     if (!("Name" %in% colnames(ref))){ref$Name = ref$ID}
@@ -77,6 +75,7 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
     for (rr in 1:nrow(ref)){
       
       ref2 = ref[rr,,drop=FALSE]
+
       for (x in 1:ncol(ref2)){ref2[1,x] = gsub(",","_", ref2[1,x])} # Pb with compound list...
       
       ref2$PEPMASS = as.numeric(ref2$PEPMASS)
@@ -84,38 +83,73 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
       loadRmbSettings("mysettings.ini")
       loadList("Compoundlist.csv")
       
-      w <- newMsmsWorkspace()
-      w@files = mzdatafiles
+      w0 <- newMsmsWorkspace()
+      w0@files = mzdatafiles
       
-      # Basic processing:
-      w1 <- msmsWorkflow1(w = w, cpdid = ref2$ID, mode = mode, steps = c(1:2), readMethod = "mzR")
-      sp1 = w1@spectra[[1]]@parent
-      sp1 = cbind(sp1@mz, sp1@intensity)
-      temp_sp2 = w1@spectra[[1]]@children # MS2
+      # Processing:
       
-      prec_mz = w1@spectra[[1]]@mz
-      prec_rt_ms1 = round(w1@spectra[[1]]@parent@rt/60,2)
-      prec_rt_ms2 = round(median(sapply(temp_sp2, function(x) x@rt))/60, 2)
-      prec_scan_ms1 = w1@spectra[[1]]@parent@acquisitionNum
-      prec_scan_ms2 =  round(median(sapply(temp_sp2, function(x) x@acquisitionNum)),0)
+      sp2 = NULL
       
-      # Aggregation and recalibration:
-      
-      if (length(temp_sp2)>1){ # Further aggregate if multiple scans found
-        w1 <- msmsWorkflow1(w = w1, cpdid = ref2$ID, mode = mode, steps = 3, readMethod = "mzR")
-        sp2 = cbind(w1@aggregated$mzFound, w1@aggregated$intensity)
-        if (recalibration){
-            w1 <- msmsWorkflow1(w = w1, cpdid = ref2$ID, mode = mode, steps = c(4:6), readMethod = "mzR")
-            sp2 = cbind(w1@aggregated$mzFound, w1@aggregated$intensity)
-            sp1 = cbind(w1@spectra[[1]]@parent@mz, w1@spectra[[1]]@parent@intensity)  
-          }
-      } 
-      
-      if (length(temp_sp2)==1){sp2 = cbind(temp_sp2[[1]]@mz, temp_sp2[[1]]@intensity)}
-      
-      # Add MS2     
+      if (recalibration==0){w1 <- try(msmsWorkflow1(w = w0, cpdid = ref2$ID, mode = mode, steps = c(1:3), readMethod = "mzR"), silent = T)}
+      if (recalibration>0){w1 <- try(msmsWorkflow1(w = w0, cpdid = ref2$ID, mode = mode, steps = c(1:6), readMethod = "mzR"), silent = T)}
 
-      if (w1@spectra[[1]]@found){
+      if (class(w1)!="try-error"){
+        
+        temp_sp1 = w1@spectra[[1]]@parent
+        sp1 = cbind(temp_sp1@mz, temp_sp1@intensity)
+    
+        aggregated = w1@aggregated
+      
+        # Just merge spectra without recalibration:
+      
+        if (recalibration==0 & nrow(aggregated)>2){
+        
+          temp_sp2 = cbind(aggregated$mzFound, aggregated$intensity)
+          temp_sp2 = temp_sp2[order(temp_sp2[,1]),,drop=FALSE]
+          temp_sp2_feature = cut_mz_list(temp_sp2[,1], 0.02)
+          sp2_feature = unique(temp_sp2_feature)
+      
+          sp2 = c()
+          for (j in 1:length(sp2_feature)){
+            valid = which(temp_sp2_feature == sp2_feature[j])
+            sub_sp = temp_sp2[valid,,drop=FALSE]
+            sp2 = rbind(sp2, colMeans(sub_sp))
+        }
+      }
+      
+      # Recalibration if necessary:
+      
+        if (recalibration>0 & nrow(aggregated)>2){
+        
+          aggregated = aggregated[which(aggregated$good),,drop=FALSE]
+          aggregated = aggregated[which(!aggregated$noise),,drop=FALSE]
+          aggregated = aggregated[which(!is.na(aggregated$formula)),,drop=FALSE]
+          aggregated = aggregated[which(!duplicated(aggregated$formula)),,drop=FALSE]
+        
+          if (recalibration==1){
+            sp2 = cbind.data.frame(aggregated$mzFound, aggregated$intensity, aggregated$formula)
+          }
+          if (recalibration==2){
+            sp2 = cbind.data.frame(aggregated$mzCalc, aggregated$intensity, aggregated$formula)
+          }
+        colnames(sp2) = NULL
+      }}
+      
+      # Update   
+
+      if (!is.null(sp2)){
+        
+        # Basic metadata:
+        
+        temp_sp2 = w1@spectra[[1]]@children
+        
+        prec_mz = w1@spectra[[1]]@mz
+        prec_rt_ms1 = round(w1@spectra[[1]]@parent@rt/60,2)
+        prec_rt_ms2 = round(median(sapply(temp_sp2, function(x) x@rt))/60, 2)
+        prec_scan_ms1 = w1@spectra[[1]]@parent@acquisitionNum
+        prec_scan_ms2 =  round(median(sapply(temp_sp2, function(x) x@acquisitionNum)),0)
+      
+        # Add MS2 Spectra:
         
         temp_metadata_ms2 = ref2
         temp_metadata_ms2$PEPMASS = prec_mz 
@@ -166,13 +200,14 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
   }
   
   if (!is.null(dev.list())){dev.off()}
+
+  
   return(list(sp=output_sp,metadata=output_metadata))
 }
 
-
-#############################
-######Internal Functions#####
-#############################
+#################################
+###Modified RMassBank Pipeline ##
+#################################
 
 msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FALSE, 
                          newRecalibration = TRUE, useRtLimit = TRUE, archivename = NA, 
@@ -225,8 +260,9 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
     }
     pb <- do.call(progressbar, list(object = NULL, value = 0, 
                                     min = 0, max = nLen))
+
     w@spectra <- as(lapply(w@spectra, function(spec) {
-      s <- analyzeMsMs(spec, mode = mode, detail = TRUE, 
+      s <- analyzeMsMs1(spec, mode = mode, detail = TRUE, 
                        run = "preliminary", filterSettings = settings$filterSettings, 
                        spectraList = settings$spectraList, method = analyzeMethod)
       nProg <<- nProg + 1
@@ -235,6 +271,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
     }), "SimpleList")
     suppressWarnings(do.call(progressbar, list(object = pb, 
                                                close = TRUE)))
+
   }
   if (3 %in% steps) {
     message("msmsWorkflow: Step 3. Aggregate all spectra")
@@ -282,7 +319,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
       else {
         analyzeMethod <- "formula"
       }
-      s <- analyzeMsMs(spec, mode = mode, detail = TRUE, 
+      s <- analyzeMsMs1(spec, mode = mode, detail = TRUE, 
                        run = "recalibrated", filterSettings = settings$filterSettings, 
                        spectraList = settings$spectraList, method = analyzeMethod)
       nProg <<- nProg + 1
@@ -330,6 +367,10 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
   return(w)
 }
 
+#####################################
+###Modified RMassBank Subfunctions ##
+#####################################
+
 msmsRead1 <- function(w, filetable = NULL, files = NULL, cpdids = NULL, 
                       readMethod, mode, confirmMode = FALSE, useRtLimit = TRUE, 
                       Args = NULL, settings = getOption("RMassBank"),
@@ -362,7 +403,7 @@ msmsRead1 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
     cpdids <- tab[,"ID"]
   }
   
-  ##If there's more cpdids than filenames or the other way around, then abort
+   ##If there's more cpdids than filenames or the other way around, then abort
   if(length(w@files) != length(cpdids)){
     stop("There are a different number of cpdids than files")
   }
@@ -418,7 +459,6 @@ msmsRead1 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
                           fillPrecursorScan = settings$findMsMsRawSettings$fillPrecursorScan,
                           rtMargin = settings$rtMargin,
                           deprofile = settings$deprofile, retrieval=retrieval)
-      
       gc()
       
       # Progress:
@@ -515,11 +555,12 @@ findMsMsHR1 <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmM
   
   # access data directly for finding the MS/MS data. This is done using
   # mzR.
+  
   if(!is.null(fileName) & !is.null(msRaw))
     stop("Both MS raw data and MS filename given. Only one can be handled at the same time.")
   if(!is.null(fileName))
     msRaw <- openMSfile(fileName)
-  
+
   mzLimits <- findMz(cpdID, mode, retrieval=retrieval)
   mz <- mzLimits$mzCenter
   limit.fine <- ppm(mz, ppmFine, p=TRUE)
@@ -553,14 +594,13 @@ findMsMsHR1 <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmM
   # If we had to open the file, we have to close it again
   if(!is.null(fileName))
     close(msRaw)
-  
   return(sp)
 }
 
 findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA, maxCount = NA,
                              headerCache = NULL, fillPrecursorScan = FALSE,
-                             deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA)
-{
+                             deprofile = getOption("RMassBank")$deprofile, peaksCache = NULL, cpdID = NA){
+  
   eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
                  peaksCache=peaksCache)
 
@@ -608,7 +648,7 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
   which_OK <- lapply(validPrecursors, function(pscan)
   {
     pplist <- as.data.frame(
-      peaks(msRaw, which(headerData$acquisitionNum == pscan)))
+      ProtGenerics::peaks(msRaw, which(headerData$acquisitionNum == pscan)))
     colnames(pplist) <- c("mz","int")
     pplist <- pplist[(pplist$mz >= mz -limit.fine)
                      & (pplist$mz <= mz + limit.fine),,drop=FALSE]
@@ -656,7 +696,7 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
     
     childScans <- childHeaders$seqNum
     
-    msPeaks <- peaks(msRaw, masterHeader$seqNum)
+    msPeaks <- ProtGenerics::peaks(msRaw, masterHeader$seqNum)
 
     # if deprofile option is set: run deprofiling
     deprofile.setting <- deprofile
@@ -668,7 +708,7 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
 
     msmsSpecs <- apply(childHeaders, 1, function(line)
     {
-      pks <- peaks(msRaw, line["seqNum"])
+      pks <- ProtGenerics::peaks(msRaw, line["seqNum"])
   
       if(!is.na(deprofile.setting))
       {								
@@ -723,6 +763,38 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
   return(spectra)
 }
 
+analyzeMsMs1<-function (msmsPeaks, mode = "pH", detail = FALSE, run = "preliminary", 
+                       filterSettings = getOption("RMassBank")$filterSettings, 
+                       spectraList = getOption("RMassBank")$spectraList, method = "formula"){
+  #.checkMbSettings()
+  if (msmsPeaks@found == FALSE) 
+    return(msmsPeaks)
+  if (method == "formula") {
+    r <- analyzeMsMs.formula(msmsPeaks, mode, detail, run, 
+                             filterSettings)
+  }
+  else if (method == "intensity") {
+    r <- analyzeMsMs.intensity(msmsPeaks, mode, detail, run, 
+                               filterSettings)
+  }
+  children <- mapply(function(spec, info) {
+    spec@info <- info
+    spec
+  }, r@children, spectraList, SIMPLIFY = FALSE)
+  r@children <- as(children, "SimpleList")
+  ok <- unlist(lapply(r@children, function(c) c@ok))
+  r@complete <- FALSE
+  r@empty <- FALSE
+  if (all(ok)) 
+    r@complete <- TRUE
+  if (all(!ok)) 
+    r@empty <- TRUE
+  return(r)
+}
+
+###############################
+###Post-Processing functions ##
+###############################
 
 denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   
@@ -806,5 +878,26 @@ decimalplaces <- function(x){
   }
 }
 
+cut_mz_list<-function(mzlist, mz_window){
+  
+  N=length(mzlist)
+  
+  f=1
+  mz_feature=c(0, N) 
+  t0 = 1 # Start index of a cluster
+  
+  for (k in 2:N){
+    min_mz = min(mzlist[t0:(k-1)])
+    avg_mz = mean(mzlist[t0:(k-1)])
+    
+    if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
+      mz_feature[t0:(k-1)] = f 
+      f = f + 1
+      t0 = k
+    }
+  }
+  mz_feature[t0:N] = f
+  return(mz_feature)
+}
 
 

@@ -33,6 +33,7 @@ readMSP2<-function(con){
   msp <- file(con,open="r")
   msp_lines <- readLines(msp,warn = F)
   msp_lines = msp_lines[msp_lines!=""]
+  close(msp)
   
   begin_ind = which(grepl("Name:",msp_lines))
   #end_ind = which(grepl("Num Peaks:",msp_lines))

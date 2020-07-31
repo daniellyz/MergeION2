@@ -11,7 +11,7 @@
 #' 
 library2matrix<-function(input_library, consensus_window = 0.02){
   
-  options(stringsAsFactors =   FALSE)
+  options(stringsAsFactors = FALSE)
   options(warn=-1)
 
   ####################################
@@ -61,28 +61,24 @@ library2matrix<-function(input_library, consensus_window = 0.02){
       return(list(ref_lib = input_library, sp_profile=sp_profile, sp_feature=sp_feature,nl_profile=nl_profile, nl_feature= nl_feature))
     }
     
-    
-    input_library = library_merger(input_library, method = "consensus", consensus_window = consensus_window, 
-                                   params.ms.preprocessing = list(relative = 0, max_peaks = 100))
-
     splist = input_library$sp
     metadata = input_library$metadata
     IDlist = metadata$ID
     NM = nrow(metadata)
   } else {stop("Please provide input library!")} 
   
-  ##########################
-  ### Preprocess spectra:###
-  ##########################
+  ############################
+  ### Neutral loss spectra:###
+  ############################
   
   nllist = list()
   
   for (i in 1:NM){
     sp = splist[[i]]
-    prec.mz = as.numeric(metadata$PEPMASS)
+    prec.mz = as.numeric(metadata$PEPMASS[i])
     nl = cbind(prec.mz - sp[,1], sp[,2])
     nl = nl[nl[,1]>2,,drop=FALSE]
-    nl = nl[order(nl[,1]),]
+    nl = nl[order(nl[,1]),,drop=FALSE]
     nllist[[i]] = nl
   }  
 
@@ -92,7 +88,6 @@ library2matrix<-function(input_library, consensus_window = 0.02){
   
   sp_aligned = average_spectrum(splist, mz_window = consensus_window)
   sp_profile = sp_aligned$I_matrix
-  dim(sp_profile)
   FID = paste0("Frag_", 1:nrow(sp_profile))
   rownames(sp_profile) = FID
   colnames(sp_profile) = IDlist
@@ -104,8 +99,21 @@ library2matrix<-function(input_library, consensus_window = 0.02){
   rownames(nl_profile) = NID
   colnames(nl_profile) = IDlist
   nl_feature = data.frame(NID = NID, Mass = nl_aligned$new_spectrum[,1])
+
+  ###############################
+  ### Reduce Existing Library####
+  ###############################
   
-  return(list(ref_lib = input_library, sp_profile=sp_profile, sp_feature=sp_feature,nl_profile=nl_profile, nl_feature= nl_feature))
+  colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
+  
+  db_profile = rbind(sp_profile, nl_profile)
+  db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
+  
+  valid = which(apply(db_profile, 1, sum)>0)
+  db_profile = db_profile[valid,,drop=FALSE]
+  db_feature = db_feature[valid,,drop=FALSE]
+  
+  return(list(ref_lib = input_library, db_profile=db_profile, db_feature=db_feature))
 }  
   
 ######################

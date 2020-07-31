@@ -48,11 +48,14 @@ average_spectrum<-function(splist, mz_window = 0.01){
   #################################################
   
   I_matrix = matrix(0,N_feature,NBS) # Intensity matrix N_feature x Nb of spectra
+  #I_matrix <- big.matrix(N_feature, NBS, type='integer', init=0)
+  
   avg_mzlist=rep(0,N_feature) # Averaged mass list
   dev_matrix = matrix(0,N_feature,NBS)
-  
+  #dev_matrix <- big.matrix(N_feature, NBS, type='double', init=0)
+
   for (i in 1:N_feature){
-    
+
     valid = which(mz_labels == mz_features[i])
     avg_mzlist[i] = mean(samples$mz[valid])
     dev_matrix[i, samples$File_num[valid]] = samples$mz[valid] - avg_mzlist[i]
@@ -65,7 +68,9 @@ average_spectrum<-function(splist, mz_window = 0.01){
   ### Output new spectrum:
   ########################
   
-  new_intensity = apply(I_matrix, 1, mean)
+  #new_intensity = apply(I_matrix, 1, mean)
+  new_intensity = sapply(1:N_feature, function(a) mean(I_matrix[a,]))
+  
   new_spectrum = cbind(avg_mzlist,new_intensity)
   colnames(new_spectrum)=NULL
   rownames(new_spectrum)=NULL

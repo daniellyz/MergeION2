@@ -18,7 +18,7 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   
   if (polarity == "Positive" & add.adduct){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
   if (polarity == "Positive" & !add.adduct){ref_adducts = "M+H"}
-  if (polarity == "Negative" & add.adduct){ref_adducts = c("M-H","M-2H", "M+Cl", "M+HCOO-","M-")}
+  if (polarity == "Negative" & add.adduct){ref_adducts = c("M-H","M+Cl", "M+HCOO-","M+CH3COO-")}
   if (polarity == "Negative" & !add.adduct){ref_adducts = "M-H"}
   
   ##########################
@@ -66,8 +66,7 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   
   ref$CHARGE = 1
   ref$CHARGE[ref$ADDUCT=="M+2H"] = 2
-  ref$CHARGE[ref$ADDUCT=="M-2H"] = 2
-  
+
   # Check smiles code if provided:
   
   if ("SMILES" %in% colnames(ref)){
@@ -93,7 +92,7 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   # Check filename:
   
   if ("FILENAME" %in% colnames(ref)){
-    nonvalid = which(!(file_ext(ref$FILENAME) %in% c("mzML", "mzXML")))
+    nonvalid = which(!(file_ext(ref$FILENAME) %in% c("mzML", "mzXML", "cdf", "CDF")))
     ref$FILENAME[nonvalid] = "N/A"
   } else {ref$FILENAME = "N/A"}
   
@@ -112,19 +111,11 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   
   # Expand adduct if required by users:
   
-  if (processing.algorithm!="RMassBank" & add.adduct){
-    ref1 = ref[which(!ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
-    ref2 = ref[which(ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
-    ref2_new = expand_ref_adduct(ref2, polarity)
-    ref = rbind.data.frame(ref1, ref2_new)
-  }
-  
-  # Only keep M+H and M-H of RMassBank:
-  
-  if (processing.algorithm=="RMassBank"){
-    ref = ref[which(ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
-  }
-  
+  ref1 = ref[which(!ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
+  ref2 = ref[which(ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
+  ref2_new = expand_ref_adduct(ref2, polarity, add.adduct, adapt.smiles = processing.algorithm == "RMassBank")
+  ref = rbind.data.frame(ref1, ref2_new)
+
   # Change column order:
   
   ref1 = ref[, c("PEPMASS", "RT", "IONMODE", "ADDUCT", "CHARGE", "ID", "SMILES", "FORMULA", "FILENAME")]
@@ -204,7 +195,8 @@ metadata_from_smiles<-function(smiles, adduct){
       if (adduct=="M-H"){pepmass = NM -1.007276}
       if (adduct=="M-2H"){pepmass = (NM - 1.007276*2)/2}
       if (adduct=="M+Cl"){pepmass = NM +34.969401}
-      if (adduct=="M+HCOO-"){pepmass = NM +44.998203}
+      if (adduct=="M+CH3COO-"){pepmass = NM + 59.013853}
+      if (adduct=="M+HCOO-"){pepmass = NM + 44.998203}
       if (adduct=="M-"){pepmass = NM -1.007276+ 1.007825}
     
       output = list(smile = smiles1, formula = formula1, pepmass = pepmass)
@@ -213,68 +205,74 @@ metadata_from_smiles<-function(smiles, adduct){
   return(output)  
 }
 
-expand_ref_adduct <-function(ref, polarity){
+expand_ref_adduct <-function(ref, polarity, add.adduct = T, adapt.smiles = T){
 
   # The function expand the metadata by adding adducts
 
   if (polarity == "Positive"){
     
     NM = as.numeric(ref$PEPMASS) - 1.007276
-
+    
     ref_plus_2H = ref
     ref_plus_2H$PEPMASS = (NM + 1.007276*2)/2  
     ref_plus_2H$ADDUCT = "M+2H"
     ref_plus_2H$CHARGE = 2
-
+    if (adapt.smiles){ref_plus_2H$SMILES  = paste0(ref_plus_2H$SMILES,".[H].[H]")}
+    
     ref_plus_na = ref
     ref_plus_na$PEPMASS = NM + 22.989221 
     ref_plus_na$ADDUCT = "M+Na"
     ref_plus_na$CHARGE = 1
+    if (adapt.smiles){ref_plus_na$SMILES  = paste0(ref_plus_na$SMILES,".[Na]")}
 
     ref_plus_k = ref
     ref_plus_k$PEPMASS = NM + 38.963158 
     ref_plus_k$ADDUCT = "M+K"
     ref_plus_k$CHARGE = 1
-
+    if (adapt.smiles){ref_plus_k$SMILES  = paste0(ref_plus_k$SMILES,".[K]")}
+    
     ref_plus_nh4 = ref
     ref_plus_nh4$PEPMASS = NM + 18.033826 
     ref_plus_nh4$ADDUCT = "M+NH4"
     ref_plus_nh4$CHARGE = 1
+    if (adapt.smiles){ref_plus_nh4$SMILES  = paste0(ref_plus_nh4$SMILES,".[NH4]")}
 
     ref_plus = ref
     ref_plus$PEPMASS = NM + 1.007276 - 1.007825 
     ref_plus$ADDUCT = "M+"
     ref_plus$CHARGE = 1
 
+    if (adapt.smiles){ref$SMILES  = paste0(ref$SMILES,".[H]")}
+    
+    if (add.adduct){
     ref = rbind.data.frame(ref, ref_plus_2H, ref_plus_na, ref_plus_k, ref_plus_nh4, ref_plus)
-  }
+  }}
   
   if (polarity == "Negative"){
     
     NM = as.numeric(ref$PEPMASS) + 1.007276
   
-    ref_minus_2H = ref
-    ref_minus_2H$PEPMASS = (NM - 1.007276*2)/2  
-    ref_minus_2H$ADDUCT = "M-2H"
-    ref_minus_2H$CHARGE = 2
-  
     ref_plus_cl = ref
     ref_plus_cl$PEPMASS = NM + 34.969401 
     ref_plus_cl$ADDUCT = "M+Cl"
     ref_plus_cl$CHARGE = 1
-  
+    if (adapt.smiles){ref_plus_cl$SMILES  = paste0(ref_plus_cl$SMILES,".[HCl]")}
+    
     ref_plus_HCOO = ref
     ref_plus_HCOO$PEPMASS = NM + 44.998203 
     ref_plus_HCOO$ADDUCT = "M+HCOO-"
     ref_plus_HCOO$CHARGE = 1
-  
-    ref_minus = ref
-    ref_minus$PEPMASS = NM - 1.007276 + 1.007825 
-    ref_minus$ADDUCT = "M-"
-    ref_minus$CHARGE = 1
-  
-    ref = rbind.data.frame(ref, ref_minus_2H, ref_plus_cl, ref_plus_HCOO, ref_minus)
-  }
+    if (adapt.smiles){ref_plus_HCOO$SMILES  = paste0(ref_plus_HCOO$SMILES,".[H2CO2]")}
+    
+    ref_plus_CH3COO = ref
+    ref_plus_CH3COO$PEPMASS = NM + 59.013853 
+    ref_plus_CH3COO$ADDUCT = "M+CH3COO-"
+    ref_plus_CH3COO$CHARGE = 1
+    if (adapt.smiles){ref_plus_CH3COO$SMILES  = paste0(ref_plus_CH3COO$SMILES,".[C2H4O2]")}
+    
+    if (add.adduct){
+    ref = rbind.data.frame(ref, ref_plus_cl, ref_plus_HCOO, ref_plus_CH3COO)
+  }}
 
   return(ref)
 }

@@ -11,11 +11,10 @@
 #' @param method Character. Similarity metrics
 #' \itemize{
 #'   \item{Matches:}{ Conting number of fragment or neutral loss matches}
-#'   \item{Cosine:}{ Cosine similarity score based on intensity vectors of fragments. Same as dot product since both query and db spectra are normalized to 100.}
+#'   \item{Pearson:}{ Pearson similarity score based on intensity vectors of fragments. Same as dot product since both query and db spectra are normalized to 100.}
 #'   \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
-#'   \item{Euclidean:}{ Euclidean similarity based on intensity ranks of fragments.}
-#'   \item{MassBank:}{Similarity score used by MassBank using weighted cosine score}
-#'   \item{NIST:}{Similarity score used by NIST using weighted cosine score}
+#'   \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}
+#'   \item{NIST:}{Similarity score used by NIST using weighted pearson score}
 #'   
 #' }
 #' @param prec_mz_search Numeric. Absolute mass tolerance in Da for precursor mass search.
@@ -49,7 +48,7 @@
 
 library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 100, use.prec = FALSE, 
                               input_library = NULL, input_matrix = NULL, 
-                              method = c("Matches", "Cosine", "Spearman", "Euclidean", "MassBank", "NIST"), 
+                              method = c("Matches", "Pearson", "Spearman", "MassBank", "NIST"), 
                               prec_ppm_search = 10, frag_mz_search = 0.005, min_frag_match = 6){
   
   options(stringsAsFactors = FALSE)
@@ -57,7 +56,7 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
   if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
-  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
+#  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
   
   ##############################
   ### Using New Input Library ##
@@ -96,10 +95,8 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     
     if (nrow(input_library$metadata)>0){
       input_matrix = library2matrix(input_library, consensus_window = 0.01)
-      sp_profile = input_matrix$sp_profile
-      sp_feature = input_matrix$sp_feature
-      nl_profile = input_matrix$nl_profile
-      nl_feature = input_matrix$nl_feature
+      db_profile = input_matrix$db_profile
+      db_feature = input_matrix$db_feature
     }
   
   ###########################################
@@ -109,10 +106,8 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   } else {
 
     input_library = input_matrix$ref_lib
-    sp_profile = input_matrix$sp_profile
-    sp_feature = input_matrix$sp_feature
-    nl_profile = input_matrix$nl_profile
-    nl_feature = input_matrix$nl_feature
+    db_profile = input_matrix$db_profile
+    db_feature = input_matrix$db_feature
     
     if (use.prec){
       input_library = library_manager(input_library, query = paste0("PEPMASS=", prec_mz), ppm_search = prec_ppm_search)
@@ -120,25 +115,9 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
       if (length(valid)==0){return(NULL)}
       
       input_library = input_library$SELECTED
-      sp_profile = input_matrix$sp_profile[,valid,drop=FALSE]
-      sp_feature = input_matrix$sp_feature
-      nl_profile = input_matrix$nl_profile[,valid,drop=FALSE]
-      nl_feature = input_matrix$nl_feature
+      db_profile = db_profile[,valid,drop=FALSE]
     }
   }
-  
-  ###############################
-  ### Reduce Existing Library####
-  ###############################
-  
-  colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
-  
-  db_profile = rbind(sp_profile, nl_profile)
-  db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
-
-  valid = which(apply(db_profile, 1, sum)>0)
-  db_profile = db_profile[valid,,drop=FALSE]
-  db_feature = db_feature[valid,,drop=FALSE]
   
   ################################
   ### Preprocess query spectrum:##
@@ -175,8 +154,13 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     }
   }
   
-  if (nrow(db_profile1)==0){return(NULL)}
-
+  if (is.null(db_profile1)){return(NULL)}
+  
+  if (!is.null(db_profile1)){
+    if (nrow(db_profile1)==0){
+    return(NULL)
+  }}
+  
   # Filter out db samples with fewer than minimum fragment matches:
   
   peak_matches = apply(db_profile1, 2, function(x) sum(x>0))
@@ -194,65 +178,49 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   db_profile = db_profile1[valid,,drop = FALSE]
   db_feature = db_feature1[valid,,drop = FALSE]
   dat = dat1[valid,,drop=FALSE]
+  
   NDB = ncol(db_profile)
   
   ###########################
   ### Calculate Similarity###
   ###########################
 
+  # Normalize first the spectra:
+  
+  dat[,2] = dat[,2]/max(dat[,2])*100 # Normalize
+  db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)
+
   if (method == "Matches"){
-    temp = apply(db_profile, 2, function(x) sum(x>0))
-    sim.scores = cbind.data.frame(ID = names(temp), SCORES = as.numeric(temp))
+    sim = apply(db_profile, 2, function(x) sum(x>0))
   }
   
-  if (method != "Matches"){
-    
-    scores = rep(0, NDB)
-    
-    for (i in 1:NDB){
-      
-      mz_pairs = cbind(dat[,1], db_feature$Mass)
-      intensity_pairs = cbind(dat[,2], db_profile[,i])
-      valid = which(intensity_pairs[,2]>0)
-      
-      mz_pairs = mz_pairs[valid,,drop=FALSE]
-      intensity_pairs = intensity_pairs[valid,,drop=FALSE]
-      intensity_pairs[,2] = intensity_pairs[,2]/max(intensity_pairs[,2])*100 # Normalize again db spectrum
-      
-      ff1 = mz_pairs[,1]
-      ff2 = mz_pairs[,2]
-      int1 = intensity_pairs[,1]
-      int2 = intensity_pairs[,2]
-      
-      if (method == "Cosine"){
-        sim =  (int1 %*% int2) / (sqrt(sum(int1^2)) * sqrt(sum(int2^2)))
-      }
-      
-      if (method == "Spearman"){
-        sim =  cor(int1, int2, method = "spearman")/2 + 0.5
-      }
-      
-      if (method == "Euclidean"){
-        sim = 100/(100+sum(sqrt((int1-int2)^2)))
-      }
-      
-      if (method == "MassBank"){
-        W1 = (int1)^0.5*(ff1)^2
-        W2 = (int2)^0.5*(ff2)^2
-        sim = sum((W1*W2)^2)/(sum(W1^2)*sum(W2^2))
-      }
-      
-      if (method == "NIST"){
-        W1 = int1*ff1
-        W2 = int2*ff2
-        sim = sum((W1*W2)^0.5)/sqrt(sum(W1)*sum(W2))
-    }
-    scores[i] = sim
+  if (method == "Dot"){
+    sim = cov(dat[,2], db_profile)
   }
-    
-   sim.scores = cbind.data.frame(ID = colnames(db_profile), SCORES = scores)
- }
   
+  if (method == "Pearson"){
+    sim = cor(dat[,2], db_profile, method = "pearson")/2 + 0.5
+  }
+  
+  if (method == "Spearman"){
+    sim = cor(dat[,2], db_profile, method = "spearman")/2 + 0.5
+  }
+  
+  if (method == "MassBank"){
+    dat_weighted = (db_feature$Mass^2)*(dat[,2]^0.5)
+    db_profile_weighted = (db_feature$Mass^2)*(db_profile^0.5)
+    sim = cor(dat_weighted, db_profile_weighted, method = "pearson")/2 + 0.5
+  }
+  
+  if (method == "NIST"){
+    dat_weighted = db_feature$Mass*dat[,2]
+    db_profile_weighted = db_feature$Mass*db_profile
+    sim = cor(dat_weighted, db_profile_weighted, method = "pearson")/2 + 0.5
+  }
+  
+  sim = round(as.numeric(sim),2)
+  sim.scores = cbind.data.frame(ID = colnames(db_profile), SCORES = sim)
+
   ###########################
   ### Filter and output #####
   ###########################

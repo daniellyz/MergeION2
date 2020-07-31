@@ -9,13 +9,12 @@ process_RMassBank(
   ref = NULL,
   polarity = c("Positive", "Negative"),
   include.MS1 = FALSE,
-  add.adduct = FALSE,
   rt_search = 10,
   ppm_search = 10,
   baseline = 1000,
   relative = 5,
   max_peaks = 200,
-  recalibration = F,
+  recalibration = 0,
   normalized = T
 )
 }

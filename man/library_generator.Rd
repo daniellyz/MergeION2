@@ -14,22 +14,22 @@ library_generator(
   processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
   params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30),
   params.ms.preprocessing = list(normalized = T, baseline = 1000, relative = 0.01,
-    max_peaks = 200, recalibration = F),
+    max_peaks = 200, recalibration = 0),
   params.user = ""
 )
 }
 \arguments{
 \item{input_library}{Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.}
 
-\item{raw_data_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!}
+\item{raw_data_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!}
 
-\item{metadata_file}{A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.}
+\item{metadata_file}{A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.}
 
 \item{polarity}{A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files.}
 
 \item{mslevel}{A numeric vector. Must contain 2 (if only MS2 scans are extracted) and can be c(1,2) if isotopic pattern in MS1 scans are also extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!}
 
-\item{add.adduct}{Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M-2H", "M+COO-", "M+Cl" and "M-" for negative ion mode. If FALSE, no additional adduct types will be searched.}
+\item{add.adduct}{Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.}
 
 \item{processing.algorithm}{A single character. "Default", "compMS2Miner" or "RMassBank".}
 
@@ -47,7 +47,7 @@ library_generator(
  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
  \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
  \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
- \item{recalibration:}{ Logical. TRUE if recalibration is performed using RMassBank algorithm.}
+ \item{recalibration:}{ NUmeric. Parameter used by RMassBank. 0 if output is experimental spectra. 1 if output is experimental mass along with annotated formula. 2 if output is the theoritical masses calculated from elemenetal formula.}
 }}
 
 \item{params.user}{A single character. User name who processed the data.}
@@ -64,8 +64,10 @@ The function proposes three data processing algorithms to pick up MS1/MS2 scans 
 \examples{
 
 
+library(RMassBankData)
+
 input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
-raw_data_files <- list.files(system.file("spectra", package = "MergeION"),".mzML", full.names = TRUE)
+raw_data_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
 metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names = TRUE)
 
 polarity = "Positive"
@@ -73,7 +75,7 @@ mslevel= 2 # Only MS2 scans are extracted!
 add.adduct = F # No additional adducts are searched besides M+H 
 
 params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
-params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = F)
+params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
 params.user = "DANIEL"
 
 processing.algorithm = "Default"
@@ -90,7 +92,7 @@ lib = library_generator(input_library, raw_data_files, metadata_file,
 lib2 = lib$complete
 save(lib2, file = "test_compMS2Miner.RData")  # Save the library as RData
 
-# Processing with RMassBank without recalibration:
+# Processing with RMassBank:
 processing.algorithm = "RMassBank"
 lib = library_generator(input_library, raw_data_files, metadata_file, 
                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
@@ -98,12 +100,12 @@ lib = library_generator(input_library, raw_data_files, metadata_file,
 lib3 = lib$complete
 save(lib3, file = "test_RMassBank.RData")  # Save the library as RData
 
-# Processing with RMassBank with the recalibration function:
-params.ms.preprocessing$recalibration = TRUE
+# Processing with RMassBank and only keep the exact fragment masses based on elemental formulas:
+params.ms.preprocessing$recalibration = 2
 lib = library_generator(input_library, raw_data_files, metadata_file, 
                      polarity = "Positive", mslevel, add.adduct, processing.algorithm,
                      params.search, params.ms.preprocessing, params.user)
-save(lib4, file = "test_RMassBank_calibrated.RData")  
+save(lib4, file = "test_RMassBank_bis.RData")  
 
 }
 \author{

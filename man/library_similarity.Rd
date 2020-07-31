@@ -11,7 +11,7 @@ library_similarity(
   use.prec = FALSE,
   input_library = NULL,
   input_matrix = NULL,
-  method = c("Matches", "Cosine", "Spearman", "Euclidean", "MassBank", "NIST"),
+  method = c("Matches", "Pearson", "Spearman", "MassBank", "NIST"),
   prec_ppm_search = 10,
   frag_mz_search = 0.005,
   min_frag_match = 6
@@ -33,11 +33,10 @@ library_similarity(
 \item{method}{Character. Similarity metrics
 \itemize{
   \item{Matches:}{ Conting number of fragment or neutral loss matches}
-  \item{Cosine:}{ Cosine similarity score based on intensity vectors of fragments. Same as dot product since both query and db spectra are normalized to 100.}
+  \item{Pearson:}{ Pearson similarity score based on intensity vectors of fragments. Same as dot product since both query and db spectra are normalized to 100.}
   \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
-  \item{Euclidean:}{ Euclidean similarity based on intensity ranks of fragments.}
-  \item{MassBank:}{Similarity score used by MassBank using weighted cosine score}
-  \item{NIST:}{Similarity score used by NIST using weighted cosine score}
+  \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}
+  \item{NIST:}{Similarity score used by NIST using weighted pearson score}
   
 }}
 

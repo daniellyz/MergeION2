@@ -83,9 +83,9 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
   metadata = input_library$metadata
   spectrum_list = input_library$sp
 
-  prec_mz = as.numeric(input_library$PEPMASS)
-  prec_rt = as.numeric(input_library$RT)
-
+  prec_mz = as.numeric(metadata$PEPMASS)
+  prec_rt = as.numeric(metadata$RT)
+  
   ###########################
   ### Run query expressions:
   ###########################
@@ -101,12 +101,14 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
     for (eps in query){
       eps1 =  str_replace_all(eps,fixed(" "),"") # Remove white space
 
-   ## Search pepmass and rt:
+    # Search pepmass and rt:
+      
       if (startsWith(eps1,"PEPMASS=")){
         target_mass = as.numeric(strsplit(eps1,"=")[[1]][2])
         if (!is.na(target_mass)){
-          ppm_list = ppm_distance(target_mass,prec_mz)
-          indexes = which(ppm_list<=ppm_search)}
+          ppm_list = ppm_distance(prec_mz, target_mass)
+          indexes = which(ppm_list<=ppm_search)
+        }
       } else if (startsWith(eps1,"RT=")){
         target_rt = as.numeric(strsplit(eps1,"=")[[1]][2])
         if (!is.na(target_rt)){
@@ -155,8 +157,18 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
 ### Internal functions:
 ###########################
 
+# ppm error calculation:
+
 ppm_distance<-function(x,y){
-  return(abs((x-y)/y*1000000))
+  x = as.numeric(x)
+  y = as.numeric(y)
+  if (y>100){
+    ppm = abs((x-y))/y*1000000
+  } else {
+    ppm = abs(x-y)
+    ppm[ppm<0.01]=0
+  }
+  return(ppm)
 }
 
 load_object <- function(file) {

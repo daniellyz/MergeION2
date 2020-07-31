@@ -3,11 +3,11 @@
 #' The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data and merge them into a spectral library (new or existing).
 #' 
 #' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.
-#' @param raw_data_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
-#' @param metadata_file A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML or mzXML extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
+#' @param raw_data_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!
+#' @param metadata_file A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
 #' @param mslevel A numeric vector. Must contain 2 (if only MS2 scans are extracted) and can be c(1,2) if isotopic pattern in MS1 scans are also extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
-#' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M-2H", "M+COO-", "M+Cl" and "M-" for negative ion mode. If FALSE, no additional adduct types will be searched.
+#' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.
 #' @param processing.algorithm A single character. "Default", "compMS2Miner" or "RMassBank". 
 #' @param params.search Parameters for searching and collecting ions from chromatogram files in a list. These parameters define the tolerance window when input metadata is searched. The list must contain following elements:
 #' \itemize{
@@ -22,7 +22,7 @@
 #'  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
 #'  \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
 #'  \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
-#'  \item{recalibration:}{ Logical. TRUE if recalibration is performed using RMassBank algorithm.}
+#'  \item{recalibration:}{ NUmeric. Parameter used by RMassBank. 0 if output is experimental spectra. 1 if output is experimental mass along with annotated formula. 2 if output is the theoritical masses calculated from elemenetal formula.}
 #' } 
 #' @param params.user A single character. User name who processed the data.
 #' 
@@ -44,8 +44,10 @@
 #'
 #' @examples
 #'
+#' library(RMassBankData)
+#'
 #' input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
-#' raw_data_files <- list.files(system.file("spectra", package = "MergeION"),".mzML", full.names = TRUE)
+#' raw_data_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
 #' metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names = TRUE)
 #' 
 #' polarity = "Positive"
@@ -53,7 +55,7 @@
 #' add.adduct = F # No additional adducts are searched besides M+H 
 #' 
 #' params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
-#' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = F)
+#' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
 #' params.user = "DANIEL"
 #' 
 #' processing.algorithm = "Default"
@@ -70,7 +72,7 @@
 #' lib2 = lib$complete
 #' save(lib2, file = "test_compMS2Miner.RData")  # Save the library as RData
 #'
-#' # Processing with RMassBank without recalibration:
+#' # Processing with RMassBank:
 #' processing.algorithm = "RMassBank"
 #' lib = library_generator(input_library, raw_data_files, metadata_file, 
 #'                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
@@ -78,19 +80,19 @@
 #' lib3 = lib$complete
 #' save(lib3, file = "test_RMassBank.RData")  # Save the library as RData
 #' 
-#' # Processing with RMassBank with the recalibration function:
-#' params.ms.preprocessing$recalibration = TRUE
+#' # Processing with RMassBank and only keep the exact fragment masses based on elemental formulas:
+#' params.ms.preprocessing$recalibration = 2
 #' lib = library_generator(input_library, raw_data_files, metadata_file, 
 #'                      polarity = "Positive", mslevel, add.adduct, processing.algorithm,
 #'                      params.search, params.ms.preprocessing, params.user)
 #" lib4 = lib$complete
-#' save(lib4, file = "test_RMassBank_calibrated.RData")  
+#' save(lib4, file = "test_RMassBank_bis.RData")  
 #' 
 library_generator<-function(input_library = NULL, raw_data_files = NULL, metadata_file = NULL, 
                   polarity = c("Positive", "Negative"), mslevel = c(1, 2), add.adduct = TRUE,
                   processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
                   params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30), 
-                  params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = F),
+                  params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0),
                   params.user = ""){
 
   options(stringsAsFactors = FALSE)
@@ -109,8 +111,8 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   if (!is.vector(raw_data_files)){
     stop("Please provide a list of chromatogram files!")}
 
-  if (!all(file_ext(raw_data_files) %in% c("mzML", "mzXML"))){
-    stop("Chromatogram files must be in mzML or mzXML format!")}
+  if (!all(file_ext(raw_data_files) %in% c("mzML", "mzXML", "cdf", "CDF"))){
+    stop("Chromatogram files must be in mzML, mzXML or cdf format!")}
 
   if (!is.character(metadata_file)){
     stop("You must provide the name of the csv or excel file that contains targeted metabolic features!")
@@ -142,11 +144,11 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   
   if (!(processing.algorithm %in% c("Default", "compMS2Miner", "RMassBank"))){
     processing.algorithm = "Default"
-    message("Default algorithm is set, otherwise please set processing.algoroithm as compMS2Miner or RMassBank")
+    message("Default algorithm is set, otherwise please set processing.algorithm as compMS2Miner or RMassBank")
   }
   
-  if (!(processing.algorithm == "RMassBank") & params.ms.preprocessing$recalibration){
-    message("No recalibration is provided! Recalibration only available for RMassBank algorithm!")
+  if (!(processing.algorithm == "RMassBank") & params.ms.preprocessing$recalibration!=0){
+    message("Recalibration or Elemental formula calculation can be performed with RMassBank algorithm only!")
   }
   
   ###############################
@@ -206,6 +208,10 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   }
   
   target.ref = metadata_editor(ref, processing.algorithm, polarity, add.adduct)
+  
+  if (is.null(target.ref)){
+    stop("No valid metadata available!")
+  }
   if (nrow(target.ref)==0){
     stop("No valid metadata available!")
   }
@@ -322,10 +328,8 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
 
     for (ff in 1:FF){
       
-      print(ff)
-      
       dat12 = process_RMassBank(raw_data_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
-                                add.adduct = add.adduct, rt_search = params.search$rt_seach, ppm_search = params.search$ppm_search, 
+                                rt_search = params.search$rt_seach, ppm_search = params.search$ppm_search, 
                                 baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
                                 recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
       
