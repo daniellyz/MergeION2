@@ -25,10 +25,11 @@
 #'  \item{use.prec:}{Boolean. Used for spectral library search. If set to TRUE, precursor mass is used to "pre-query" the library}
 #'  \item{min_frag_match:}{Integer. Minimum matched peaks (or corresponding neutral losses) to make a match.}
 #' }
-#'@param params.correlation Parameters for feature correlation if feature quantification table is provided
+#'@param params.correlation Parameters for post-filtering network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 #' \itemize{
 #'  \item{method:}{Characeter. Correlation metrics. Must be "Pearson" or "Spearman".}
 #'  \item{min.abs.cor:}{Numeric between 0 and 1. Minimum feature correlation between connected MS/MS features.}
+#'  \item{use.reaction:}{Boolean. TRUE if keep only edges that match with mass difference of known biochemical reactions.}
 #' }
 #' 
 #' @importFrom tools file_path_sans_ext
@@ -40,7 +41,7 @@ network_generator<-function(raw_data_file, feature_table = NULL, input_library =
                   params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15),
                   params.ms.preprocessing = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.similarity = list(method = "Pearson", use.prec = FALSE, min_frag_match = 6),
-                  params.correlation = list(method = "Spearman", min.abs.cor = 0.4)){
+                  params.correlation = list(method = "Spearman", min.abs.cor = 0.4, use.reaction = TRUE)){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -59,6 +60,7 @@ network_generator<-function(raw_data_file, feature_table = NULL, input_library =
   
   cor.method = params.correlation$method
   min.abs.cor = params.correlation$min.abs.cor
+  use.reaction = params.correlation$use.reaction
   
   ###################
   ### Check inputs: #
@@ -262,6 +264,13 @@ network_generator<-function(raw_data_file, feature_table = NULL, input_library =
     }
   }
   
+  #######################
+  ### Top K filtering ###
+  #######################
+  
+  
+  
+  
   #######################################
   ### Feature correlation calculation ###
   #######################################
@@ -276,6 +285,33 @@ network_generator<-function(raw_data_file, feature_table = NULL, input_library =
     }
     new_network = cbind.data.frame(new_network, correlation = cor.scores)
     new_network = new_network[abs(new_network$correlation)>=min.abs.cor,,drop=FALSE]
+  }
+  
+  ##################################
+  ### Mass difference annotation ###
+  ##################################
+  
+  reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionList.txt", sep = "\t")
+  reaction_annotated = rep("N/A", nrow(new_network))
+  
+  for (k in 1:nrow(new_network)){
+    II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
+    II2 = which(as.character(metadata$ID) == as.character(new_network$ID2[k]))[1]
+    MZ1 = as.numeric(metadata$PEPMASS[II1])
+    MZ2 = as.numeric(metadata$PEPMASS[II2])
+    MDiff = abs(MZ1 - MZ2)
+
+    MDiff_error = ppm_distance(reactionList$Mdiff, MDiff)
+    
+    if (min(MDiff_error)<ppm_search){
+      reaction_annotated[k] = reactionList$Reaction.Name[which.min(MDiff_error)[1]]
+    }
+  }
+    
+  new_network = cbind.data.frame(new_network, reaction = reaction_annotated)
+  
+  if (use.reaction){
+    new_network = new_network[which(reaction_annotated!="N/A"),,drop=FALSE]
   }
   
   ###############################

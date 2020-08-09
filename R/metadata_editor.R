@@ -6,6 +6,7 @@
 #' @importFrom OrgMassSpecR MonoisotopicMass ListFormula
 #' @importFrom webchem is.smiles
 #' @importFrom tools file_ext
+#' @importFrom stringr str_detect
 #' 
 #' @export
 #'
@@ -82,11 +83,11 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
     ref$CAS = "N/A"
     ref$Name = "N/A"
     
-    for (i in 1:nrow(ref)){
-      kkk = cas_name_generator(ref$SMILES[i])
-      ref$CAS[i] = kkk$CAS
-      ref$Name[i] = kkk$Name
-    }
+    #for (i in 1:nrow(ref)){
+      #kkk = cas_name_generator(ref$SMILES[i])
+      #ref$CAS[i] = kkk$CAS
+      #ref$Name[i] = kkk$Name
+    #}
   }
   
   # Check filename:
@@ -138,7 +139,7 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   }
   
   if (processing.algorithm=="RMassBank"){
-    valid = which(ref$SMILES!="N/A" & ref$FILENAME!="N/A")
+    valid = which(!str_detect(ref$SMILES, "N/A") & ref$FILENAME!="N/A")
   }
   
   #######################

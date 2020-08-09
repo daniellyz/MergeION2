@@ -44,6 +44,8 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
     ######Processing#####
     #####################
     
+    save(peakTable, mzdatafiles, polarity, ppm_search, rt_search, baseline, file = "temp.RData")
+    
     compMS2Demo <- compMS2Construct1(MS1features = peakTable, MS2files = mzdatafiles, mode = polarity, 
                                    precursorPpm = ppm_search, ret = rt_search, TICfilter = baseline)
   
@@ -421,7 +423,7 @@ compMS2Create1 <- function(MS2file = NULL, MS1features = NULL,
       # calculate composite spectra
       message(paste0(length(match.indx), " MS1 features were matched to MS2 precursors"))
       flush.console()
-      names(MS1MS2match) <- paste0(MS2fileName, "_", MS1features[, 1])
+      names(MS1MS2match) <- paste0(MS2fileName, "_", MS1features[match.indx, 1])
 
       # check for chimeric spectra and isotopes
       

@@ -12,9 +12,9 @@ network_generator(
   polarity = c("Positive", "Negative"),
   params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15),
   params.ms.preprocessing = list(baseline = 1000, relative = 0.01, max_peaks = 200),
-  params.similarity = list(method = "Pearson", use.prec = FALSE, min_frag_match = 6,
-    min_correa),
-  params.correlation = list(method = "Spearman", min.abs.cor = 0.4)
+  params.similarity = list(method = "Pearson", use.prec = FALSE, min_frag_match = 6),
+  params.correlation = list(method = "Spearman", min.abs.cor = 0.4, use.reaction =
+    TRUE)
 )
 }
 \arguments{
@@ -49,10 +49,11 @@ network_generator(
  \item{min_frag_match:}{Integer. Minimum matched peaks (or corresponding neutral losses) to make a match.}
 }}
 
-\item{params.correlation}{Parameters for feature correlation if feature quantification table is provided
+\item{params.correlation}{Parameters for post-filtering network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 \itemize{
  \item{method:}{Characeter. Correlation metrics. Must be "Pearson" or "Spearman".}
  \item{min.abs.cor:}{Numeric between 0 and 1. Minimum feature correlation between connected MS/MS features.}
+ \item{use.reaction:}{Boolean. TRUE if keep only edges that match with mass difference of known biochemical reactions.}
 }}
 }
 \description{
