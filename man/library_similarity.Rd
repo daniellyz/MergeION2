@@ -47,7 +47,7 @@ library_similarity(
 \item{prec_mz_search}{Numeric. Absolute mass tolerance in Da for precursor mass search.}
 }
 \value{
-Scores similarity scores between query spectrum and each spectral library ID.
+A list of library items (ID and formula) ranked by the spectral similarity score with query spectrum.
 }
 \description{
 The function calculates spectral similarity of a query spectrum to an existing spectral library

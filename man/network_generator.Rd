@@ -10,11 +10,11 @@ network_generator(
   input_library = NULL,
   input_matrix = NULL,
   polarity = c("Positive", "Negative"),
+  params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
   params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15),
-  params.ms.preprocessing = list(baseline = 1000, relative = 0.01, max_peaks = 200),
-  params.similarity = list(method = "Pearson", use.prec = FALSE, min_frag_match = 6),
-  params.correlation = list(method = "Spearman", min.abs.cor = 0.4, use.reaction =
-    TRUE)
+  params.similarity = list(method = "Pearson", min.frag.match = 6, min.score = 0.6,
+    topK = 10),
+  params.network = list(method = "Spearman", min.abs.cor = 0.4, use.reaction = TRUE)
 )
 }
 \arguments{
@@ -28,32 +28,25 @@ network_generator(
 
 \item{polarity}{character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file.}
 
-\item{params.search}{Parameters for clustering ions from raw_data_file and for searching in the spectral library. The list must contain following elements:
-\itemize{
- \item{mz_search:}{ Numeric. Absolute mass tolerance in Da.}
- \item{ppm_search:}{ Numeric. Absolute mass tolerance in ppm.} 
- \item{rt_search":}{ Numeric. Absolute retention time tolerance in second.}
-}}
-
-\item{params.ms.preprocessing}{Parameters for post-processing scans in raw_data_file:
+\item{params.screening}{Parameters for feature screening and MS2 spectra pre-processing from raw_data_file:
 \itemize{
  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
  \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
  \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
 }}
 
-\item{params.similarity}{Parameters for MS/MS spectral similarity determination
+\item{params.search}{List of parameters for feature screening, combining precursor ions and fragments in the input file, as well as for searching in the spectral library. The list must contain following elements:
 \itemize{
- \item{method:}{Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Pearson", "Spearman", "MassBank", "NIST". Please check function library_similarity for more details.}
- \item{use.prec:}{Boolean. Used for spectral library search. If set to TRUE, precursor mass is used to "pre-query" the library}
- \item{min_frag_match:}{Integer. Minimum matched peaks (or corresponding neutral losses) to make a match.}
+ \item{mz_search:}{ Numeric. Absolute mass tolerance in Da.}
+ \item{ppm_search:}{ Numeric. Absolute mass tolerance in ppm.} 
+ \item{rt_search:}{ Numeric. Absolute retention time tolerance in second.}
 }}
 
-\item{params.correlation}{Parameters for post-filtering network edges: based on feature correlation (if feature quantification table is provided) and mass difference
+\item{params.network}{Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 \itemize{
- \item{method:}{Characeter. Correlation metrics. Must be "Pearson" or "Spearman".}
- \item{min.abs.cor:}{Numeric between 0 and 1. Minimum feature correlation between connected MS/MS features.}
- \item{use.reaction:}{Boolean. TRUE if keep only edges that match with mass difference of known biochemical reactions.}
+ \item{method:}{ Characeter. Correlation metrics. Must be "Pearson" or "Spearman".}
+ \item{min.abs.cor:}{Numeric between 0 and 1. Minimum absolute correlation for kept edges.}
+ \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known biochemical reactions.}
 }}
 }
 \description{

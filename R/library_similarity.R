@@ -21,7 +21,7 @@
 #' @param frag_mz_search Numeric. Absolute mass tolerance in Da for MS/MS peak matching.
 #' @param min_frag_match Integer. Minimum matched peaks (or corresponding neutral losses) to make a match	
 #' 
-#' @return Scores similarity scores between query spectrum and each spectral library ID.
+#' @return A list of library items (ID and formula) ranked by the spectral similarity score with query spectrum.
 #'
 #' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 #'
@@ -196,6 +196,7 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   if (method == "Dot"){
     sim = cov(dat[,2], db_profile)
+    sim = sim/max(sim)
   }
   
   if (method == "Pearson"){
@@ -221,13 +222,23 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   sim = round(as.numeric(sim),2)
   sim.scores = cbind.data.frame(ID = colnames(db_profile), SCORES = sim)
 
-  ###########################
-  ### Filter and output #####
-  ###########################
+  ########################################
+  ### Filter, add formula and output #####
+  ########################################
   
   sim.scores = sim.scores[sim.scores$SCORES>0,,drop=FALSE]
   if (nrow(sim.scores)==0){return(NULL)}
-  sim.scores = sim.scores[order(sim.scores[,2], decreasing = T),,drop=FALSE]
+  
+  if ("FORMULA" %in% colnames(input_matrix$ref_lib$metadata)){
+    
+    all_formulas = input_matrix$ref_lib$metadata$FORMULA
+    valid = match(sim.scores[,1], input_matrix$ref_lib$metadata$ID)
+    sim.scores$FORMULA = all_formulas[valid]
+  } else {sim.scores$FORMULA = "N/A"}
+  
+  sim.scores$ID[sim.scores$ID==""] = "N/A"
+  sim.scores$FORMULA[sim.scores$FORMULA==""] = "N/A"
+  sim.scores = sim.scores[order(sim.scores$SCORES, decreasing = T),]
   
   return(sim.scores)
 }
