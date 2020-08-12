@@ -1,179 +1,179 @@
-ID	Mdiff	Reaction Name
-1	0.984016	Amino-function exchanged by hydroxyl function
-2	1.031634	Deamination
-3	1.979265	Decarboxylative condensation
-4	2.01565	(De-)hydrogenation
-5	12	Glyoxylic acid
-6	13.031634	Glycines
-7	14.01565	With Methylene-THF or Methyl-THF to methylation
-8	15.010899	Neutral/reductive deamination
-9	15.023475	With Methyl-THF and Biotine to third methylation of N (like in N-Trimethyl-Lysine)
-10	15.977156	exchange of O with S
-11	15.994915	(de-)hydroxylation
-12	18.010565	hydrolysis/condensation
-13	25.979265	C=O insertion like in biotin synthesis or hydroxymethyl-transfer
-14	26.01565	pyruvic acid
-15	26.052035	Butanoic acids
-16	27.010899	With 5-Formimino-THF to formimino transfer
-17	27.047284	Alanines
-18	27.994915	ith Methylenyl-THF to formyl transfer
-19	28.0313	C2H4
-20	28.990164	NO-H +neutral (nitrosylation)
-21	29.956421	Thio-heteroatom
-22	30.010565	Hydroxymethyl transfer
-23	31.972071	thiolation
-24	31.98983	Hydro-Peroxidation
-25	42.010565	Hydroxypyruvic acid
-26	42.021798	Guanidyl group transfer
-27	43.005814	Carbamoyl or Isocyainde transfer;
-28	43.042199	Serines
-29	43.98983	(de-)carboxylation
-30	44.026215	Pyruvic acid
-31	44.985079	Nitration (+NO2 -H)
-32	35.976502	Phospholytic decarboxylation
-33	53.062934	Prolines
-34	54.04695	a-Ketoisovaleric acid
-35	54.083335	hexanoic acids
-36	55.078584	Valines
-37	55.98983	Glyoxylic acid
-38	56.026215	3-Hydroxy-2-oxobutanoic acid
-39	57.021464	Glycines
-40	57.057849	Threonines
-41	57.987721	3-Mercaptopyruvate
-42	59.019355	Cysteines
-43	59.037114	Glycines on hydrogenated carbonyls
-44	60.02113	Hydroxypyruvic acid
-45	68.0626	prenylation
-46	69.021464	"4-Amino-2,4-dioxobutanoic acid"
-47	69.057849	5-Amino-2-oxopentanoic acid
-48	69.094234	Leucine/Isoleucines
-49	70.00548	2-Ketosuccinate
-50	70.041865	Butanoic acid; 
-51	70.053098	Asparagines
-52	70.089483	Ornithines
-53	71.037114	Alanines
-54	71.984745	Oxalate
-55	72.057515	a-Ketoisovaleric acid
-56	73.016379	EC 4.1.99.1 Tryptophanase
-57	73.052764	Alanines on hydrogenated carbonyls
-58	74.03678	3-Hydroxy-2-oxobutanoic acid
-59	75.998286	3-Mercaptopyruvate
-60	79.956816	direct sulfonation and sulfonic anhydride (-H2O)
-61	79.966332	(de-)phosphorylation
-62	82.114635	octanoic acids
-63	83.037114	2-Keto-glutaramic acid
-64	83.073499	2-Keto-6-Aminocaproate
-65	84.02113	2-Ketoglutarate
-66	84.057515	Adipate
-67	84.068748	Glutamines
-68	84.105133	Lysines
-69	85.052764	Glutamic acids
-70	86.000395	Hydroxypyruvic acid
-71	86.019021	2-Oxo-4-methylthiobutanoic acid
-72	86.073165	2-Ketohexanoic acid
-73	87.032029	Serines
-74	87.050655	Methionines
-75	87.068414	5-Amino-2-oxopentanoic acid
-76	88.016045	2-Ketosuccinate
-77	89.047679	Serines on hydrogenated carbonyls
-78	92.037448	2-Oxo-3-(1H-imidazol-4-yl)propansaure
-79	93.069082	Histidines
-80	97.052764	Prolines
-81	98.03678	a-Ketoisovaleric acid
-82	98.073165	hexanoic acid
-83	99.068414	Valine or Proline - condensation on hydrogenated carbonylss
-84	100.016045	3-Hydroxy-2-oxobutanoic acid
-85	101.047679	Threonines
-86	101.084064	Valines on hydrogenated carbonyls
-87	101.977551	3-Mercaptopyruvate
-88	102.031695	2-Ketoglutarate
-89	102.04695	Phenylpyruvic acid
-90	103.009185	Cysteines
-91	103.063329	Threonines on hydrogenated carbonyls
-92	103.078584	Phenylalanines
-93	104.029586	2-Oxo-4-methylthiobutanoic acid
-94	105.024835	Cysteines on hydrogenated carbonyls
-95	107.0041	Taurines
-96	109.01975	Taurines on hydrogenated carbonyls
-97	110.048013	2-Oxo-3-(1H-imidazol-4-yl)propansäure
-98	110.145935	decanoic acids
-99	111.079647	2-Oxoarginine
-100	112.05243	2-Ketohexanoic acid
-101	112.088815	Suberate
-102	112.111281	Arginines
-103	113.011294	"4-Amino-2,4-dioxobutanoic acid"
-104	113.047679	5-Amino-2-oxopentanoic acid
-105	113.084064	Leucine/Isoleucines
-106	113.99531	2-Ketosuccinate
-107	114.031695	Glutarate
-108	114.042928	Asparagines
-109	114.079313	Ornithines
-110	115.026944	Aspartic acids
-111	115.099714	Leucine/Isoleucines on hydrogenated carbonyls
-112	116.058578	Asparagines on hydrogenated carbonyls
-113	116.094963	Ornithines on hydrogenated carbonyls
-114	117.042594	Aspartic acids on hydrogenated carbonyls
-115	118.041865	4-Hydroxyphenylpyruvic acid
-116	119.073499	Tyrosines
-117	120.057515	Phenylpyruvic acid
-118	123.008531	phosphoethanolamine
-119	126.104465	octanoic acid
-120	127.026944	2-Keto-glutaramic acid
-121	127.063329	2-Keto-6-Aminocaproate
-122	128.01096	2-Ketoglutarate
-123	128.047345	Adipate
-124	128.058578	Glutamines
-125	128.094963	Lysines
-126	129.042594	Glutamic acids
-127	129.090212	2-Oxoarginine
-128	130.008851	2-Oxo-4-methylthiobutanoic acid
-129	130.074228	Glutamines on hydrogenated carbonyls
-130	130.110613	Lysines on hydrogenated carbonyls
-131	131.040485	Methionines
-132	131.058244	Glutamic acids on hydrogenated carbonyls
-133	133.056135	Methionines on hydrogenated carbonyls
-134	136.027278	2-Oxo-3-(1H-imidazol-4-yl)propansaure
-135	136.05243	4-Hydroxyphenylpyruvic acid
-136	136.1252	di-prenylation
-137	137.058912	Histidines
-138	138.177235	dodecanoic acids
-139	139.074562	Histidines on hydrogenated carbonyls
-140	140.120115	Sebacic acid
-141	141.057849	Indole pyruvic acid
-142	142.062995	Pimelate
-143	142.089483	Tryptophans
-144	146.03678	Phenylpyruvic acid
-145	147.068414	Phenylalanines
-146	149.084064	Phenylalanines on hydrogenated carbonyls
-147	154.003112	Glycerol-3-phosphate
-148	154.135765	decanoic acid
-149	155.069477	2-Oxoarginine
-150	156.078645	Suberate
-151	156.101111	Arginines
-152	158.116761	Arginines on hydrogenated carbonyls
-153	159.068414	Indole pyruvic acid
-154	162.031695	4-Hydroxyphenylpyruvic acid
-155	162.052825	Glucose
-156	163.063329	Tyrosines
-157	165.078979	Tyrosines on hydrogenated carbonyls
-158	166.208535	tetradecanoic acids
-159	166.998361	phosphatidylserine
-160	170.094295	Azelaic acid
-161	176.03209	Glucuronidation
-162	182.167065	dodecanoic acid
-163	184.109945	Sebacic acid
-164	185.047679	Indole pyruvic acid
-165	186.079313	Tryptophans
-166	188.094963	Tryptophans on hydrogenated carbonyls
-167	194.239835	hexadecanoic acids
-168	204.1878	tri-prenylation
-169	210.198365	tetradecanoic acid
-170	212.008592	Ribose-5-phosphate
-171	238.229665	hexadecanoic acid
-172	242.019157	phosphatidylinositol
-173	272.2504	tetra-prenylation
-174	239.092261	phosphatidylcholine head group
-175	166.063306	Phosphorylcholine
-176	22.989769	Sodium adduct
-177	38.9637069	Potasium adduct
-178	34.96885271	Chloride adduct
+ID	Mdiff	Reaction Name	Formula
+1	0.984016	Amino-function exchanged by hydroxyl function	O-HN
+2	1.031634	Deamination	H3N-O
+3	1.979265	Decarboxylative condensation	O-CH2
+4	2.01565	(De-)hydrogenation	H2
+5	12	Glyoxylic acid	C
+6	13.031634	Glycines	CH3N-O
+7	14.01565	With Methylene-THF or Methyl-THF to methylation	CH2
+8	15.010899	Neutral/reductive deamination	HN
+9	15.023475	With Methyl-THF and Biotine to third methylation of N (like in N-Trimethyl-Lysine)	CH3
+10	15.977156	exchange of O with S	S-O
+11	15.994915	(de-)hydroxylation	O
+12	18.010565	hydrolysis/condensation	H2O
+13	25.979265	C=O insertion like in biotin synthesis or hydroxymethyl-transfer	CO-H2
+14	26.01565	pyruvic acid	C2H2
+15	26.052035	Butanoic acids	C3H6-O
+16	27.010899	With 5-Formimino-THF to formimino transfer	CHN
+17	27.047284	Alanines	C2H5N-O
+18	27.994915	ith Methylenyl-THF to formyl transfer	CO
+19	28.0313	C2H4	C2H4
+20	28.990164	NO-H +neutral (nitrosylation)	NO-H
+21	29.956421	Thio-heteroatom	S-H2
+22	30.010565	Hydroxymethyl transfer	CH2O
+23	31.972071	thiolation	S
+24	31.98983	Hydro-Peroxidation	O2
+25	42.010565	Hydroxypyruvic acid	C2H2O
+26	42.021798	Guanidyl group transfer	CH2N2
+27	43.005814	Carbamoyl or Isocyainde transfer;	CHNO
+28	43.042199	Serines	C2H5N
+29	43.98983	(de-)carboxylation	CO2
+30	44.026215	Pyruvic acid	C2H4O
+31	44.985079	Nitration (+NO2 -H)	NO2-H
+32	35.976502	Phospholytic decarboxylation	HOP-C
+33	53.062934	Prolines	C4H7N-O
+34	54.04695	a-Ketoisovaleric acid	C4H6
+35	54.083335	hexanoic acids	C5H10-O
+36	55.078584	Valines	C4H9N-O
+37	55.98983	Glyoxylic acid	C2O2
+38	56.026215	3-Hydroxy-2-oxobutanoic acid	C3H4O
+39	57.021464	Glycines	C2H3NO
+40	57.057849	Threonines	C3H7N
+41	57.987721	3-Mercaptopyruvate	C2H2S
+42	59.019355	Cysteines	C2H5NS-O
+43	59.037114	Glycines on hydrogenated carbonyls	C2H5NO
+44	60.02113	Hydroxypyruvic acid	C2H4O2
+45	68.0626	prenylation	C5H8
+46	69.021464	"4-Amino-2,4-dioxobutanoic acid"	C3H3NO
+47	69.057849	5-Amino-2-oxopentanoic acid	C4H7N
+48	69.094234	Leucine/Isoleucines	C5H11N-O
+49	70.00548	2-Ketosuccinate	C3H2O2
+50	70.041865	Butanoic acid; 	C4H6O
+51	70.053098	Asparagines	C3H6N2
+52	70.089483	Ornithines	C4H10N2-O
+53	71.037114	Alanines	C3H5NO
+54	71.984745	Oxalate	C2O3
+55	72.057515	a-Ketoisovaleric acid	C4H8O
+56	73.016379	EC 4.1.99.1 Tryptophanase	C2H3NO2
+57	73.052764	Alanines on hydrogenated carbonyls	C3H7NO
+58	74.03678	3-Hydroxy-2-oxobutanoic acid	C3H6O2
+59	75.998286	3-Mercaptopyruvate	C2H4OS
+60	79.956816	direct sulfonation and sulfonic anhydride (-H2O)	O3S
+61	79.966332	(de-)phosphorylation	HO3P
+62	82.114635	octanoic acids	C7H14-O
+63	83.037114	2-Keto-glutaramic acid	C4H5NO
+64	83.073499	2-Keto-6-Aminocaproate	C5H9N
+65	84.02113	2-Ketoglutarate	C4H4O2
+66	84.057515	Adipate	C5H8O
+67	84.068748	Glutamines	C4H8N2
+68	84.105133	Lysines	C5H12N2-O
+69	85.052764	Glutamic acids	C4H7NO
+70	86.000395	Hydroxypyruvic acid	C3H2O3
+71	86.019021	2-Oxo-4-methylthiobutanoic acid	C4H6S
+72	86.073165	2-Ketohexanoic acid	C5H10O
+73	87.032029	Serines	C3H5NO2
+74	87.050655	Methionines	C4H9NS-O
+75	87.068414	5-Amino-2-oxopentanoic acid	C4H9NO
+76	88.016045	2-Ketosuccinate	C3H4O3
+77	89.047679	Serines on hydrogenated carbonyls	C3H7NO2
+78	92.037448	2-Oxo-3-(1H-imidazol-4-yl)propansaure	C5H4N2
+79	93.069082	Histidines	C5H7N3-O
+80	97.052764	Prolines	C5H7NO
+81	98.03678	a-Ketoisovaleric acid	C5H6O2
+82	98.073165	hexanoic acid	C6H10O
+83	99.068414	Valine or Proline - condensation on hydrogenated carbonylss	C5H9NO
+84	100.016045	3-Hydroxy-2-oxobutanoic acid	C4H4O3
+85	101.047679	Threonines	C4H7NO2
+86	101.084064	Valines on hydrogenated carbonyls	C5H11NO
+87	101.977551	3-Mercaptopyruvate	C3H2O2S
+88	102.031695	2-Ketoglutarate	C4H6O3
+89	102.04695	Phenylpyruvic acid	C8H6
+90	103.009185	Cysteines	C3H5NOS
+91	103.063329	Threonines on hydrogenated carbonyls	C4H9NO2
+92	103.078584	Phenylalanines	C8H9N-O
+93	104.029586	2-Oxo-4-methylthiobutanoic acid	C4H8OS
+94	105.024835	Cysteines on hydrogenated carbonyls	C3H7NOS
+95	107.0041	Taurines	C2H5NO2S
+96	109.01975	Taurines on hydrogenated carbonyls	C2H7NO2S
+97	110.048013	2-Oxo-3-(1H-imidazol-4-yl)propans?re	C5H6N2O
+98	110.145935	decanoic acids	C9H18-O
+99	111.079647	2-Oxoarginine	C5H9N3
+100	112.05243	2-Ketohexanoic acid	C6H8O2
+101	112.088815	Suberate	C7H12O
+102	112.111281	Arginines	C5H12N4-O
+103	113.011294	"4-Amino-2,4-dioxobutanoic acid"	C4H3NO3
+104	113.047679	5-Amino-2-oxopentanoic acid	C5H7NO2
+105	113.084064	Leucine/Isoleucines	C6H11NO
+106	113.99531	2-Ketosuccinate	C4H2O4
+107	114.031695	Glutarate	C5H6O3
+108	114.042928	Asparagines	C4H6N2O2
+109	114.079313	Ornithines	C5H10N2O
+110	115.026944	Aspartic acids	C4H5NO3
+111	115.099714	Leucine/Isoleucines on hydrogenated carbonyls	C6H13NO
+112	116.058578	Asparagines on hydrogenated carbonyls	C4H8N2O2
+113	116.094963	Ornithines on hydrogenated carbonyls	C5H12N2O
+114	117.042594	Aspartic acids on hydrogenated carbonyls	C4H7NO3
+115	118.041865	4-Hydroxyphenylpyruvic acid	C8H6O
+116	119.073499	Tyrosines	C8H9N
+117	120.057515	Phenylpyruvic acid	C8H8O
+118	123.008531	phosphoethanolamine	C2H6NO3P
+119	126.104465	octanoic acid	C8H14O
+120	127.026944	2-Keto-glutaramic acid	C5H5NO3
+121	127.063329	2-Keto-6-Aminocaproate	C6H9NO2
+122	128.01096	2-Ketoglutarate	C5H4O4
+123	128.047345	Adipate	C6H8O3
+124	128.058578	Glutamines	C5H8N2O2
+125	128.094963	Lysines	C6H12N2O
+126	129.042594	Glutamic acids	C5H7NO3
+127	129.090212	2-Oxoarginine	C5H11N3O
+128	130.008851	2-Oxo-4-methylthiobutanoic acid	C5H6O2S
+129	130.074228	Glutamines on hydrogenated carbonyls	C5H10N2O2
+130	130.110613	Lysines on hydrogenated carbonyls	C6H14N2O
+131	131.040485	Methionines	C5H9NOS
+132	131.058244	Glutamic acids on hydrogenated carbonyls	C5H9NO3
+133	133.056135	Methionines on hydrogenated carbonyls	C5H11NOS
+134	136.027278	2-Oxo-3-(1H-imidazol-4-yl)propansaure	C6H4N2O2
+135	136.05243	4-Hydroxyphenylpyruvic acid	C8H8O2
+136	136.1252	di-prenylation	C10H16
+137	137.058912	Histidines	C6H7N3O
+138	138.177235	dodecanoic acids	C11H22-O
+139	139.074562	Histidines on hydrogenated carbonyls	C6H9N3O
+140	140.120115	Sebacic acid	C9H16O
+141	141.057849	Indole pyruvic acid	C10H7N
+142	142.062995	Pimelate	C7H10O3
+143	142.089483	Tryptophans	C10H10N2-O
+144	146.03678	Phenylpyruvic acid	C9H6O2
+145	147.068414	Phenylalanines	C9H9NO
+146	149.084064	Phenylalanines on hydrogenated carbonyls	C9H11NO
+147	154.003112	Glycerol-3-phosphate	C3H7O5P
+148	154.135765	decanoic acid	C10H18O
+149	155.069477	2-Oxoarginine	C6H9N3O2
+150	156.078645	Suberate	C8H12O3
+151	156.101111	Arginines	C6H12N4O
+152	158.116761	Arginines on hydrogenated carbonyls	C6H14N4O
+153	159.068414	Indole pyruvic acid	C10H9NO
+154	162.031695	4-Hydroxyphenylpyruvic acid	C9H6O3
+155	162.052825	Glucose	C6H10O5
+156	163.063329	Tyrosines	C9H9NO2
+157	165.078979	Tyrosines on hydrogenated carbonyls	C9H11NO2
+158	166.208535	tetradecanoic acids	C13H26-O
+159	166.998361	phosphatidylserine	C3H6NO5P
+160	170.094295	Azelaic acid	C9H14O3
+161	176.03209	Glucuronidation	C6H8O6
+162	182.167065	dodecanoic acid	C12H22O
+163	184.109945	Sebacic acid	C10H16O3
+164	185.047679	Indole pyruvic acid	C11H7NO2
+165	186.079313	Tryptophans	C11H10N2O
+166	188.094963	Tryptophans on hydrogenated carbonyls	C11H12N2O
+167	194.239835	hexadecanoic acids	C15H30-O
+168	204.1878	tri-prenylation	C15H24
+169	210.198365	tetradecanoic acid	C14H26O
+170	212.008592	Ribose-5-phosphate	C5H9O7P
+171	238.229665	hexadecanoic acid	C16H30O
+172	242.019157	phosphatidylinositol	C6H11O8P
+173	272.2504	tetra-prenylation	C20H32
+174	239.092261	phosphatidylcholine head group	C8H18NO5P
+175	166.063306	Phosphorylcholine	C5H13NO3P
+176	22.989769	Sodium adduct	Na
+177	38.9637069	Potasium adduct	K
+178	34.96885271	Chloride adduct	Cl
