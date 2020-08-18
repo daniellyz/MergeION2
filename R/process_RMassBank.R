@@ -71,9 +71,9 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
     #####################
     ######Processing#####
     #####################
-  
+
     for (rr in 1:nrow(ref)){
-      
+    
       ref2 = ref[rr,,drop=FALSE]
 
       for (x in 1:ncol(ref2)){ref2[1,x] = gsub(",","_", ref2[1,x])} # Pb with compound list...
@@ -144,6 +144,7 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
         temp_sp2 = w1@spectra[[1]]@children
         
         prec_mz = w1@spectra[[1]]@mz
+
         prec_rt_ms1 = round(w1@spectra[[1]]@parent@rt/60,2)
         prec_rt_ms2 = round(median(sapply(temp_sp2, function(x) x@rt))/60, 2)
         prec_scan_ms1 = w1@spectra[[1]]@parent@acquisitionNum
@@ -464,7 +465,7 @@ msmsRead1 <- function(w, filetable = NULL, files = NULL, cpdids = NULL,
       # Progress:
       nProg <<- nProg + 1
       pb <- do.call(progressbar, list(object=pb, value= nProg))
-      
+
       return(spec)
     } ), "SimpleList")
     names(w@spectra) <- basename(as.character(w@files))
@@ -571,9 +572,9 @@ findMsMsHR1 <- function(fileName = NULL, msRaw = NULL, cpdID, mode="pH",confirmM
     dbRt <- findRt(cpdID)
     rtLimits <- c(dbRt$RT - rtMargin, dbRt$RT + rtMargin) * 60
   }
+
   spectra <- findMsMsHR.mass1(msRaw, mz, mzCoarse, limit.fine, rtLimits, confirmMode + 1,headerCache
                               ,fillPrecursorScan, deprofile, peaksCache, cpdID)
-  
   # check whether a) spectrum was found and b) enough spectra were found
   if(length(spectra) < (confirmMode + 1))
     sp <- new("RmbSpectraSet", found=FALSE)
@@ -603,7 +604,7 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
   
   eic <- findEIC(msRaw, mz, limit.fine, rtLimits, headerCache=headerCache, 
                  peaksCache=peaksCache)
-
+  
   #	if(!is.na(rtLimits))
   #	{  
   #		eic <- subset(eic, rt >= rtLimits[[1]] & rt <= rtLimits[[2]])
@@ -611,8 +612,8 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
   if(!is.null(headerCache))
     headerData <- headerCache
   else
-    headerData <- as.data.frame(header(msRaw))
-  
+    headerData <- as.data.frame(mzR::header(msRaw))
+
   ###If no precursor scan number, fill the number
   if(length(unique(headerData$precursorScanNum)) == 1){
     fillPrecursorScan <- TRUE
@@ -629,16 +630,19 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
     # Clear the actual MS1 precursor scan number again
     headerData[which(headerData$msLevel == 1),"precursorScanNum"] <- 0
   }
+  
   # bugfix 201803: PRM scans that were performed before the first full scan (found in some files)
   headerData <- headerData[
     !((headerData$msLevel == 2) & (headerData$precursorScanNum == 0)),,drop=FALSE
-    ]
+  ]
+
   # Find MS2 spectra with precursors which are in the allowed 
   # scan filter (coarse limit) range
-
+  
   findValidPrecursors <- headerData[
     (headerData$precursorMZ > mz - limit.coarse) &
       (headerData$precursorMZ < mz + limit.coarse),,drop=FALSE]
+
   # Find the precursors for the found spectra
   validPrecursors <- unique(findValidPrecursors$precursorScanNum)
   # check whether the precursors are real: must be within fine limits!
@@ -656,7 +660,9 @@ findMsMsHR.mass1 <- function(msRaw, mz, limit.coarse, limit.fine, rtLimits = NA,
       return(TRUE)
     return(FALSE)
   })
+
   validPrecursors <- validPrecursors[which(which_OK==TRUE)]
+
   if(length(validPrecursors) == 0){
     if(!is.na(cpdID))
       warning(paste0("No precursor was detected for compound, ", cpdID, " with m/z ", mz, ". Please check the mass and retention time window."))

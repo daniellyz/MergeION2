@@ -51,7 +51,7 @@ process_MS2<-function(mzdatafiles = NULL, ref = NULL,
    MS2_prec_mz = precursorMz(MS2_Janssen) # Label precursor mass
    targets =  unique(MS2_prec_mz) # All targeted masses
    MS2_prec_rt = rtime(MS2_Janssen) # In second
-   MS2_tic = sapply(1:NS,function(ttt) MS2_Janssen[[ttt]]@tic)
+   MS2_tic = as.numeric(tic(MS2_Janssen))
 
    ### Filter ref because not all targeted m/z exists or fragmented in the sample! Important for not to search whatever
 

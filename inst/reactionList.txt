@@ -116,7 +116,7 @@ ID	Mdiff	Reaction Name	Formula
 115	112.05243	2-Ketohexanoic acid	C6H8O2
 116	112.088815	Suberate	C7H12O
 117	112.111281	Arginines	C5H12N4-O
-118	113.011294	"4-Amino-2,4-dioxobutanoic acid"	C4H3NO3
+118	113.011294	4-Amino-2,4-dioxobutanoic acid	C4H3NO3
 119	113.047679	5-Amino-2-oxopentanoic acid	C5H7NO2
 120	113.084064	Leucine/Isoleucines	C6H11NO
 121	113.99531	2-Ketosuccinate	C4H2O4

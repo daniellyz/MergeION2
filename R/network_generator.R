@@ -28,7 +28,7 @@
 #' }
 #'@param params.network Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 #' \itemize{
-#'  \item{method:}{ Characeter. Correlation metrics. Must be "Pearson" or "Spearman".}
+#'  \item{method:}{ Characeter. Correlation metrics. Must be "pearson" or "spearman".}
 #'  \item{min.abs.cor:}{Numeric between 0 and 1. Minimum absolute correlation for kept edges.}
 #'  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known biochemical reactions.}
 #' }
@@ -42,7 +42,7 @@ network_generator<-function(raw_data_file, feature_table = NULL, input_library =
                   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15),
                   params.similarity = list(method = "Pearson", min.frag.match = 6, min.score = 0.6, topK = 10),
-                  params.network = list(method = "Spearman", min.abs.cor = 0.4, use.reaction = TRUE)){
+                  params.network = list(method = "spearman", min.abs.cor = 0.4, use.reaction = TRUE)){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)

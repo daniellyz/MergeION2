@@ -54,15 +54,15 @@ metadata_editor<-function(ref, processing.algorithm = c("Default", "compMS2Miner
   ref$IONMODE = polarity
   
   # Remove invalid adduct and add default M+H or M-H:
-  
+
   if ("ADDUCT" %in% colnames(ref)){
-    nonvalid = which(!(ref$ADDUCT %in% ref_adducts))
-    ref$ADDUCT[nonvalid] = "N/A"
-  } else {ref$ADDUCT = "N/A"}
-  
-  if (polarity=="Positive"){ref$ADDUCT[ref$ADDUCT=="N/A"] = "M+H"}
-  if (polarity=="Negative"){ref$ADDUCT[ref$ADDUCT=="N/A"] = "M-H"}
-  
+    valid = which(ref$ADDUCT %in% ref_adducts)
+    ref = ref[valid,,drop=FALSE]
+  } else { # Otherwise all considered as default
+    if (polarity=="Positive"){ref$ADDUCT = "M+H"}
+    if (polarity=="Negative"){ref$ADDUCT = "M-H"}
+  }
+
   # Set default charge states:
   
   ref$CHARGE = 1

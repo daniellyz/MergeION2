@@ -215,7 +215,7 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   if (nrow(target.ref)==0){
     stop("No valid metadata available!")
   }
-
+  
   #################
   ### MergeION#####
   #################
@@ -353,7 +353,7 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   }
   
   ####################
-  ### Return results:
+  ### Generate results:
   ####################
 
   NN = length(spectrum_list)
@@ -365,7 +365,15 @@ library_generator<-function(input_library = NULL, raw_data_files = NULL, metadat
   library_current = list()
   library_current$sp = spectrum_list[(NN0+1):NN]
   library_current$metadata = metadata[(NN0+1):NN,]
-
+  
+  ##################
+  # Final filtering#
+  ##################
+  
+  library_current = remove_empty_record(library_current)
+  
+  library = remove_empty_record(library)
+  
   return(list(complete = library, current = library_current))
 }
 
@@ -377,4 +385,29 @@ load_object <- function(file) {
   tmp <- new.env()
   load(file = file, envir = tmp)
   tmp[[ls(tmp)[1]]]
+}
+
+remove_empty_record<-function(library1){
+  
+  # The function remove empty record from library
+  
+  sp= library1$sp
+  metadata = library1$metadata
+  
+  valid = which(!sapply(sp, is.null))
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  valid = which(sapply(sp, nrow)>0)
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  valid = which(sapply(sp, function(x) x[1,1])>0)
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  new_library = list(metadata= metadata, sp = sp)
+  
+  return(new_library)
+  
 }

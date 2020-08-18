@@ -49,8 +49,8 @@ process_MS1<-function(mzdatafiles = NULL, ref = NULL,
 
     NS = length(MS1_Janssen) # Total number of scans
     MS1_prec_rt = rtime(MS1_Janssen) # In second
-    MS1_tic = sapply(1:NS,function(ttt) MS1_Janssen[[ttt]]@tic)
-
+    MS1_tic = as.numeric(tic(MS1_Janssen))
+    
     prec_theo=as.numeric(ref$PEPMASS)
     prec_rt=as.numeric(ref$RT)*60 # Allow N/A
 
