@@ -1,4 +1,5 @@
 ID	Mdiff	Reaction Name	Formula
+0	0	Isomer	N/A
 1	0.984016	Amino-function exchanged by hydroxyl function	O-HN
 2	1.031634	Deamination	H3N-O
 3	1.979265	Decarboxylative condensation	O-CH2

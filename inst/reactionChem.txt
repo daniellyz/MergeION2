@@ -1,0 +1,37 @@
+ID	Mdiff	Reaction Name	Formula
+0	0	Isomerization	N/A
+1	77.910512	Reductive Debromination	H-Br
+2	61.915597	Oxidative Debromination	HO-Br
+3	35.981156	Double Reductive Defluorination 	H2-F2
+4	33.961028	Reductive Dechlorination	H-Cl
+5	30.010565	Hydroxymethylene los	-CH2O
+7	28.067685	Propyl ether to acid	O-C3H8
+8	28.0313	Deethylation	-C2H4
+9	27.994915	Decarbonylation	-CO
+10	26.052035	Isopropyl to alcohol	O-C3H6
+11	18.010565	Dehydration	-H2O
+12	17.990578	Reductive Defluorination	H-F
+13	17.966113	Oxidative Dechlorination	HO-Cl
+14	15.977156	Thiourea to Urea	O-S
+15	14.052035	Ethyl Ether to acid	O-C2H6
+16	14.01565	Demethylation	-CH2
+17	12.072771	Tert-butyl to acid	O2-C3H8
+18	12.036385	Ethyl to alcohol	O-C2H4
+19	4.0313	Two sequential desaturations	-H4
+20	2.01565	Desaturation	-H2
+21	1.995663	Oxidative Defluorination	HO-F
+22	1.031634	Oxidative Deamination to Ketone	O-H3N
+23	0.036385	2-ethoxyl to acid	O-CH4
+24	0.984016	Oxidative Deamination to Alcohol	HO-H2N
+25	1.942879	Isopropyl to acid	O2-C2H6
+26	1.979265	Demethylation + hydroxylation	O-CH2
+28	13.979265	Hydroxylation + Desaturation	O-H2
+30	15.958529	Ethyl to acid	O2-CH4
+31	15.994915	Oxidation/Hydroxylation 	O-
+32	17.974179	Demethylation + 2 hydroxylation	O2-CH2
+34	29.974179	Quinone formation	O2-H2
+36	31.989829	Double hydroxylation 	O2-
+37	34.005479	Alkenes to dihydrodiol	H2O2-
+38	42.010565	Acetylation	C2H2O-
+39	47.984744	Triple hydroxylation 	O3-
+40	79.956815	Sulfation	SO3-
