@@ -33,44 +33,20 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], q
   options(warn=-1)
   max_display = 10 # Display text of 5 most abundant mass peaks and higher than 5%
 
-  #################
-  ### Check inputs:
-  #################
-
-  if (is.character(input_library)){
-    if (file_ext(input_library)!="mgf" & file_ext(input_library)!="msp" & file_ext(input_library)!="RData"){
-      stop("The input library must be mgf, msp or RData format!")
-    }
-  }
+  #####################################
+  ### Reading from spectral library:###
+  #####################################
   
-  if (is.character(input_library)){
-    if (file_ext(input_library)=="mgf"){
-      input_library = readMGF2(input_library)}
-    if (file_ext(input_library)=="RData"){
-      input_library = load_object(input_library)}
-    if (file_ext(input_library)=="msp"){
-      input_library = readMSP2(input_library)}
-  }
-  
-  if (!is.null(input_library)){
-    if (length(input_library)==2 & "complete" %in% names(input_library)){
+  if ("consensus" %in% names(input_library)){
+    if (!is.null(input_library$consensus)){
+      input_library = input_library$consensus
+    } else {
       input_library = input_library$complete
     }
-    if (length(input_library)!=2 || (!is.list(input_library$sp)) || !is.data.frame(input_library$metadata)){
-      stop("Please make sure your input library is a valid output of library_generator()!")
-    }
-  } else {stop("Please provide input library!")}
-  
-  if (!is.null(query_spectrum)){
-    if (ncol(query_spectrum)<2){
-      stop("Spectrum must have 2 columns m/z and intensity!")
-    }
   }
-
-  ##################################
-  ### Reading from spectral library:
-  ##################################
-
+  
+  input_library = library_reader(input_library, polarity = "All")
+  
   library1 = library_manager(input_library, query = paste0("ID =", id))$SELECTED
 
   metadata = library1$metadata
@@ -174,6 +150,10 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], q
   
   if (!is.null(query_spectrum)){
     
+    if (ncol(query_spectrum)<2){
+      stop("Spectrum must have 2 columns m/z and intensity!")
+    }
+    
     dat = query_spectrum[,1:2]
     dat[,2]=dat[,2]/max(dat[,2])*100 # Force normalization
     
@@ -186,14 +166,4 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], q
     xlim = c(min(dat[,1])*0.8, max(dat[,1])*1.2)
     SpectrumSimilarity(dat, spectrum, top.label="Query spectrum",bottom.label= bottom.label,xlim=xlim, print.graphic = T)
   }
-}
-
-######################
-### Internal function:
-######################
-
-load_object <- function(file) {
-  tmp <- new.env()
-  load(file = file, envir = tmp)
-  tmp[[ls(tmp)[1]]]
 }

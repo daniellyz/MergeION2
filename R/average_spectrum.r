@@ -1,17 +1,7 @@
-#' Generating consensus spectra
+#' MS1 or MS2 spectra alignment
 #'
-#' Function that merges a list of normalized spectra that belong to the same ID
+#' Function used by process_consensus and process_lib2matrix for m/z alignment
 #'
-#' @param splist List of extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity
-#' @param mz_window  m/z tolerance window (in da) for spectra alignment
-#'
-#' @return
-#' \itemize{
-#'   \item{new_spectrum:}{The aligned and averaged consensus spectra: data matrix with two columns (averaged m/z and intensity)}
-#'   \item{I_matrix:}{The aligned intensity matrix: intensity of aligned m/z in in each MS record}
-#'   \item{dev_matrix:}{The mass deviation matrix: mass deviation of each m/z in each MS record}
-#' }
-#' 
 #' @export
 #'
 average_spectrum<-function(splist, mz_window = 0.01){

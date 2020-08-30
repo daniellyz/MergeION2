@@ -38,7 +38,6 @@
 #' @export
 #'
 #' @importFrom MSnbase fData readMgfData
-#' @importFrom tools file_ext
 #' @importFrom stringr str_replace_all fixed
 #'
 library_manager<-function(input_library, query = "", logical = c("AND","OR"), ppm_search = 20, rt_search = 12){
@@ -46,40 +45,20 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  #################
-  ### Check inputs:
-  #################
-
-  if (is.character(input_library)){
-    if (file_ext(input_library)!="mgf" & file_ext(input_library)!="msp" & file_ext(input_library)!="RData"){
-      stop("The input library must be mgf, msp or RData format!")
-    }
-  }
-  
-  if (is.character(input_library)){
-    if (file_ext(input_library)=="mgf"){
-      input_library = readMGF2(input_library)}
-    if (file_ext(input_library)=="RData"){
-      input_library = load_object(input_library)}
-    if (file_ext(input_library)=="msp"){
-      input_library = readMSP2(input_library)}
-  }
-  
-  if (!is.null(input_library)){
-    if (length(input_library)==2 & "complete" %in% names(input_library)){
-      input_library = input_library$complete
-    }
-    if (length(input_library)!=2 || (!is.list(input_library$sp)) || !is.data.frame(input_library$metadata)){
-      stop("Please make sure your input library is a valid output of library_generator()!")
-    }
-  } else {stop("Please provide input library!")}
-  
   logical = match.arg(logical,choices=c("AND","OR"),several.ok = FALSE)
-
+  
   #####################################
-  ### Reading from spectral library:
+  ### Reading from spectral library:###
   #####################################
-
+  
+  if ("consensus" %in% names(input_library)){
+    if (!is.null(input_library$consensus)){
+      input_library = input_library$consensus
+    } else {
+      input_library = input_library$complete
+  }}
+  
+  input_library = library_reader(input_library, polarity = "All")
   metadata = input_library$metadata
   spectrum_list = input_library$sp
 
@@ -153,9 +132,9 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
               LEFT = LEFT_LIBRARY, ID_LEFT = unique(LEFT_LIBRARY$metadata$ID)))
 }
 
-############################
-### Internal functions:
-###########################
+#########################
+### Internal functions:##
+#########################
 
 # ppm error calculation:
 
@@ -171,9 +150,4 @@ ppm_distance<-function(x,y){
   return(ppm)
 }
 
-load_object <- function(file) {
-  tmp <- new.env()
-  load(file = file, envir = tmp)
-  tmp[[ls(tmp)[1]]]
-}
 

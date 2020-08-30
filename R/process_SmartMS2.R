@@ -9,7 +9,7 @@
 #'
 #' @export
 #' 
-process_MS2<-function(mzdatafiles = NULL, ref = NULL, 
+process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL, 
                       rt_search = 10, rt_gap = 30, ppm_search = 10, mz_search = 0.01,
                       baseline= 1000, relative = 5, max_peaks = 200, normalized=T){
 

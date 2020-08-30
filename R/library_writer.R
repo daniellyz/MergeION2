@@ -1,51 +1,85 @@
-#' Writing metadata and a list of spectra to mgf files
+#' Writing the spectral library to an open format
 #'
-#' The function writes a dataframe of metadata and a list of spectra to a msp file
+#' The function writes the output of library_generator into mgf, msp or rdata file.
 #'
-#' @param library List that contains 2 elements.
+#' @param output_library List that contains at list 2 elements.
 #' \itemize{
 #'   \item{sp:}{ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
 #'   \item{metadata:}{ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following five columns are added: FILENAME, MSLEVEL, TIC, MASS_DEV, SCANNUMBER and SCANS}
 #' }
-#' @param con Name of the output library, the file extension must be msp
+#' @param con Name of the output library, the file extension must be mgf, msp or rdata
 #'
 #' @examples
 #'
 #' data(DRUG_THERMO_LIBRARY)
-#'
-#' # Add new metadata "RESOLUTION = HIGH" to all scans:
-#' library2$metadata$RESOLUTION = "HIGH"
-#' # Write into a new mgf file:
-#' writeMSP(library2,"library.msp")
+#' library_writer(library2,"library_V2_bis.mgf")
 #'
 #' @importFrom tools file_ext
 #' @importFrom stringr str_remove
-#' 
-#' @export
 #'
-writeMSP2 <- function(library, con) {
+#' @export
+#' 
+library_writer<-function(output_library, con = "output_library.mgf"){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  if (is.list(library)){
-    if (length(library)==2 & "complete" %in% names(library)){
-      library = library$complete
-    }
-  if (length(library)!=2 || (!is.list(library$sp)) || !is.data.frame(library$metadata)){
-    stop("Please make sure your input library is a valid output of library_generator()!")
-  }}
+  ########################
+  ### Check output format#
+  ########################
+  
+  output_format = tolower(file_ext(con))
+  
+  if (!output_format %in% c("msp", "rdata", "mgf")){
+      stop("The output library must be mgf, msp or RData format!")
+  }
+  
+  output_library = library_reader(output_library)
+  
+  #############
+  ### Output ##
+  #############
+  
+  if (output_format=="mgf"){writeMGF2(output_library, con = con)}
+  if (output_format=="rdata"){save(output_library, file = con)}
+  if (output_format=="msp"){writeMSP2(output_library, con = con)}
 
-  if (is.character(con)){
-    if (file_ext(con)!="msp"){
-      stop("The file extension of your input library must be msp!")
-    }} else {
-      stop("The input must be the name of the msp file!")}
+}
 
+######################
+### Internal function:
+######################
+
+writeMGF2 <- function(library, con) {
+  
   .cat <- function(..., file = con, sep = "", append = TRUE) {
     cat(..., file = file, sep = sep, append = append)
   }
+  
+  con <- file(description = con, open = "wt")
+  on.exit(close(con))
+  
+  metadata = input_library$metadata
+  splist = input_library$sp
+  N=nrow(metadata)
+  C=ncol(metadata)
+  labels=colnames(metadata)
+  for (i in 1:N) {
+    .cat("\nBEGIN IONS\n")
+    for (j in 1:C){
+      .cat(labels[j],"=",as.character(metadata[i,j]),"\n")}
+    sp=splist[[i]]
+    .cat(paste(sp[,1],"\t",sp[,2], collapse = "\n"))
+    .cat("\nEND IONS\n")
+  }
+}
 
+writeMSP2 <- function(library, con) {
+  
+  .cat <- function(..., file = con, sep = "", append = TRUE) {
+    cat(..., file = file, sep = sep, append = append)
+  }
+  
   #######################
   # Conversion metadata:#
   #######################
@@ -55,7 +89,7 @@ writeMSP2 <- function(library, con) {
   N1 = nrow(metadata)
   
   new_metadata = metadata
- 
+  
   ind = which(colnames(new_metadata)=="ID")
   colnames(new_metadata)[ind] = "Name"
   
@@ -89,18 +123,18 @@ writeMSP2 <- function(library, con) {
   
   con <- file(description = con, open = "wt")
   on.exit(close(con))
- 
+  
   for (i in 1:N1){
     
     ind = which(colnames(new_metadata)=="Name")
     .cat("Name: ",as.character(new_metadata[i,ind]),"\n")
-  
+    
     ind = which(colnames(new_metadata)=="InChIKey")
     .cat("InChIKey: ",as.character(new_metadata[i,ind]),"\n")
-
+    
     ind = which(colnames(new_metadata)=="Precursor_type")
     .cat("Precursor_type: ",as.character(new_metadata[i,ind]),"\n")
-  
+    
     ind = which(colnames(new_metadata)=="Spectrum_type")
     .cat("Spectrum_type: ",as.character(new_metadata[i,ind]),"\n")
     
@@ -109,7 +143,7 @@ writeMSP2 <- function(library, con) {
     
     ind = which(colnames(new_metadata)=="Ion_mode")
     .cat("Ion_mode: ",as.character(new_metadata[i,ind]),"\n")
-
+    
     .cat("Comments: \n")
     
     sp=splist[[i]]
@@ -122,16 +156,16 @@ writeMSP2 <- function(library, con) {
   }
 }
 
-############
-# Internal:#
-############
+#########
+# Extra:#
+#########
 
 inchikey_generator<-function(smiles){
   
   options(stringsAsFactors = F)
   options(warn = -1)
   InChIKey = "N/A"
-
+  
   base_url = "https://cactus.nci.nih.gov/chemical/structure/"
   url1 = paste0(base_url, smiles, "/InchiKey")
   temp1 = try(as.character(readLines(url1)[1]), silent = T)

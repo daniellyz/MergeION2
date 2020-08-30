@@ -1,6 +1,6 @@
 #' Create pseudo-library file from a LC-MS/MS data file through XC-MS centWave non-targeted feature screening
 #'
-#' Function used by network_generator to screen LC-MS features from unknown mzML/mzXML file
+#' Function used by library_generator to screen LC-MS features from unknown mzML/mzXML file
 #'
 #' @param raw_data_file Character. The LC-MS/MS file name from which fragmented LC-MS features are extracted. All files must have be in centroid-mode with mzML or mzMXL extension!
 #' @param polarity character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file. 
@@ -18,7 +18,7 @@
 #' @export
 #'
 #'
-readMZXML2<-function(raw_data_file, polarity = c("Positive", "Negative"),
+process_dda<-function(raw_data_file, polarity = c("Positive", "Negative"),
                       ppm_search = 10, rt_search =12, baseline = 1000){
   
   options(stringsAsFactors = F)
@@ -115,34 +115,19 @@ readMZXML2<-function(raw_data_file, polarity = c("Positive", "Negative"),
   ### Create metadata ###
   #######################
   
-  MS2_metadata = matrix("N/A", length(MS2_PEPMASS), 4)
-  colnames(MS2_metadata) = c("ID", "PEPMASS","RT", "ADDUCT")
+  MS2_metadata = matrix("N/A", length(MS2_PEPMASS), 5)
+  colnames(MS2_metadata) = c("ID", "PEPMASS","RT", "ADDUCT", "FILENAME")
   MS2_metadata = data.frame(MS2_metadata)
   
   MS2_metadata$PEPMASS = MS2_PEPMASS
   MS2_metadata$RT = MS2_RT
   MS2_metadata$ID = paste0(basename(file_path_sans_ext(raw_data_file)),"_",1:nrow(MS2_metadata))
+  MS2_metadata$FILENAME = basename(raw_data_file)
   
   if (polarity=="Positive"){MS2_metadata$ADDUCT = "M+H"}
   if (polarity=="Negative"){MS2_metadata$ADDUCT = "M-H"}
   
-  write.table(MS2_metadata, "MS2_metadata.csv", sep=",", col.names = T, row.names = F, quote= F)
-  
-  #########################
-  ### Extract MS2 scans ###
-  #########################
-  
-  params.search = list(mz_search = 0.01, ppm_search = ppm_search, rt_seach = rt_search, rt_gap = 30)
-  params.ms.preprocessing = list(normalized = T, baseline = baseline, relative = 0.001, max_peaks = 300, recalibration = F)
-  
-  lib_features = library_generator(input_library = NULL, raw_data_file, "MS2_metadata.csv", 
-                          polarity = polarity, mslevel = 2, add.adduct = FALSE, processing.algorithm = "Default",
-                          params.search = params.search, params.ms.preprocessing = params.ms.preprocessing, params.user = "readMZXML2")
-  lib_features = lib_features$complete
-  
-  unlink("MS2_metadata.csv")
-  
-  return(lib_features)
+  return(MS2_metadata)
  
 }
 

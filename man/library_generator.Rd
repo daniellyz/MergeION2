@@ -2,28 +2,32 @@
 % Please edit documentation in R/library_generator.r
 \name{library_generator}
 \alias{library_generator}
-\title{Generating spectral library from raw LC-MS/MS chromatograms}
+\title{Digitizing and networking LC-MS/MS data}
 \usage{
 library_generator(
   input_library = NULL,
-  raw_data_files = NULL,
+  lcms_files = NULL,
   metadata_file = NULL,
-  polarity = c("Positive", "Negative"),
+  polarity = c("Positive", "Negative")[1],
   mslevel = c(1, 2),
   add.adduct = TRUE,
-  processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
-  params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30),
-  params.ms.preprocessing = list(normalized = T, baseline = 1000, relative = 0.01,
+  processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
+  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30),
+  params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
     max_peaks = 200, recalibration = 0),
-  params.user = ""
+  params.consensus = list(consensus = FALSE, consensus_method = c("consensus",
+    "common_peaks", "most_recent")[1], consensus_window = 0.02),
+  params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match =
+    6, min_score = 0.6, topK = 10, reaction_type = "Metabolic", use_reaction = FALSE),
+  params.user = list(sample_type = "", user_name = "", comments = "")
 )
 }
 \arguments{
 \item{input_library}{Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.}
 
-\item{raw_data_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!}
+\item{lcms_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!}
 
-\item{metadata_file}{A single character. It should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions.}
+\item{metadata_file}{A single character or NULL. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking.}
 
 \item{polarity}{A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files.}
 
@@ -41,7 +45,7 @@ library_generator(
  \item{rt_gap:}{ Numeric. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked. This parameter is not used for RMassBank.}
 }}
 
-\item{params.ms.preprocessing}{Paremeters for post-processing scans found in chromatogram files in a list. It must contain:
+\item{params.ms.preprocessing}{Parameters for pre-processing scans found in chromatogram files in a list. It must contain:
 \itemize{
  \item{normalized:}{ Logical. TRUE if the intensities of extracted spectra need to normalized so that the intensity of highest peak will be 100.}
  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
@@ -50,16 +54,44 @@ library_generator(
  \item{recalibration:}{ NUmeric. Parameter used by RMassBank. 0 if output is experimental spectra. 1 if output is experimental mass along with annotated formula. 2 if output is the theoritical masses calculated from elemenetal formula.}
 }}
 
-\item{params.user}{A single character. User name who processed the data.}
+\item{params.consensus}{Parameters for generating consensus scans that combine spectra of the same compound ID
+\itemize{ 
+ \item{consensus:}{ Logical. TRUE if consensus spectra are generated }
+ \item{consensus_method:}{ Character. Method for merging library "duplicates" by compound IDs.}
+   \enumerate{
+    \item{consensus:}{ Default method for generating generated by merging spectra of the same compound ID. All peaks were kept, similar fragments were aligned by averaging m/z and intensity.}
+    \item{common_peaks:}{ Peaks detected in ALL duplicated spectra were kept and averaged.}
+    \item{most_recent:}{ The most recent record was kept if duplicates are detected.}}
+ \item{consensus_window}{ m/z window (in Dalton) for spectra alignment, only used when method = "consensus" or "common_peaks". To generate consensus spectra, mass peaks in different spectra within the mass window were aligned by averaging their mass values and intensities. The metadata was kept only for the most recent spectrum.}
+}}
+
+\item{params.network}{Parameters for networking consensus spectra library into a molecular network
+\itemize{
+  \item{network:}{ Logical. TRUE if a network is built for consensus spectral library}
+  \item{similarity_method:}{Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Dot", "Cosine", "Spearman", "MassBank" or "NIST".}
+  \item{min_frag_match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
+  \item{min_score:}{ Numeric between 0 and 1. Minimum similarity score to connect two nodes in the library annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
+  \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}
+  \item{reaction_type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
+  \item{use_reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
+}}
+
+\item{params.user}{A list of additional parameters.
+\itemize{
+  \item{sample_type:}{ Character. Type of LCMS samples added to the spectral library e.g. plasma, standards...}
+  \item{user_name:}{ Character. User name who process the batch of lc-ms files.}
+  \item{comments:}{ Character. Additional comments about the samples added.}
+}}
 }
 \value{
 \itemize{
-  \item{complete:}{ Entire spectra library (historical + newly added records) is a list object of two elements: "library$sp" ~ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity; "library$metadata" ~ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on scans detected in the chromatogram files. Following metadata columns are updated/added: FILENAME (which raw data file the scan is isolated), MSLEVEL (1 or 2), TIC, PEPMASS_DEV (ppm error for detected precursor mass) and SCANNUMBER (scan number in raw chromatogram). The last three columns were PARAM_SUBMIT_USER (user name), PARAM_ALGORITHM (algorithm of processing), PARAM_CREATION_TIME (date and time when the MS record was added) and SCANS (unique identifier for each record)}
-  \item{current:}{ Temporary spectra library that only contains newly added scans.}
+  \item{complete:}{ Entire spectra library (historical + newly added records) is a list object of two elements: "library$sp" ~ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity; "library$metadata" ~ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on scans detected in the chromatogram files. Following metadata columns are updated/added: FILENAME (which raw data file the scan is isolated), MSLEVEL (1 or 2), TIC, PEPMASS_DEV (ppm error for detected precursor mass) and SCANNUMBER (scan number in raw chromatogram). The last three columns were PARAM_ALGORITHM (algorithm of processing), PARAM_CREATION_TIME (date and time when the MS record was added) and SCANS (unique identifier for each record)}
+  \item{consensus:}{ Consensus spectral library by merging MS/MS spectra with the same ID.}
+  \item{network:}{ Consensus spectral library transformed into a molecular network based on MS/MS spectral similarity.}
 }
 }
 \description{
-The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data and merge them into a spectral library (new or existing).
+The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data, merge them into a spectral library and create a spectral similarity-based molecular network.
 }
 \examples{
 
@@ -67,7 +99,7 @@ The function proposes three data processing algorithms to pick up MS1/MS2 scans 
 library(RMassBankData)
 
 input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
-raw_data_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
+lcms_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
 metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names = TRUE)
 
 polarity = "Positive"
@@ -76,36 +108,34 @@ add.adduct = F # No additional adducts are searched besides M+H
 
 params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
 params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
-params.user = "DANIEL"
 
+# Building a spectral library with default (SmartION) algorithm by simply gathering scans that matched with metadata:
+params.user = list(sample_type = "RMassBank data", user_name = "daniel", comments = "default algorithm, without building a consensus library")
 processing.algorithm = "Default"
-lib = library_generator(input_library, raw_data_files, metadata_file, 
-                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
-                       params.search, params.ms.preprocessing, params.user)
+lib = library_generator(input_library, lcms_files, metadata_file, 
+                        polarity = "Positive", mslevel, add.adduct, processing.algorithm,
+                        params.search, params.ms.preprocessing, params.user = params.user)
 lib1 = lib$complete
-save(lib1, file = "test_Default.RData") # Save the library as RData
+save(lib1, file = "test_default_complete.RData") # Save the library as RData
 
+# Building a spectral library with compMS2Miner algorithm and generating a consensus spectral library
 processing.algorithm = "compMS2Miner"
-lib = library_generator(input_library, raw_data_files, metadata_file, 
+params.consensus = list(consensus = T, consensus_method = "consensus", consensus_window = 0.02)
+params.user = list(sample_type = "RMassBank data", user_name = "daniel", comments = "compMS2Miner algorithm, building a consensus library")
+lib = library_generator(input_library, lcms_files, metadata_file, 
                        polarity = "Positive", mslevel, add.adduct, processing.algorithm,
-                       params.search, params.ms.preprocessing, params.user)
-lib2 = lib$complete
-save(lib2, file = "test_compMS2Miner.RData")  # Save the library as RData
+                       params.search, params.ms.preprocessing, params.consensus, params.user = params.user)
+lib2 = lib$consensus
+save(lib2, file = "test_compMS2Miner_consensus.RData")  # Save the library as RData
 
-# Processing with RMassBank:
+# Building a spectral library with RMassBank algorithm (recalibration based on elemental formula annotation), creating consensus spectral library and building a molecular network based on the consensus library
 processing.algorithm = "RMassBank"
-lib = library_generator(input_library, raw_data_files, metadata_file, 
+params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 2)
+params.network = list(network = T, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, reaction_type = "Chemical", use_reaction = F)
+lib3 = library_generator(input_library, lcms_files, metadata_file, 
                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
-                      params.search, params.ms.preprocessing, params.user)
-lib3 = lib$complete
-save(lib3, file = "test_RMassBank.RData")  # Save the library as RData
-
-# Processing with RMassBank and only keep the exact fragment masses based on elemental formulas:
-params.ms.preprocessing$recalibration = 2
-lib = library_generator(input_library, raw_data_files, metadata_file, 
-                     polarity = "Positive", mslevel, add.adduct, processing.algorithm,
-                     params.search, params.ms.preprocessing, params.user)
-save(lib4, file = "test_RMassBank_bis.RData")  
+                      params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)
+save(lib3, file = "test_RMassBank_consensus_network.RData")  # Save the library as RData
 
 }
 \author{

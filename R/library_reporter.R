@@ -18,38 +18,11 @@ library_reporter<-function(input_library){
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  #################
-  ### Check inputs:
-  #################
-
-  if (is.character(input_library)){
-    if (file_ext(input_library)!="mgf" & file_ext(input_library)!="msp" & file_ext(input_library)!="RData"){
-      stop("The input library must be mgf, msp or RData format!")
-    }
-  }
-  
-  if (is.character(input_library)){
-    if (file_ext(input_library)=="mgf"){
-      input_library = readMGF2(input_library)}
-    if (file_ext(input_library)=="RData"){
-      input_library = load_object(input_library)}
-    if (file_ext(input_library)=="msp"){
-      input_library = readMSP2(input_library)}
-  }
-  
-  if (!is.null(input_library)){
-    if (length(input_library)==2 & "complete" %in% names(input_library)){
-      input_library = input_library$complete
-    }
-    if (length(input_library)!=2 || (!is.list(input_library$sp)) || !is.data.frame(input_library$metadata)){
-      stop("Please make sure your input library is a valid output of library_generator()!")
-    }
-  } else {stop("Please provide input library!")}
-
   #####################################
   ### Reading from spectral library:###
   #####################################
 
+  input_library = library_reader(input_library)
   metadata = input_library$metadata
   spectrum_list = input_library$sp
 

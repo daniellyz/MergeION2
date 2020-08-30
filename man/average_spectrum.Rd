@@ -2,22 +2,10 @@
 % Please edit documentation in R/average_spectrum.r
 \name{average_spectrum}
 \alias{average_spectrum}
-\title{Generating consensus spectra}
+\title{MS1 or MS2 spectra alignment}
 \usage{
 average_spectrum(splist, mz_window = 0.01)
 }
-\arguments{
-\item{splist}{List of extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
-
-\item{mz_window}{m/z tolerance window (in da) for spectra alignment}
-}
-\value{
-\itemize{
-  \item{new_spectrum:}{The aligned and averaged consensus spectra: data matrix with two columns (averaged m/z and intensity)}
-  \item{I_matrix:}{The aligned intensity matrix: intensity of aligned m/z in in each MS record}
-  \item{dev_matrix:}{The mass deviation matrix: mass deviation of each m/z in each MS record}
-}
-}
 \description{
-Function that merges a list of normalized spectra that belong to the same ID
+Function used by process_consensus and process_lib2matrix for m/z alignment
 }
