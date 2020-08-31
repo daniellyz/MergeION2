@@ -15,6 +15,8 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
     stop("The library processing method does not exist!")
   }
   
+  message("Generating consensus library...")
+  
   ####################################
   ### Read and check input library:###
   ####################################

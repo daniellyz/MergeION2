@@ -1,8 +1,9 @@
 #' Create feature-based molecular networks from a conesnsus spectra library
 #'
-#' Generate feature-based molecular networks from raw LC-MS/MS file or spectral summary file, automatically annotate features in a spectral library
+#' Function used by library_generator to create molecular networks
 #'
-#' @param consensus_library A list 
+#' @param consensus_library A list object. Consensus library containing metadata and sp
+#' @param networking Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching
 #' @param polarity character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file. 
 #' @param params.screening Parameters for feature screening and MS2 spectra pre-processing from raw_data_file:
 #' \itemize{
@@ -31,7 +32,7 @@
 #' @export
 #'
 
-process_lib2network<-function(consensus_library, polarity = c("Positive", "Negative"),
+process_lib2network<-function(consensus_library, networking = T, polarity = c("Positive", "Negative"),
                   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.search = list(mz_search = 0.005, ppm_search = 10),
                   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
@@ -80,87 +81,97 @@ process_lib2network<-function(consensus_library, polarity = c("Positive", "Negat
   ### Spectral similarity calculation ###
   #######################################
   
-  for (i in 1:(NI-1)){
+  if (networking){
   
-    temp_spectrum = splist[[i]]
+    message("Generating molecular network...")
+    
+    for (i in 1:(NI-1)){
+  
+      temp_spectrum = splist[[i]]
 
-    # Search part of library
-    lib_range = (i+1):NI
-    temp_library = library_matrix
-    temp_library$consensus$metadata = library_matrix$consensus$metadata[lib_range,,drop=FALSE]
-    temp_library$consensus$sp = library_matrix$consensus$sp[lib_range]
-    temp_library$network$db_profile =  library_matrix$network$db_profile[,lib_range,drop=FALSE] 
+      # Search part of library
+      lib_range = (i+1):NI
+      temp_library = library_matrix
+      temp_library$consensus$metadata = library_matrix$consensus$metadata[lib_range,,drop=FALSE]
+      temp_library$consensus$sp = library_matrix$consensus$sp[lib_range]
+      temp_library$network$db_profile =  library_matrix$network$db_profile[,lib_range,drop=FALSE] 
 
-    temp_scores = library_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
+      temp_scores = library_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
                   method = sim.method, prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
 
-    if (!is.null(temp_scores)){
-      NSC = nrow(temp_scores)
-      temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], MS2.Similarity = round(temp_scores[,2],3))  
-      new_network = rbind.data.frame(new_network, temp_network)
-    }
-  }
-
-  #######################
-  ### Top K filtering ###
-  #######################
-  
-  if (!is.null(new_network)){
-    new_network = mutual_filter(new_network, topK = topK)
-    if (nrow(new_network)==0){new_network = NULL}
-  }
-  ##################################
-  ### Mass difference annotation ###
-  ##################################
-  
-  if (!is.null(new_network)){
-  
-    if (reaction.type=="Metabolic"){
-      reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionBio.txt", sep = "\t")
-    }
-    if (reaction.type=="Chemical"){
-      reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionChem.txt", sep = "\t")
-    }
-    
-    reaction_annotated = rep("N/A", nrow(new_network))
-    reaction_formula = rep("N/A", nrow(new_network))
-  
-    for (k in 1:nrow(new_network)){
-      II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
-      II2 = which(as.character(metadata$ID) == as.character(new_network$ID2[k]))[1]
-      MZ1 = as.numeric(metadata$PEPMASS[II1])
-      MZ2 = as.numeric(metadata$PEPMASS[II2])
-      
-      MDiff = abs(MZ1 - MZ2)
-      MDiff_error = abs(reactionList$Mdiff - MDiff)
-    
-      if (min(MDiff_error)<=0.02){
-        ind = which.min(MDiff_error)[1]
-        reaction_annotated[k] = reactionList$Reaction.Name[ind]
-        reaction_formula[k] = reactionList$Formula[ind]
+      if (!is.null(temp_scores)){
+        NSC = nrow(temp_scores)
+        temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], MS2.Similarity = round(temp_scores[,2],3))  
+        new_network = rbind.data.frame(new_network, temp_network)
       }
+    }
+
+    #######################
+    ### Top K filtering ###
+    #######################
+  
+    if (!is.null(new_network)){
+      new_network = mutual_filter(new_network, topK = topK)
+      if (nrow(new_network)==0){new_network = NULL}
+    }
+    
+    ##################################
+    ### Mass difference annotation ###
+    ##################################
+  
+    if (!is.null(new_network)){
+  
+      if (reaction.type=="Metabolic"){
+        reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionBio.txt", sep = "\t")
+      }
+      if (reaction.type=="Chemical"){
+        reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionChem.txt", sep = "\t")
+      }
+    
+      reaction_annotated = rep("N/A", nrow(new_network))
+      reaction_formula = rep("N/A", nrow(new_network))
+  
+      for (k in 1:nrow(new_network)){
+        II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
+        II2 = which(as.character(metadata$ID) == as.character(new_network$ID2[k]))[1]
+        MZ1 = as.numeric(metadata$PEPMASS[II1])
+        MZ2 = as.numeric(metadata$PEPMASS[II2])
+      
+        MDiff = abs(MZ1 - MZ2)
+        MDiff_error = abs(reactionList$Mdiff - MDiff)
+    
+        if (min(MDiff_error)<=0.02){
+          ind = which.min(MDiff_error)[1]
+          reaction_annotated[k] = reactionList$Reaction.Name[ind]
+          reaction_formula[k] = reactionList$Formula[ind]
+        }
     }
     
     new_network = cbind.data.frame(new_network, reaction = reaction_annotated, reaction_formula = reaction_formula)
   }
   
-  #############################################
-  ### Final filtering and outputing network ###
-  #############################################
+  ######################################
+  ### Final filtering and outputing  ###
+  ######################################
   
-  if (!is.null(new_network)){
+    if (!is.null(new_network)){
     
-    new_network = new_network[new_network[,3]>=min.score,,drop=FALSE]
+      new_network = new_network[new_network[,3]>=min.score,,drop=FALSE]
     
-    if (use.reaction){
-      new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
+      if (use.reaction){
+        new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
+      }
+      
+      if (nrow(new_network)==0){new_network = NULL}
     }
   }
   
   output_network = list(db_profile = library_matrix$network$db_profile, db_feature = library_matrix$network$db_feature, 
                         nodes = new_nodes, network = new_network)
   
-  return(output_network)
+  output_library = list(complete = consensus_library, consensus = consensus_library, network = output_network)
+  
+  return(output_library)
 }
                   
                   

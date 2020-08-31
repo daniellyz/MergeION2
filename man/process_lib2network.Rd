@@ -6,6 +6,7 @@
 \usage{
 process_lib2network(
   consensus_library,
+  networking = T,
   polarity = c("Positive", "Negative"),
   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
   params.search = list(mz_search = 0.005, ppm_search = 10),
@@ -14,7 +15,9 @@ process_lib2network(
 )
 }
 \arguments{
-\item{consensus_library}{A list}
+\item{consensus_library}{A list object. Consensus library containing metadata and sp}
+
+\item{networking}{Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching}
 
 \item{polarity}{character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file.}
 
@@ -39,5 +42,5 @@ process_lib2network(
 }}
 }
 \description{
-Generate feature-based molecular networks from raw LC-MS/MS file or spectral summary file, automatically annotate features in a spectral library
+Function used by library_generator to create molecular networks
 }

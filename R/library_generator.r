@@ -131,15 +131,24 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   ### Check general function inputs:###
   #####################################
 
+  if (is.null(input_library) & is.null(lcms_files)){
+    stop("Please at least provide input spectral library or a vector of lc ms files!")
+  }
+  
   if (!is.null(input_library)){
     old_lib = library_reader(input_library, polarity, "complete")
   } else {old_lib = NULL}
   
-  if (!is.vector(lcms_files)){
-    stop("Please provide a list of chromatogram files!")}
-
-  if (!all(file_ext(lcms_files) %in% c("mzML", "mzXML", "cdf", "CDF"))){
-    stop("Chromatogram files must be in mzML, mzXML or cdf format!")}
+  if (!is.null(lcms_files)){
+    
+    if (!is.vector(lcms_files)){
+      stop("Please provide a list of chromatogram files!")
+    }
+  
+    if (!all(toupper(file_ext(lcms_files)) %in% c("MZML", "MZXML", "CDF"))){
+      stop("Chromatogram files must be in mzML, mzXML or cdf format!")
+    }
+  }
 
   if (!is.null(metadata_file)){
     if (!is.character(metadata_file)){
@@ -184,6 +193,14 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     message("Recalibration or Elemental formula calculation can be performed with RMassBank algorithm only!")
   }
   
+  if (!params.consensus$consensus & params.network$network){
+    params.consensus$consensus = TRUE
+  }
+  
+  if (!params.consensus$consensus){
+    message("Warning! Spectral library search impossible without consensus spectral library generation!")
+  }
+  
   #######################
   ### Check old library:#
   #######################
@@ -207,7 +224,9 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   ### Load and edit metadata###
   #############################
   
-  if (is.null(metadata_file)){
+  FF = length(lcms_files)
+  
+  if (is.null(metadata_file) & FF>0){
     ref = c()
     for (x in 1:length(lcms_files)){
       tmp_ref = process_dda(lcms_files[x], polarity= polarity,  ppm_search = params.search$ppm_search, rt_search = params.search$rt_search, baseline = params.ms.preprocessing$baseline)
@@ -246,13 +265,14 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     stop("No valid metadata available!")
   }
   
+  if (FF==0){} else{
+  
   ################
   ### SmartION####
   ################
-
+  
   if (processing.algorithm=="Default"){
   
-    FF = length(lcms_files)
     temp_metadata = c() # Temporary metadata
   
     for (ff in 1:FF){
@@ -316,7 +336,6 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (processing.algorithm=="compMS2Miner"){
     
-    FF = length(lcms_files)
     temp_metadata = c() # Temporary metadata
     
     include.MS1 = FALSE
@@ -389,6 +408,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     unlink("mysettings.ini")
     unlink("Compoundlist.csv")
   }
+  }
   
   ###################################
   ### Combine and validate results:##
@@ -411,20 +431,19 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (NN>1 & params.consensus$consensus){
     
-    message("Generating consensus library...")
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
                                           params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
   
     NN = nrow(library_consensus$metadata)
 
-    if (NN>1 & params.network$network){
+    if (NN>1){
       
-      message("Generating molecular network...")
-      library_network = process_lib2network(library_consensus, polarity = polarity, 
+      library_network = process_lib2network(library_consensus, networking = params.network$network,polarity = polarity, 
         params.screening = list(baseline = params.ms.preprocessing$baseline, relative =  params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks),                          
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
         params.network = list(topK = params.network$topK, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
+      library_network = library_network$network 
     }
   }
   
