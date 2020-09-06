@@ -28,14 +28,15 @@
 #' @examples
 #' 
 #' # Load database to object lib4:
-#' data(Local_DB_RMassBank_Calibrated)
+#' data(DRUG_POS)
 #' 
 #' # Load query spectra
-#' cocain_file <- list.files(system.file("spectra", package = "MergeION"),".msp", full.names = TRUE)[1]
-#' query_spectrum = cocain_file$sp[[1]]
+#' query_file <- list.files(system.file("spectra", package = "MergeION"),".msp", full.names = TRUE)[1]
+#' query_precursor = library_reader(query_file)$metadata$PEPMASS[1]
+#' query_spectrum = library_reader(query_file)$sp[[1]]
 #' 
 #' # Search in the spectra library without using precursor mass pre-search
-#' scores = library_similarity(query_spectrum, polarity = "Positive", prec_mz = 313.067, use.prec = FALSE, input_library = lib4,
+#' scores = library_similarity(query_spectrum, polarity = "Positive", prec_mz = query_precursor, use.prec = FALSE, input_library = DRUG_POS,
 #'                          method = "Matches", prec_ppm_search = 10, frag_mz_search = 0.01, min_frag_match = 5)
 #' 
 #' # Visualize the top candidate
@@ -49,16 +50,17 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-  
+  gc()
+
   if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
   if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
   if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
-  if (!("network" %in% names(input_library))){stop("Spectral library to search must be output of library_generator!")}
-  if (is.null(input_library$network)){stop("To allow spectral library search, the library object must contain a valid network!")}
-  
+
   ################################
   ### Preprocess query spectrum:##
   ################################
+  
+  prec_mz = as.numeric(prec_mz)
   
   dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.001)
   NP = nrow(dat)
@@ -72,10 +74,14 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ### Read, filter and check input library###
   ###########################################
   
-  consensus_library = library_reader(input_library, polarity = polarity, type = "consensus")
+  input_library = library_reader(input_library)
+  
+  if (is.null(input_library$consensus)){stop("To allow spectral library search, consensus library must be created!")}
+  
   db_profile = input_library$network$db_profile
   db_feature = input_library$network$db_feature
-
+  consensus_library  = input_library$consensus
+  
   if (use.prec){
     consensus_library = library_manager(consensus_library, query = paste0("PEPMASS=", prec_mz), ppm_search = prec_ppm_search)
     consensus_library = consensus_library$SELECTED
@@ -188,7 +194,6 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   if (nrow(sim.scores)==0){return(NULL)}
   
   if ("FORMULA" %in% colnames(consensus_library$metadata)){
-    
     all_formulas = consensus_library$metadata$FORMULA
     valid = match(sim.scores[,1], consensus_library$metadata$ID)
     sim.scores$FORMULA = all_formulas[valid]
@@ -197,6 +202,9 @@ library_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   sim.scores$ID[sim.scores$ID==""] = "N/A"
   sim.scores$FORMULA[sim.scores$FORMULA==""] = "N/A"
   sim.scores = sim.scores[order(sim.scores$SCORES, decreasing = T),]
+  
+  
+  
   
   return(sim.scores)
 }

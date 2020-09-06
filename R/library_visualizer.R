@@ -37,15 +37,13 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], q
   ### Reading from spectral library:###
   #####################################
   
-  if ("consensus" %in% names(input_library)){
-    if (!is.null(input_library$consensus)){
-      input_library = input_library$consensus
-    } else {
-      input_library = input_library$complete
-    }
-  }
+  input_library = library_reader(input_library)
   
-  input_library = library_reader(input_library, polarity = "All")
+  if (!is.null(input_library$consensus)){
+      input_library = input_library$consensus
+  } else {
+      input_library = input_library$complete
+  }
   
   library1 = library_manager(input_library, query = paste0("ID =", id))$SELECTED
 

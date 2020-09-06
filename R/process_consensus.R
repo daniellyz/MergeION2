@@ -22,8 +22,10 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
   ####################################
   
   input_library = library_reader(input_library)
-  spectrum_list = input_library$sp
-  metadata = input_library$metadata
+  complete_library = input_library$complete
+  
+  spectrum_list = complete_library$sp
+  metadata = complete_library$metadata
 
   ###############
   ### Grouping:##
@@ -114,9 +116,9 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
   ### Return results:
   ####################
 
-  output_library = list()
-  output_library$sp = new_spectrum_list1
-  output_library$metadata = new_metadata
+  consensus_library = list(metadata = new_metadata, sp = new_spectrum_list1)
+
+  output_library = list(complete = complete_library, consensus = consensus_library, network = NULL)
 
   return(output_library)
 }

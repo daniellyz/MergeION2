@@ -25,10 +25,8 @@ library_manager(
 }
 \value{
 \itemize{
- \item{SELECTED:}{ Library object that only contain selected scans}
- \item{ID_SELECTED:}{ IDs of selected scans}
+ \item{SELECTED:}{ Library object that only contain selected}
  \item{LEFT:}{ Library object that only contain unselected scans}
- \item{ID_SELECTED:}{ IDs of unnselected scans}
 }
 }
 \description{

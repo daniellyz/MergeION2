@@ -2,7 +2,7 @@
 #'
 #' The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data, merge them into a spectral library and create a spectral similarity-based molecular network.
 #' 
-#' @param input_library Character or library object. If character, name of the library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.
+#' @param input_library Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.
 #' @param lcms_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!
 #' @param metadata_file A single character or NULL. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking. 
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
@@ -123,9 +123,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  library_complete = NULL
-  library_consensus = NULL
-  library_network = NULL
+  output_library = NULL
   
   #####################################
   ### Check general function inputs:###
@@ -136,7 +134,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   }
   
   if (!is.null(input_library)){
-    old_lib = library_reader(input_library, polarity, "complete")
+    old_lib = library_reader(input_library)$complete
   } else {old_lib = NULL}
   
   if (!is.null(lcms_files)){
@@ -162,6 +160,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     }
   }
   
+  if (is.null(metadata_file)){add.adduct = FALSE}
+  
   if (length(polarity)!=1){
     stop("Polarity must be either Positive or Negative")
   }
@@ -185,7 +185,6 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (processing.algorithm=="RMassBank" & is.null(metadata_file)){
     processing.algorithm = "Default"
-    add.adduct = FALSE
     message("Default algorithm (SMartION) is set because RMassBank only works if struture metadata is provided!")
   }
 
@@ -225,13 +224,17 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   #############################
   
   FF = length(lcms_files)
+  target.ref = NULL
   
   if (is.null(metadata_file) & FF>0){
     ref = c()
     for (x in 1:length(lcms_files)){
       tmp_ref = process_dda(lcms_files[x], polarity= polarity,  ppm_search = params.search$ppm_search, rt_search = params.search$rt_search, baseline = params.ms.preprocessing$baseline)
       ref = rbind.data.frame(ref, tmp_ref)
-  }}
+    }
+    target.ref = ref
+    if (nrow(target.ref)==0){target.ref= NULL}
+  }
   
   if (!is.null(metadata_file)){
     ref = read.csv(metadata_file,sep=";",dec=".",header=T)
@@ -254,16 +257,11 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
       if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, SMILES must be provided!")}
       if (!("FILENAME" %in% colnames(ref))){stop("To use RMassBank algorithm, please provide LC-MS file name corresponding to each compound!")}
     }
+    target.ref = process_metadata(ref, processing.algorithm, polarity, add.adduct)
+    if (nrow(target.ref)==0){target.ref= NULL}
   }
   
-  target.ref = process_metadata(ref, processing.algorithm, polarity, add.adduct)
-  
-  if (is.null(target.ref)){
-    stop("No valid metadata available!")
-  }
-  if (nrow(target.ref)==0){
-    stop("No valid metadata available!")
-  }
+  if (is.null(target.ref)){FF=0}
   
   if (FF==0){} else{
   
@@ -420,10 +418,11 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     library_complete = list()
     library_complete$sp = spectrum_list
     library_complete$metadata = metadata
-    library_complete = library_reader(library_complete)
+    library_complete = remove_blanks(library_complete)
   }
   
-  NN = nrow(library_complete$metadata)
+  output_library = library_reader(library_complete)
+  NN = nrow(output_library$complete$metadata)
   
   ##############################
   ### Post-processing library###
@@ -434,7 +433,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
                                           params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
   
-    NN = nrow(library_consensus$metadata)
+    output_library = library_reader(library_consensus)
+    NN = nrow(output_library$consensus$metadata)
 
     if (NN>1){
       
@@ -443,9 +443,40 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
         params.network = list(topK = params.network$topK, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
-      library_network = library_network$network 
+      
+      output_library = library_reader(library_network)
     }
   }
+ 
+  return(output_library)
+}
+
+
+#############################
+######Internal function######
+#############################
+
+remove_blanks<-function(library1){
   
-  return(list(complete = library_complete, consensus = library_consensus, network = library_network))
+  # The function remove emptys record from library
+  
+  sp= library1$sp
+  metadata = library1$metadata
+  
+  valid = which(!sapply(sp, is.null))
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  valid = which(sapply(sp, nrow)>0)
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  valid = which(sapply(sp, function(x) x[1,1])>0)
+  sp = sp[valid]
+  metadata = metadata[valid,,drop=FALSE]
+  
+  new_library = list(metadata= metadata, sp = sp)
+  
+  return(new_library)
+  
 }

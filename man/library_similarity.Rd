@@ -53,14 +53,15 @@ The function calculates spectral similarity of a query spectrum to an existing s
 \examples{
 
 # Load database to object lib4:
-data(Local_DB_RMassBank_Calibrated)
+data(DRUG_POS)
 
 # Load query spectra
-cocain_file <- list.files(system.file("spectra", package = "MergeION"),".msp", full.names = TRUE)[1]
-query_spectrum = cocain_file$sp[[1]]
+query_file <- list.files(system.file("spectra", package = "MergeION"),".msp", full.names = TRUE)[1]
+query_precursor = library_reader(query_file)$metadata$PEPMASS[1]
+query_spectrum = library_reader(query_file)$sp[[1]]
 
 # Search in the spectra library without using precursor mass pre-search
-scores = library_similarity(query_spectrum, polarity = "Positive", prec_mz = 313.067, use.prec = FALSE, input_library = lib4,
+scores = library_similarity(query_spectrum, polarity = "Positive", prec_mz = query_precursor, use.prec = FALSE, input_library = DRUG_POS,
                          method = "Matches", prec_ppm_search = 10, frag_mz_search = 0.01, min_frag_match = 5)
 
 # Visualize the top candidate

@@ -5,7 +5,7 @@
 \title{Create feature-based molecular networks from a conesnsus spectra library}
 \usage{
 process_lib2network(
-  consensus_library,
+  input_library,
   networking = T,
   polarity = c("Positive", "Negative"),
   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
@@ -15,7 +15,7 @@ process_lib2network(
 )
 }
 \arguments{
-\item{consensus_library}{A list object. Consensus library containing metadata and sp}
+\item{input_library}{A list object. Must contain consensus library.}
 
 \item{networking}{Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching}
 

@@ -2,7 +2,7 @@
 #'
 #' Function used by library_generator to create molecular networks
 #'
-#' @param consensus_library A list object. Consensus library containing metadata and sp
+#' @param input_library A list object. Must contain consensus library.
 #' @param networking Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching
 #' @param polarity character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file. 
 #' @param params.screening Parameters for feature screening and MS2 spectra pre-processing from raw_data_file:
@@ -32,7 +32,7 @@
 #' @export
 #'
 
-process_lib2network<-function(consensus_library, networking = T, polarity = c("Positive", "Negative"),
+process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
                   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.search = list(mz_search = 0.005, ppm_search = 10),
                   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
@@ -45,9 +45,14 @@ process_lib2network<-function(consensus_library, networking = T, polarity = c("P
   ###  Input Check ###
   ####################
 
-  consensus_library = library_reader(consensus_library, polarity)
+  input_library = library_reader(input_library)
+  
+  complete_library = input_library$complete
+  consensus_library = input_library$consensus
+  
+  if (is.null(consensus_library)){stop("No consensus spectra available!")}
   NI = nrow(consensus_library$metadata)
-  if (NI == 0){stop("No valid MS2 scan available!")} 
+  if (NI == 0){stop("No consensus spectra available!")} 
   metadata = consensus_library$metadata
   splist = consensus_library$sp
   IDList = metadata$ID
@@ -68,6 +73,10 @@ process_lib2network<-function(consensus_library, networking = T, polarity = c("P
   reaction.type = params.network$reaction.type
   use.reaction = params.network$use.reaction
 
+  if (!(reaction.type %in% c("Chemical", "Metabolic"))){
+    stop("Reaction type for annotating network mass differences must be Chemical or Metabolic!")
+  }
+  
   ###################################
   ### Transform spectra to matrix ###
   ###################################
@@ -169,7 +178,7 @@ process_lib2network<-function(consensus_library, networking = T, polarity = c("P
   output_network = list(db_profile = library_matrix$network$db_profile, db_feature = library_matrix$network$db_feature, 
                         nodes = new_nodes, network = new_network)
   
-  output_library = list(complete = consensus_library, consensus = consensus_library, network = output_network)
+  output_library = list(complete = complete_library, consensus = consensus_library, network = output_network)
   
   return(output_library)
 }

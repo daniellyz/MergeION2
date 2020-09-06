@@ -9,10 +9,8 @@
 #' @param rt_search Numeric. Retention time tolerance in second (although rt in the query and metadata in min). Only used when searching by retention time "RT=..."
 #' @return
 #' \itemize{
-#'  \item{SELECTED:}{ Library object that only contain selected scans}
-#'  \item{ID_SELECTED:}{ IDs of selected scans}
+#'  \item{SELECTED:}{ Library object that only contain selected}
 #'  \item{LEFT:}{ Library object that only contain unselected scans}
-#'  \item{ID_SELECTED:}{ IDs of unnselected scans}
 #' }
 #'
 #' @examples
@@ -50,24 +48,16 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
   #####################################
   ### Reading from spectral library:###
   #####################################
-  
-  if ("consensus" %in% names(input_library)){
-    if (!is.null(input_library$consensus)){
-      input_library = input_library$consensus
-    } else {
-      input_library = input_library$complete
-  }}
-  
-  input_library = library_reader(input_library, polarity = "All")
+
   metadata = input_library$metadata
   spectrum_list = input_library$sp
 
   prec_mz = as.numeric(metadata$PEPMASS)
   prec_rt = as.numeric(metadata$RT)
   
-  ###########################
-  ### Run query expressions:
-  ###########################
+  #############################################
+  ### Run query expressions and find indexes ##
+  #############################################
 
   if (!is.character(query)){
     stop("Query expression is not valid!")}
@@ -128,8 +118,8 @@ library_manager<-function(input_library, query = "", logical = c("AND","OR"), pp
   LEFT_LIBRARY$sp = input_library$sp[left_list]
   LEFT_LIBRARY$metadata = input_library$metadata[left_list,,drop=FALSE]
 
-  return(list(SELECTED = SELECTED_LIBRARY, ID_SELECTED = unique(SELECTED_LIBRARY$metadata$ID),
-              LEFT = LEFT_LIBRARY, ID_LEFT = unique(LEFT_LIBRARY$metadata$ID)))
+  return(list(SELECTED = SELECTED_LIBRARY,
+              LEFT = LEFT_LIBRARY))
 }
 
 #########################

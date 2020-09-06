@@ -43,7 +43,6 @@ library_writer<-function(output_library, con = "output_library.mgf"){
   if (output_format=="mgf"){writeMGF2(output_library, con = con)}
   if (output_format=="rdata"){save(output_library, file = con)}
   if (output_format=="msp"){writeMSP2(output_library, con = con)}
-
 }
 
 ######################
