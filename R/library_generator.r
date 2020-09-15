@@ -122,7 +122,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-
+  gc()
+  
   output_library = NULL
   
   #####################################
