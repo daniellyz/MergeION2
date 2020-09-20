@@ -441,7 +441,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     NN = nrow(output_library$consensus$metadata)
 
     if (NN>1){
-      
+
       library_network = process_lib2network(library_consensus, networking = params.network$network,polarity = polarity, 
         params.screening = list(baseline = params.ms.preprocessing$baseline, relative =  params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks),                          
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),

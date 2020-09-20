@@ -54,7 +54,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   if (is.null(consensus_library)){stop("No MS2 in consensus spectra available!")}
   
   NI = nrow(consensus_library$metadata)
-  
+
   metadata = consensus_library$metadata
   splist = consensus_library$sp
   IDList = metadata$ID
@@ -99,7 +99,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     for (i in 1:(NI-1)){
   
       temp_spectrum = splist[[i]]
-      temp_library = list(complete = NULL, consensus = NULL, network = NULL)
+      temp_library = list(complete = complete_library, consensus = NULL, network = NULL)
       
       # Search part of library
       
