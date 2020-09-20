@@ -7,7 +7,8 @@
 #'   \item{sp:}{ List of all extracted spectra. Each spectrum is a data matrix with two columns: m/z and intensity}
 #'   \item{metadata:}{ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following five columns are added: FILENAME, MSLEVEL, TIC, MASS_DEV, SCANNUMBER and SCANS}
 #' }
-#' @param con Name of the output library, the file extension must be mgf, msp or rdata
+#' @param con Character. Name of the output library, the file extension must be mgf, msp or rdata
+#' @param type Character. "Complete" if the entire library is exported. "Consensus" if the consensus library is exported.
 #'
 #' @examples
 #'
@@ -19,7 +20,7 @@
 #'
 #' @export
 #' 
-library_writer<-function(output_library, con = "output_library.mgf"){
+library_writer<-function(output_library, con = "output_library.mgf", type = "complete"){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -34,7 +35,24 @@ library_writer<-function(output_library, con = "output_library.mgf"){
       stop("The output library must be mgf, msp or RData format!")
   }
   
+  type = type[1]
+  if (!type %in% c("complete", "consensus")){
+    stop("Please choose the exported library type between complete and consensus!")
+  }
+  
+  if (is.null(output_library$consensus)){
+    type = "complete"
+    message("No consensus library is available! The entire library is exported!")
+  }
+  
+  ################
+  ###Read output##
+  ################
+  
   output_library = library_reader(output_library)
+  
+  if (type == "complete"){output_library = output_library$complete}
+  if (type == "consensus"){output_library = output_library$consensus}
   
   #############
   ### Output ##
@@ -49,7 +67,7 @@ library_writer<-function(output_library, con = "output_library.mgf"){
 ### Internal function:
 ######################
 
-writeMGF2 <- function(library, con) {
+writeMGF2 <- function(input_library, con) {
   
   .cat <- function(..., file = con, sep = "", append = TRUE) {
     cat(..., file = file, sep = sep, append = append)

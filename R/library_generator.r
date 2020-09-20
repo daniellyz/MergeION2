@@ -6,7 +6,7 @@
 #' @param lcms_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!
 #' @param metadata_file A single character or NULL. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking. 
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
-#' @param mslevel A numeric vector. Must contain 2 (if only MS2 scans are extracted) and can be c(1,2) if isotopic pattern in MS1 scans are also extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
+#' @param mslevel A numeric vector. 1 or 2 or c(1,2). 2 if MS2 scans are extracted, 1 if isotopic pattern of the precursor mass in the MS1 scan is extracted. c(1,2) if both MS1 and MS2 scans are extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
 #' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.
 #' @param processing.algorithm A single character. "Default", "compMS2Miner" or "RMassBank". 
 #' @param params.search Parameters for searching and collecting ions from chromatogram files in a list. These parameters define the tolerance window when input metadata is searched. The list must contain following elements:
@@ -171,10 +171,6 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     stop("Polarity must be either Positive or Negative")
   }
   
-  if (!(2 %in% mslevel)){
-    stop("2 must in mslevel!")
-  }
-  
   if (length(processing.algorithm)!=1){
     stop("Please choose one processing algorithm!")
   }
@@ -191,6 +187,13 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
 
   if (!(processing.algorithm == "RMassBank") & params.ms.preprocessing$recalibration!=0){
     message("Recalibration or Elemental formula calculation can be performed with RMassBank algorithm only!")
+  }
+  
+  if (length(mslevel)==1){
+    if (mslevel==1){
+      processing.algorithm=="Default"
+      message("Processing algorithm is set to default since only MS1 scan is extracted!")
+    }
   }
   
   if (!params.consensus$consensus & params.network$network){
@@ -406,7 +409,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     
     unlink("mysettings.ini")
     unlink("Compoundlist.csv")
-  }
+    }
   }
   
   ###################################

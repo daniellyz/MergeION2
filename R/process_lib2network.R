@@ -31,7 +31,6 @@
 #'  
 #' @export
 #'
-
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
                   params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.search = list(mz_search = 0.005, ppm_search = 10),
@@ -48,11 +47,14 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   input_library = library_reader(input_library)
   
   complete_library = input_library$complete
-  consensus_library = input_library$consensus
+  consensus_library0 = input_library$consensus
+
+  if (is.null(consensus_library0)){stop("No consensus spectra available!")}
+  consensus_library = process_query(consensus_library0, query = "MSLEVEL=2")$SELECTED
+  if (is.null(consensus_library)){stop("No MS2 in consensus spectra available!")}
   
-  if (is.null(consensus_library)){stop("No consensus spectra available!")}
   NI = nrow(consensus_library$metadata)
-  if (NI == 0){stop("No consensus spectra available!")} 
+  
   metadata = consensus_library$metadata
   splist = consensus_library$sp
   IDList = metadata$ID
@@ -97,16 +99,18 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     for (i in 1:(NI-1)){
   
       temp_spectrum = splist[[i]]
-
+      temp_library = list(complete = NULL, consensus = NULL, network = NULL)
+      
       # Search part of library
+      
       lib_range = (i+1):NI
-      temp_library = library_matrix
-      temp_library$consensus$metadata = library_matrix$consensus$metadata[lib_range,,drop=FALSE]
-      temp_library$consensus$sp = library_matrix$consensus$sp[lib_range]
-      temp_library$network$db_profile =  library_matrix$network$db_profile[,lib_range,drop=FALSE] 
-
+      temp_library$consensus$metadata = consensus_library$metadata[lib_range,,drop=FALSE]
+      temp_library$consensus$sp = consensus_library$sp[lib_range]
+      temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
+      temp_library$network$db_feature =  library_matrix$db_feature
+      
       temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
-                  method = sim.method, prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
+            method = sim.method, prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
 
       if (!is.null(temp_scores)){
         NSC = nrow(temp_scores)
@@ -163,7 +167,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ### Final filtering and outputing  ###
   ######################################
   
-    if (!is.null(new_network)){
+  if (!is.null(new_network)){
     
       new_network = new_network[new_network[,3]>=min.score,,drop=FALSE]
     
@@ -175,10 +179,11 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     }
   }
   
-  output_network = list(db_profile = library_matrix$network$db_profile, db_feature = library_matrix$network$db_feature, 
+  output_network = list(db_profile = library_matrix$db_profile, 
+                        db_feature = library_matrix$db_feature, 
                         nodes = new_nodes, network = new_network)
   
-  output_library = list(complete = complete_library, consensus = consensus_library, network = output_network)
+  output_library = list(complete = complete_library, consensus = consensus_library0, network = output_network)
   
   return(output_library)
 }
@@ -210,8 +215,12 @@ matrix_generator<-function(input_library, mz_window = 0.02){
     colnames(sp_profile) = colnames(nl_profile) = input_library$metadata$ID
     sp_feature =  cbind.data.frame(FID = FID, Mass = frags)
     nl_feature =  cbind.data.frame(FID = NID, Mass = nls)
+    colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
     
-    return(list(sp_profile=sp_profile, sp_feature=sp_feature,nl_profile=nl_profile, nl_feature= nl_feature))
+    db_profile = rbind(sp_profile, nl_profile)
+    db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
+    
+    return(list(db_profile = db_profile, db_feature = db_feature))
   }
   
   ### Otherwise:
@@ -260,12 +269,7 @@ matrix_generator<-function(input_library, mz_window = 0.02){
   db_profile = db_profile[valid,,drop=FALSE]
   db_feature = db_feature[valid,,drop=FALSE]
   
-  ### Output
-  
-  network = list(db_profile = db_profile, db_feature = db_feature)
-  output_library = list(complete = input_library, consensus = input_library, network = network)
-  
-  return(output_library)
+  return(list(db_profile = db_profile, db_feature = db_feature))
 }  
 
 ######################

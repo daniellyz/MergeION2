@@ -77,90 +77,17 @@ library_reader<-function(raw_library){
   
   if (input_format=="msp"){library_complete = readMSP2(raw_library)}
   
-  ####################################
-  ### Clean and standardize library:##
-  ####################################
+  #############################################
+  ### Clean and standardize complete library:##
+  #############################################
   
-  if (!is.null(library_consensus)){
-    library0 = library_consensus
-  } else {
-    library0 = library_complete
-  }
-    
-  metadata = library0$metadata
-  sp = library0$sp
-  temp_col = toupper(colnames(metadata))
-
-  # ID:
-  ind1 = which(temp_col=="ID")
-  ind2 = which(temp_col=="NAME")
-  if (length(ind1)==0 & length(ind2)==1){colnames(metadata)[ind2] = "ID"}
-  if (!("ID" %in% colnames(metadata))){stop("Metadata must contain a column ID!")}
-  metadata$ID = as.character(metadata$ID)
-
-  #PEPMASS:
-  ind = which(temp_col=="PRECURSORMZ")
-  if (length(ind)==1){colnames(metadata)[ind] = "PEPMASS"}  
-  if ("PEPMASS" %in% colnames(metadata)){
-    temp_mz = round(as.numeric(metadata$PEPMASS),4)
-    temp_mz[is.na(temp_mz)]="N/A"
-    metadata$PEPMASS = temp_mz
-  }
-  
-  #RT:
-  ind = which(temp_col=="RTINSECONDS")
-  if (length(ind)==1){
-    colnames(metadata)[ind] = "RT"
-    metadata$RT = as.numeric(metadata$RT)/60 # From second to minute
-  }
-  if ("RT" %in% colnames(metadata)){
-    temp_rt = round(as.numeric(metadata$RT),2)
-    temp_rt[is.na(temp_rt)]="N/A"
-    metadata$RT = temp_rt
-  }
-
-  #MSLEVEL:
-  ind = which(temp_col=="SPECTRUM_TYPE")
-  if (length(ind)==1){colnames(metadata)[ind] = "MSLEVEL"}
-  if ("MSLEVEL" %in% colnames(metadata)){
-    temp = metadata$MSLEVEL
-    temp[temp=="MS2"] = 2
-    temp[temp=="MS1"] = 1
-    temp = as.numeric(temp)
-    temp[is.na(temp)]="N/A"
-    metadata$MSLEVEL = temp
-  }
-  
-  # ADDUCT:
-  ind = which(temp_col=="PRECURSOR_TYPE")
-  if (length(ind)==1){colnames(metadata)[ind] = "ADDUCT"}
-
-  # IONDMODE:
-  ind = which(temp_col=="ION_MODE")
-  if (length(ind)==1){colnames(metadata)[ind] = "IONMODE"}
-  if ("IONMODE" %in% colnames(metadata)){
-    temp = as.character(metadata$IONMODE)
-    temp[temp=="P"] = "Positive"
-    temp[temp=="N"] = "Negative"
-    temp[which(!(temp %in% c("Positive", "Negative")))] = "N/A"
-    metadata$IONMODE = temp
-  } 
-  
-  # SCANS:
-  ind = which(temp_col %in% "SCAN")
-  if (length(ind)==1){colnames(metadata)[ind] = "SCANS"}
-  if (!("SCANS" %in% colnames(metadata))){metadata$SCANS = 1:nrow(metadata)}
-  if (NA %in% as.numeric(metadata$SCANS)){metadata$SCANS = 1:nrow(metadata)}
-  
-  # COMMENTS:
-  ind = which(temp_col=="COMMENTS")
-  if (length(ind)==1){metadata = metadata[,-ind]}
+  library_complete = standarlize_library(library_complete)
+  if (!is.null(library_consensus)){library_consensus = standarlize_library(library_consensus)}
   
   ####################
   ### Output inputs:##
   ####################
   
-  library_complete = list(metadata = metadata, sp = sp)
   input_library = list(complete = library_complete, consensus = library_consensus, network=library_network)
   
   return(input_library)
@@ -256,4 +183,79 @@ readMSP2<-function(con){
   metadata= data.frame(metadata)
   
   return(list(metadata = metadata, sp = splist))
+}
+
+standarlize_library<-function(library0){
+  
+  metadata = library0$metadata
+  sp = library0$sp
+  temp_col = toupper(colnames(metadata))
+
+  # ID:
+  ind1 = which(temp_col=="ID")
+  ind2 = which(temp_col=="NAME")
+  if (length(ind1)==0 & length(ind2)==1){colnames(metadata)[ind2] = "ID"}
+  if (!("ID" %in% colnames(metadata))){stop("Metadata must contain a column ID!")}
+  metadata$ID = as.character(metadata$ID)
+
+  #PEPMASS:
+  ind = which(temp_col=="PRECURSORMZ")
+  if (length(ind)==1){colnames(metadata)[ind] = "PEPMASS"}  
+  if ("PEPMASS" %in% colnames(metadata)){
+    temp_mz = round(as.numeric(metadata$PEPMASS),4)
+    temp_mz[is.na(temp_mz)]="N/A"
+    metadata$PEPMASS = temp_mz
+  }
+
+  #RT:
+  ind = which(temp_col=="RTINSECONDS")
+  if (length(ind)==1){
+    colnames(metadata)[ind] = "RT"
+    metadata$RT = as.numeric(metadata$RT)/60 # From second to minute
+  }
+  if ("RT" %in% colnames(metadata)){
+    temp_rt = round(as.numeric(metadata$RT),2)
+    temp_rt[is.na(temp_rt)]="N/A"
+    metadata$RT = temp_rt
+  }
+
+  #MSLEVEL:
+  ind = which(temp_col=="SPECTRUM_TYPE")
+  if (length(ind)==1){colnames(metadata)[ind] = "MSLEVEL"}
+  if ("MSLEVEL" %in% colnames(metadata)){
+    temp = metadata$MSLEVEL
+    temp[temp=="MS2"] = 2
+    temp[temp=="MS1"] = 1
+    temp = as.numeric(temp)
+    temp[is.na(temp)]="N/A"
+    metadata$MSLEVEL = temp
+  }
+  
+  # ADDUCT:
+  ind = which(temp_col=="PRECURSOR_TYPE")
+  if (length(ind)==1){colnames(metadata)[ind] = "ADDUCT"}
+  
+  # IONDMODE:
+  ind = which(temp_col=="ION_MODE")
+  if (length(ind)==1){colnames(metadata)[ind] = "IONMODE"}
+  if ("IONMODE" %in% colnames(metadata)){
+    temp = as.character(metadata$IONMODE)
+    temp[temp=="P"] = "Positive"
+    temp[temp=="N"] = "Negative"
+    temp[which(!(temp %in% c("Positive", "Negative")))] = "N/A"
+    metadata$IONMODE = temp
+  } 
+  
+  # SCANS:
+  ind = which(temp_col %in% "SCAN")
+  if (length(ind)==1){colnames(metadata)[ind] = "SCANS"}
+  if (!("SCANS" %in% colnames(metadata))){metadata$SCANS = 1:nrow(metadata)}
+  if (NA %in% as.numeric(metadata$SCANS)){metadata$SCANS = 1:nrow(metadata)}
+  
+  # COMMENTS:
+  ind = which(temp_col=="COMMENTS")
+  if (length(ind)==1){metadata = metadata[,-ind]}
+  
+  library1 = list(metadata = metadata, sp = sp)
+  return(library1)
 }

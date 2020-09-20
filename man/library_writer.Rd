@@ -4,7 +4,7 @@
 \alias{library_writer}
 \title{Writing the spectral library to an open format}
 \usage{
-library_writer(output_library, con = "output_library.mgf")
+library_writer(output_library, con = "output_library.mgf", type = "complete")
 }
 \arguments{
 \item{output_library}{List that contains at list 2 elements.
@@ -13,7 +13,9 @@ library_writer(output_library, con = "output_library.mgf")
   \item{metadata:}{ Data frame containing metadata of extracted scans. PEPMASS and RT are updated based on actually-detected scans. Following five columns are added: FILENAME, MSLEVEL, TIC, MASS_DEV, SCANNUMBER and SCANS}
 }}
 
-\item{con}{Name of the output library, the file extension must be mgf, msp or rdata}
+\item{con}{Character. Name of the output library, the file extension must be mgf, msp or rdata}
+
+\item{type}{Character. "Complete" if the entire library is exported. "Consensus" if the consensus library is exported.}
 }
 \description{
 The function writes the output of library_generator into mgf, msp or rdata file.
