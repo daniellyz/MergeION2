@@ -12,17 +12,36 @@
 #'
 #' @importFrom MSnbase fData readMgfData
 #'
-#'
 library_reporter<-function(input_library){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  #####################################
-  ### Reading from spectral library:###
-  #####################################
-
   input_library = library_reader(input_library)
+  input_library1 = output_library$complete
+  input_library2 = output_library$consensus
+  input_network = input_library$network
+  
+  cat("The entire library contains:")
+  basic_reporter(input_library1)
+  cat("\n")
+  
+  cat("The consensus library contains:")
+  basic_reporter(input_library2)
+  cat("\n")
+  
+  cat("The molecular network contains:")
+  cat(nrow(input_network$nodes), " nodes and ", nrow(input_network$network), " edges")
+  cat("\n")
+}
+
+
+########################
+### Internal functions## 
+########################
+
+basic_reporter<-function(input_library){
+
   metadata = input_library$metadata
   spectrum_list = input_library$sp
 
@@ -31,13 +50,9 @@ library_reporter<-function(input_library){
   IDlist = metadata$ID
   IDs = unique(IDlist)
 
-  ####################
-  ### Basic summaries:
-  ####################
-
   MS1_num = sum(metadata$MSLEVEL==1)
   MS2_num = sum(metadata$MSLEVEL==2)
-  cat("The library contains", MS1_num, "MS1 scans and", MS2_num, "MS2 scans of", length(IDs), "compounds.")
+  cat(MS1_num, "MS1 scans and", MS2_num, "MS2 scans of", length(IDs), "compounds.")
   cat("\n")
 
   valid_2 = 0
@@ -45,7 +60,8 @@ library_reporter<-function(input_library){
   for (id in IDs){
     sub_levels = metadata$MSLEVEL[which(IDlist==id)]
     if (2 %in% sub_levels){valid_2 = valid_2 +1}
-    if ((1 %in% sub_levels) & (2 %in% sub_levels)){valid_1_2 = valid_1_2 +1}}
+    if ((1 %in% sub_levels) & (2 %in% sub_levels)){valid_1_2 = valid_1_2 +1}
+  }
   cat(valid_1_2, "compounds possess both MS1 and MS2 scans.")
   cat("\n")
   cat(valid_2, "compounds hold MS2 scans.")
