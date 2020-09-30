@@ -1,17 +1,19 @@
 #' Spectral library query
 #'
-#' The function queries the input spectral library based on a query expression and/or a query MS/MS spectrum 
+#' The function queries the input spectral library based on a query expression and/or (a) query MS/MS spectra or raw LC-MS/MS file
 #'
 #' @param input_library Character or a list object. If character, file name with extension mgf, msp or RData. If list, must contain "complete", "consensus" and "network". 
 #' @param query_expression Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
-#' @param query_spectrum  Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided
+#' @param query_spectrum  Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided. 
+#' @param query_file Character. The file name of query spectra collection, must in mgf, msp or mz(X)ML, cdf format. 
 #' @param params.search General parameters for searching spectral library
 #' \itemize{
 #'  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da for fragment match.}
 #'  \item{ppm_search:}{ Numeric. Mass tolerance in ppm for precursor mass match.} 
 #'  \item{rt_search:}{ Numeric. Absolute retention time tolerance in second.}
+#'  \item{rt_gap:}{ Numeric. Only used when querying a raw LC-MS/MS file. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked}
 #' }
-#' @param params.query.sp Parameters for matching an unknown spectrum
+#' @param params.query.sp Parameters for matching an unknown spectra
 #' \itemize{
 #'   \item{prec_mz:}{ Numeric. Precursor mass of query spectrum.}
 #'   \item{use_prec:}{ Boolean. If set to TRUE, precursor mass is used to "pre-query" the library.}
@@ -33,15 +35,18 @@
 #'   \item{complete:}{ Complete spectra library filtered by both query experession and query spectrum}
 #'   \item{consensus:}{ Consensus spectra library filtered by both query experession and query spectrum.}
 #'   \item{network:}{ Molecular network filtered by both query experession and query spectrum. The query spectrum is also connected to the molecular network}
+#'}
 #'
 #' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 #'
 #' @examples
-#' 
+#'
+#' @importFrom tools file_ext file_path_sans_ext
+#'   
 #' @export
 
-library_query<- function(input_library = NULL, query_expression = "Polarity = Positive", query_spectrum = NULL,
-                         params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15), 
+library_query<- function(input_library = NULL, query_expression = "Polarity = Positive", query_spectrum = NULL, query_file = NULL,
+                         params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30), 
                          params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method = "Cosine", min_frag_match = 6, reaction_type = "Metabolic")){
   
   options(stringsAsFactors = FALSE)
@@ -57,9 +62,21 @@ library_query<- function(input_library = NULL, query_expression = "Polarity = Po
   
   input_library = library_reader(input_library) 
   
+  qs_list = list()
+  
+  if (!is.null(query_spectrum)){qs_list[[1]] = query_spectrum}
+  
+  if (!is.null(query_file)){
+    if (tolower(file_ext(query_file)) %in% c("msp", "mgf")){
+      tmp_qs = library_reader(query_file)
+      qs_list = tmp_qs$library_complete
+    }
+  }
+  
   mz_search = params.search$mz_search
   ppm_search = params.search$ppm_search
   rt_search = params.search$rt_seach
+  rt_gap  = params.search$rt_gap
   
   query_prec_mz  = params.query.sp$prec_mz
   query_use_prec = params.query.sp$use_prec
@@ -74,7 +91,6 @@ library_query<- function(input_library = NULL, query_expression = "Polarity = Po
   if (query_reaction=="Chemical"){
     reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionChem.txt", sep = "\t")
   }
-  
   
   ################################
   ###Query 1: Complete Library ###
@@ -92,7 +108,7 @@ library_query<- function(input_library = NULL, query_expression = "Polarity = Po
   ###Query 2: Consensus Library ###
   #################################
       
-  if (!is.null(complete_selected) & is.null(input_library$consensus) & !is.null(query_spectrum)){
+  if (!is.null(complete_selected) & is.null(input_library$consensus) & !is.null(qs_list)){
     
        message("Generating consensus MS/MS spectral library...")
        
@@ -117,7 +133,7 @@ library_query<- function(input_library = NULL, query_expression = "Polarity = Po
       
       id_selected = consensus_selected$metadata$ID
         
-      if (!is.null(query_spectrum)){
+      if (length(query_spectrum)>0){
         
         tmp_library = list(complete = complete_selected, consensus = consensus_selected, network = input_library$network)
         

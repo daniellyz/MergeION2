@@ -19,7 +19,7 @@
 #' @param params.similarity Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 #' \itemize{
 #'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST". Please check function library_query for more details.}
-#'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.
+#'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
 #'  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
 #' }
 #'@param params.network Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference

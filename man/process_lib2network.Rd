@@ -34,6 +34,13 @@ process_lib2network(
  \item{ppm_search:}{ Numeric. Absolute mass tolerance in ppm.} 
 }}
 
+\item{params.similarity}{Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
+\itemize{
+ \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST". Please check function library_query for more details.}
+ \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
+ \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
+}}
+
 \item{params.network}{Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 \itemize{
  \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}

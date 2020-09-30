@@ -8,7 +8,8 @@ library_query(
   input_library = NULL,
   query_expression = "Polarity = Positive",
   query_spectrum = NULL,
-  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15),
+  query_file = NULL,
+  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30),
   params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method =
     "Cosine", min_frag_match = 6, reaction_type = "Metabolic")
 )
@@ -18,16 +19,19 @@ library_query(
 
 \item{query_expression}{Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.}
 
-\item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided}
+\item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided.}
+
+\item{query_file}{Character. The file name of query spectra collection, must in mgf, msp or mz(X)ML, cdf format.}
 
 \item{params.search}{General parameters for searching spectral library
 \itemize{
  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da for fragment match.}
  \item{ppm_search:}{ Numeric. Mass tolerance in ppm for precursor mass match.} 
  \item{rt_search:}{ Numeric. Absolute retention time tolerance in second.}
+ \item{rt_gap:}{ Numeric. Only used when querying a raw LC-MS/MS file. Retention time gap in second - when two scans both match with an input structure, they are both recorded as isomeric features of the same identifier if they are separated by a certain retention time gap. Please set it to 10000 if no isomeric feature is picked}
 }}
 
-\item{params.query.sp}{Parameters for matching an unknown spectrum
+\item{params.query.sp}{Parameters for matching an unknown spectra
 \itemize{
   \item{prec_mz:}{ Numeric. Precursor mass of query spectrum.}
   \item{use_prec:}{ Boolean. If set to TRUE, precursor mass is used to "pre-query" the library.}
@@ -45,10 +49,14 @@ library_query(
 }}
 }
 \value{
-
+\itemize{
+  \item{complete:}{ Complete spectra library filtered by both query experession and query spectrum}
+  \item{consensus:}{ Consensus spectra library filtered by both query experession and query spectrum.}
+  \item{network:}{ Molecular network filtered by both query experession and query spectrum. The query spectrum is also connected to the molecular network}
+}
 }
 \description{
-The function queries the input spectral library based on a query expression and/or a query MS/MS spectrum
+The function queries the input spectral library based on a query expression and/or (a) query MS/MS spectra or raw LC-MS/MS file
 }
 \examples{
 

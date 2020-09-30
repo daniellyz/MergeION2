@@ -2,6 +2,7 @@
 
 export(average_spectrum)
 export(library_generator)
+export(library_messar)
 export(library_query)
 export(library_reader)
 export(library_reporter)
