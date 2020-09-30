@@ -12,7 +12,7 @@
 #' \itemize{
 #'   \item{prec_mz:}{ Numeric. Precursor mass of query spectrum. please put the correct value of precursor mass.}
 #'   \item{use_prec:}{ Boolean. If set to TRUE, precursor mass is used to calculate the neutral loss.}
-#'   \item{compound.type:}{ Character. Either "Metabolite" or "Drug".}
+#'   \item{compound.type:}{ Character. Either "Metabolite" or "Drug". Different models are applied to Metabolite or Drug.}
 #' }
 #' 
 #' @return Recommended substructures (ordered) as a two-column matrix: SMILES code and score
@@ -21,11 +21,11 @@
 #'
 #' @examples
 #' 
-#' url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
+#' url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffine.txt"
 #' 
 #' test = read.table(url_test, header = F, sep=" ")
 #' 
-#' results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 100, use_prec = T, compound.type = "Metabolic")
+#' results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))
 #'
 #' @export
 
@@ -50,17 +50,13 @@ library_messar<-function(query_spectrum =NULL, params.search = list(mz_search = 
   
   if (!use_prec){prec_mz = 10000} # Not consider the precursor mass
   
-  if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
-  if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
-  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
-  
-  if (cpd_type=="drug"){
+  if (cpd_type=="Drug"){
     data(DRUG_RULE_DB)
     rules0 = drug_rules0
     rules_id_list = drug_rules_id_list
     rule_fragments = drug_rule_fragments
     rule_nloss = drug_rule_nloss
-    rules_training = drug_rules_training
+   # rules_training = drug_rules_training
   } else {data(METABOLITE_RULE_DB)}
   
   
