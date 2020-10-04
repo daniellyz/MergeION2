@@ -280,6 +280,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     for (ff in 1:FF){
       
       print(ff)
+      
       # Extract MS2 scans:
       
       if (2 %in% mslevel){
@@ -303,7 +304,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
             for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
             temp_metadata = rbind(temp_metadata, metadata2)
             NN=NN+LL2
-    }}
+    }} else {temp.ref = target.ref}
 
      # Extract MS1 scans:
 

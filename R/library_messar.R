@@ -21,7 +21,7 @@
 #'
 #' @examples
 #' 
-#' url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffine.txt"
+#' url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
 #' 
 #' test = read.table(url_test, header = F, sep=" ")
 #' 
