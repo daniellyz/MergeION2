@@ -24,7 +24,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   prec_mz = as.numeric(prec_mz)
   
-  dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.001)
+  dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.1)
   NP = nrow(dat)
   
   if (NP<3){
@@ -72,8 +72,14 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     frags = dat[i,1]
     nls = prec_mz - dat[i,1]
     
-    valid = which(abs(frags - db_feature[,2])<=frag_mz_search)
+    mze = abs(frags - db_feature[,2])
+    nle = abs(nls - db_feature[,2])
+  
+    valid1 = which(mze <= frag_mz_search & db_feature$Type == "Frag")[1]
+    valid2 = which(nle <= frag_mz_search & db_feature$Type == "Nloss")[1]
     
+    valid = c(valid1, valid2)
+
     if (length(valid)>0){
       valid = valid[1]
       db_profile1 = rbind(db_profile1, db_profile[valid,,drop=FALSE])

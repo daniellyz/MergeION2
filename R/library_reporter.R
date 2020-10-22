@@ -35,7 +35,6 @@ library_reporter<-function(input_library){
   cat("\n")
 }
 
-
 ########################
 ### Internal functions## 
 ########################

@@ -45,7 +45,7 @@
 #'   
 #' @export
 
-library_query<- function(input_library = NULL, query_expression = "Polarity = Positive", query_spectrum = NULL, query_file = NULL,
+library_query<- function(input_library = NULL, query_expression = "IONMODE = Positive", query_spectrum = NULL, query_file = NULL,
                          params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30), 
                          params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method = "Cosine", min_frag_match = 6, reaction_type = "Metabolic")){
   
@@ -155,7 +155,7 @@ library_query<- function(input_library = NULL, query_expression = "Polarity = Po
   ###Query 3: Network ###
   #######################
   
-  if (!is.null(input_library$network) & length(id_selected)>0){
+  if (!is.null(input_library$network$network) & length(id_selected)>0){
         
      idx = match(id_selected, consensus_ids)
 
