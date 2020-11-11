@@ -1,6 +1,5 @@
 
-options(repos = BiocManager::repositories())
-options(shiny.maxRequestSize=30*1024^2) 
+options(shiny.maxRequestSize=100*1024^2) 
 
 library(shiny)
 library("V8")
@@ -8,10 +7,9 @@ library(shinyjs)
 library(MergeION)
 library(formattable)
 library(stringr)
-require(DT, quietly = TRUE) 
+library(DT) 
 library(prozor)
 library(markdown)
-library(MergeION)
 library(RChemMass)
 
 #data(JANSSEN_POS)
@@ -23,7 +21,26 @@ textInputRow<-function (inputId, label, value = ""){
 }
 
 shinyUI(navbarPage("TRACTION WEBTOOL 0.2 (Spectral library search)",
-          tabPanel("A) Start a run",
+          tabPanel("A) Basic search",
+                   
+                br(),
+                h4("Please choose input spectral library file: "),
+                fileInput("db_raw", "", multiple = FALSE),
+                
+                h4("Here is the list of all historical analysis"), 
+                br(),
+                dataTableOutput("table0"), 
+                br(),
+                column(8,  
+                       br(),
+                       plotOutput("plot_spectra",width = '1200px')),
+                column(3,
+                       br(),
+                       plotOutput("plot_structure0",width = '400px'))
+          
+          ),
+                   
+          tabPanel("B) Advanced search",
                    
               shinyjs::useShinyjs(),
               shinyjs::extendShinyjs(text = "shinyjs.refresh = function() { location.reload(); }"),
@@ -89,7 +106,7 @@ shinyUI(navbarPage("TRACTION WEBTOOL 0.2 (Spectral library search)",
                       textOutput("blank_message1")
                   )),
           
-          tabPanel("B) Annotation results",
+          tabPanel("C) Annotation results",
                    tags$style("#blank_message2 {font-size:20px; color:red; display:block; }"),
        
                    tags$style("#blank_message2 {font-size:20px; color:red; display:block; }"),        

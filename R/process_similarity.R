@@ -87,7 +87,6 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
       dat1 = rbind(dat1, dat[i,,drop=FALSE])
     }
   }
-  
   if (is.null(db_profile1)){return(NULL)}
   
   if (!is.null(db_profile1)){
@@ -97,14 +96,14 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   # Filter out db samples with fewer than minimum fragment matches:
   
-  peak_matches = apply(db_profile1, 2, function(x) sum(x>0))
+  peak_matches = apply(db_profile1, 2, function(x) sum(x>0, na.rm = T))
   valid = which(peak_matches>=min_frag_match)  
   if (length(valid)==0){return(NULL)}
   db_profile1 = db_profile1[,valid,drop = FALSE]
   
   # Filter out empty db features:
   
-  feature_matches = apply(db_profile1, 1, function(x) sum(x>0))
+  feature_matches = apply(db_profile1, 1, function(x) sum(x>0, na.rm = T))
   valid = which(feature_matches>0)
   if (length(valid)==0){return(NULL)}
   
@@ -113,7 +112,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat = dat1[valid,,drop=FALSE]
   
   NDB = ncol(db_profile)
-  
+
   ###########################
   ### Calculate Similarity###
   ###########################

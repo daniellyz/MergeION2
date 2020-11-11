@@ -130,7 +130,7 @@ library_query<- function(input_library = NULL, query_expression = "IONMODE = Pos
       } else {
         consensus_selected = input_library$consensus
       }
-      
+
       id_selected = consensus_selected$metadata$ID
         
       if (length(query_spectrum)>0){

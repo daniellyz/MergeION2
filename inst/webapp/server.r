@@ -1,6 +1,5 @@
 
-options(repos = BiocManager::repositories())
-options(shiny.maxRequestSize=30*1024^2) 
+options(shiny.maxRequestSize=100*1024^2) 
 
 library(shiny)
 library("V8")
@@ -8,8 +7,9 @@ library(shinyjs)
 library(MergeION)
 library(formattable)
 library(stringr)
-require(DT, quietly = TRUE) 
+library(DT) 
 library(prozor)
+library(markdown)
 library(RChemMass)
 
 shinyServer(function(input, output,clientData, session) {
@@ -17,7 +17,7 @@ shinyServer(function(input, output,clientData, session) {
   observeEvent(input$killButton,{
     shinyjs::js$refresh()
   })
-
+  
   check_input <-eventReactive(input$goButton,{
     
     query_spectrum = NULL
@@ -110,7 +110,7 @@ shinyServer(function(input, output,clientData, session) {
     query_spectrum = check_input()$query_spectrum
     params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_seach = 10, rt_gap = 0)
     params.query.sp = list(prec_mz = as.numeric(input$prec_mz), use_prec = input$use_prec, polarity = input$prec_polarity, method = input$sim_methods, min_frag_match = 6, reaction_type = "Metabolic")
-  
+
     if (input$prec_rt!=""){
       query_expression = paste0("RT = ", input$prec_rt)
     } else {query_expression = ""}
@@ -126,7 +126,65 @@ shinyServer(function(input, output,clientData, session) {
     return(list(candidates = candidates, mms = ""))
   })
   
+  output$table0 <- renderDataTable({
+    
+    library_metadata=NULL
+
+    library_name = input$db_raw$name
+    library_file = input$db_raw$datapath
+
+    if (!is.null(library_file)){
+      JANSSEN_raw = library_reader(library_file)
+      JANSSEN_raw = JANSSEN_raw$complete
+      JANSSEN_metadata = JANSSEN_raw$metadata
+      JANSSEN_sp = JANSSEN_raw$sp
+      
+      if (!is.null(JANSSEN_metadata)){
+        if (nrow(JANSSEN_metadata)>0){
+          JANSSEN_metadata = JANSSEN_metadata[,c("SAMPLEID", "ID","PEPMASS", "IONMODE", "INSTRUMENT", "SUBMITUSER")]
+          library_metadata= datatable(JANSSEN_metadata, rownames = FALSE, escape= rep(TRUE, ncol(JANSSEN_metadata)), selection = "single", options = list(pageLength=20))
+        }}
+      return(library_metadata)
+    }
+  })
   
+  selected_library <- eventReactive(input$table0_rows_selected,{
+    
+    selected_candidate = NULL    
+    selected_sp = NULL    
+    
+    library_file = input$db_raw$datapath
+
+    JANSSEN_raw = library_reader(library_file)
+    JANSSEN_raw = JANSSEN_raw$complete
+    JANSSEN_metadata = JANSSEN_raw$metadata
+    JANSSEN_sp = JANSSEN_raw$sp
+
+    selected_candidate = JANSSEN_metadata[input$table0_rows_selected,,drop=FALSE]
+    selected_sp = JANSSEN_sp[[input$table0_rows_selected]]
+    
+    list(selected_candidate = selected_candidate, selected_sp = selected_sp)
+  })
+  
+  output$plot_spectra <- renderPlot({
+    
+    selected_id = selected_library()$selected_candidate$ID[1]
+    library_file = input$db_raw$datapath
+    
+    if (!is.null(library_file)){
+      library_visualizer(input_library = library_file, id = selected_id, query_spectrum = NULL)
+    }
+  })
+  
+  output$plot_structure0 <- renderPlot({
+    
+    selected_smi = selected_library()$selected_candidate$SMILES[1]
+    
+    plot.new()
+    plot.window(xlim=c(0,100), ylim=c(0,100))
+    renderSMILES.rcdk(selected_smi,kekulise=TRUE)    
+  })
+
   output$table1 <- renderDataTable({
     
     candidate_table=NULL
@@ -140,7 +198,7 @@ shinyServer(function(input, output,clientData, session) {
       if (!is.null(candidate_table)){
             if (nrow(candidate_table)>0){
             candidate_table = candidate_table[,c("ID", "PEPMASS", "NAME", "SCORE_MERGEION")]
-            candidate_table=datatable(candidate_table, escape= rep(TRUE, 4), selection = "single", options = list(pageLength=5))
+            candidate_table= datatable(candidate_table, rownames = FALSE, escape= rep(TRUE, 4), selection = "single", options = list(pageLength=5))
       }}
       return(candidate_table)
     })
