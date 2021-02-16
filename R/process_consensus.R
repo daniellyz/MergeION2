@@ -156,6 +156,7 @@ denoise_spectrum<-function(sp, max_peak, min_relative){
     
     if (nrow(sp)>=2){
       sp = sp[order(sp[,1]),]
+      sp[,2] = sp[,2]/max(sp[,2])
       denoised_spectrum = sp
     }
   }

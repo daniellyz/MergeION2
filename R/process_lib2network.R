@@ -5,12 +5,6 @@
 #' @param input_library A list object. Must contain consensus library.
 #' @param networking Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching
 #' @param polarity character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file. 
-#' @param params.screening Parameters for feature screening and MS2 spectra pre-processing from raw_data_file:
-#' \itemize{
-#'  \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
-#'  \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
-#'  \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
-#' }
 #' @param params.search List of parameters for feature screening, combining precursor ions and fragments in the input file, as well as for searching in the spectral library. The list must contain following elements:
 #' \itemize{
 #'  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da.}
@@ -32,7 +26,6 @@
 #' @export
 #'
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
-                  params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
                   params.search = list(mz_search = 0.005, ppm_search = 10),
                   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
                   params.network = list(topK = 10, reaction.type = "Metabolic", use.reaction = TRUE)){
@@ -59,10 +52,6 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   splist = consensus_library$sp
   IDList = metadata$ID
   MZList = as.numeric(metadata$PEPMASS)
-  
-  baseline = params.screening$baseline
-  relative = params.screening$relative
-  max_peaks = params.screening$max_peaks 
   
   mz_search = params.search$mz_search
   ppm_search = params.search$ppm_search
@@ -151,7 +140,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         MZ2 = as.numeric(metadata$PEPMASS[II2])
       
         MDiff = abs(MZ1 - MZ2)
-        MDiff_error = ppm_distance(MDiff, reactionList$Mdiff)
+        MDiff_error = ppm_distance1(MDiff, reactionList$Mdiff)
         
         if (min(MDiff_error)<=ppm_search){
           ind = which.min(MDiff_error)[1]
@@ -329,14 +318,15 @@ mutual_filter <- function(network, topK = 10){
 ### Internal functions:###
 ##########################
 
-ppm_distance<-function(x,y){
+ppm_distance1<-function(x,y){
   x = as.numeric(x)
   y = as.numeric(y)
   if (y>100){
     ppm = abs((x-y))/y*1000000
   } else {
     ppm = abs(x-y)
-    ppm[ppm<0.01]=0
+    ppm[ppm<=0.01]=0
+    ppm[ppm>0.01]=50
   }
   return(ppm)
 }

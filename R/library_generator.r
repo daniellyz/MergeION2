@@ -80,7 +80,7 @@
 #' mslevel= 2 # Only MS2 scans are extracted!
 #' add.adduct = F # No additional adducts are searched besides M+H 
 #' 
-#' params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
+#' params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15, rt_gap = 30)
 #' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
 #' 
 #' # Building a spectral library with default (SmartION) algorithm by simply gathering scans that matched with metadata:
@@ -114,7 +114,7 @@
 library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_file = NULL, 
                   polarity = c("Positive", "Negative")[1], mslevel = c(1, 2), add.adduct = TRUE,
                   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
-                  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30), 
+                  params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30), 
                   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
                   params.consensus = list(consensus = FALSE, consensus_method = c("consensus", "common_peaks","most_recent")[1], consensus_window = 0.02),
                   params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, reaction_type = "Metabolic", use_reaction = FALSE),
@@ -150,6 +150,10 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   }
 
   if (!is.null(metadata_file)){
+    if (is.list(metadata_file)){
+       ref = metadata_file
+       metadata_file = "durlach.csv"
+    }
     if (!is.character(metadata_file)){
       stop("You must provide the name of the csv or excel file that contains targeted metabolic features!")
     }
@@ -241,26 +245,40 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   }
   
   if (!is.null(metadata_file)){
-    ref = read.csv(metadata_file,sep=";",dec=".",header=T)
-    if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
-    if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
-    if (ncol(ref)<2){stop("Input metadata format not valid!")}
-
-    if (!("ID" %in% colnames(ref))){stop("Input metadata must contain a column ID!")}
-  
-    if (processing.algorithm=="Default"){
-      if (!("PEPMASS" %in% colnames(ref))){stop("To use Default algorithm, PEPMASS must be provided! You could set it to N/A if SMILES is known!")}
+    
+    if (metadata_file=="durlach.csv"){
+    } else {
+      ref = read.csv(metadata_file,sep=";",dec=".",header=T)
+      if (ncol(ref)==1){ref = read.csv(metadata_file,sep=",",dec=".",header=T)}  
+      if (ncol(ref)==1){ref = read.csv(metadata_file,sep="\t",dec=".",header=T)}  
     }
+      
+  if (ncol(ref)<2){stop("Input metadata format not valid!")}
+    
+  if (!("ID" %in% colnames(ref))){stop("Input metadata must contain a column ID!")}
   
-    if (processing.algorithm=="compMS2Miner"){
-      if (!("PEPMASS" %in% colnames(ref))){stop("To use compMS2Miner algorithm, PEPMASS must be provided!")}
-      if (!("RT" %in% colnames(ref))){stop("To use compMS2Miner algorithm, retention time (RT) must be provided!")}
-    }
+  if ("FILENAME" %in% colnames(ref)){
+      valid = which(basename(ref$FILENAME) %in% basename(lcms_files))
+      ref = ref[valid,,drop = FALSE]
+      valid = which(lcms_files %in% ref$FILENAME)
+      lcms_files = lcms_files[valid]
+      
+      if (length(lcms_files)==0){stop("FILENAME in metadata does not match with raw lcms file name!")}
+  }
+    
+  if (processing.algorithm=="Default"){
+    if (!("PEPMASS" %in% colnames(ref))){stop("To use Default algorithm, PEPMASS must be provided! You could set it to N/A if SMILES is known!")}
+  }
   
-    if (processing.algorithm=="RMassBank"){
-      if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, SMILES must be provided!")}
-      if (!("FILENAME" %in% colnames(ref))){stop("To use RMassBank algorithm, please provide LC-MS file name corresponding to each compound!")}
-    }
+  if (processing.algorithm=="compMS2Miner"){
+    if (!("PEPMASS" %in% colnames(ref))){stop("To use compMS2Miner algorithm, PEPMASS must be provided!")}
+    if (!("RT" %in% colnames(ref))){stop("To use compMS2Miner algorithm, retention time (RT) must be provided!")}
+  }
+  
+  if (processing.algorithm=="RMassBank"){
+    if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, SMILES must be provided!")}
+    if (!("FILENAME" %in% colnames(ref))){stop("To use RMassBank algorithm, please provide LC-MS file name corresponding to each compound!")}
+  }
     target.ref = process_metadata(ref, processing.algorithm, polarity, add.adduct)
     if (nrow(target.ref)==0){target.ref= NULL}
   }
@@ -284,13 +302,14 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
       # Extract MS2 scans:
       
       if (2 %in% mslevel){
-    
+        
+      
         dat2 = process_SmartMS2(lcms_files[ff], ref = target.ref, 
-                           rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+                           rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
                            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
         
         LL2 = length(dat2$sp) # Added library size
-        
+      
         if (LL2>0){
             temp.ref = dat2$ref_MS2 # Filter again metadata data for MS1 searcch
             new_scans2 = (max_scan+1):(max_scan+LL2)
@@ -309,11 +328,13 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
      # Extract MS1 scans:
 
      if (1 %in% mslevel){ # We search MS1 only for compounds that are fragmented to provide isotopic pattern knowledge
-        
-        dat1 = process_SmartMS1(lcms_files[ff], ref = temp.ref,
-                           rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+
+       print(ff)
+      
+       dat1 = process_SmartMS1(lcms_files[ff], ref = temp.ref,
+                           rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
                            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
-        
+
         LL1= length(dat1$sp) # Added library size
         if (LL1>0){
           new_scans1 = (max_scan+1):(max_scan+LL1)
@@ -346,10 +367,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     
     for (ff in 1:FF){
       
-      print(ff)
-      
       dat12 = process_compMS2Miner(lcms_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
-         rt_search = params.search$rt_seach, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+         rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
          baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
     
       LL12 = length(dat12$sp) # Added library size
@@ -387,9 +406,9 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     for (ff in 1:FF){
       
       dat12 = process_RMassBank(lcms_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
-                                rt_search = params.search$rt_seach, ppm_search = params.search$ppm_search, 
-                                baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
-                                recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
+                            rt_search = params.search$rt_search, ppm_search = params.search$ppm_search, 
+                            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
+                            recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
       
       LL12 = length(dat12$sp) # Added library size
       
@@ -424,10 +443,9 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     library_complete$sp = spectrum_list
     library_complete$metadata = metadata
     library_complete = remove_blanks(library_complete)
+    output_library = library_reader(library_complete)
+    NN = nrow(output_library$complete$metadata)
   }
-  
-  output_library = library_reader(library_complete)
-  NN = nrow(output_library$complete$metadata)
   
   ##############################
   ### Post-processing library###
@@ -437,14 +455,13 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
                                           params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
-  
+    
     output_library = library_reader(library_consensus)
     NN = nrow(output_library$consensus$metadata)
 
     if (NN>1){
 
       library_network = process_lib2network(library_consensus, networking = params.network$network,polarity = polarity, 
-        params.screening = list(baseline = params.ms.preprocessing$baseline, relative =  params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks),                          
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
         params.network = list(topK = params.network$topK, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
@@ -455,7 +472,6 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
  
   return(output_library)
 }
-
 
 #############################
 ######Internal function######

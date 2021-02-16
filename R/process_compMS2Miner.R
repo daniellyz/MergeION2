@@ -123,7 +123,7 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
         temp_mass_intensity = as.numeric(strsplit(temp_mass_intensity, ";")[[1]])
         temp_sp_ms1 = data.matrix(cbind(temp_mass_peaks, temp_mass_intensity))
         colnames(temp_sp_ms1) =NULL
-        temp_sp_ms1 = denoise_ms1_spectrum(temp_sp_ms1, ref$PEPMASS[IndFeatures[i]], max_peaks, relative, normalized)
+        temp_sp_ms1 = denoise_ms1_spectrum(temp_sp_ms1, ref$PEPMASS[IndFeatures[i]], 10000, 0, normalized)
         temp_sp[[2]] = temp_sp_ms1
       }
     
@@ -651,6 +651,7 @@ denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     if (nrow(sp)>0 & checked){
       sp = sp[order(sp[,1]),,drop=FALSE]
+      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
       denoised_spectrum = sp
     }
   }
@@ -667,12 +668,6 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
     
-    # Filter top peaks:
-    
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
-    tops = min(max_peak, nrow(sp))  
-    sp = sp[1:tops,,drop=FALSE]
-    
     # Normalize to 100:
     
     sp1 = sp
@@ -680,14 +675,22 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     # Relative Intensity filter:
     
-    filter = which(sp1[,2]>=min_relative & sp1[,1]>=mz0-0.5 & sp1[,1]<=mz0+10)
-    if (normalized){sp = sp1}  
-    sp = sp[filter,,drop=FALSE]
+    filter = which(sp1[,2]>=min_relative & sp1[,1]>=mz0-40 & sp1[,1]<=mz0+70)
+    if (normalized){
+      sp = sp1[filter,,drop = FALSE]
+    } else {sp = sp[filter,,drop=FALSE]}
+    
+    # Filter top peaks:
+    
+    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+    tops = min(max_peak, nrow(sp))  
+    sp = sp[1:tops,,drop=FALSE]
     
     # Check validity:
     
     if (nrow(sp)>=2 & checked){
       sp = sp[order(sp[,1]),]
+      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
       denoised_spectrum = sp
     }
   }

@@ -1,8 +1,9 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
+options(stringsAsFactors = F)
 
 library(shiny)
-library("V8")
+library(V8)
 library(shinyjs)
 library(MergeION)
 library(formattable)
@@ -14,10 +15,105 @@ library(RChemMass)
 
 shinyServer(function(input, output,clientData, session) {
   
-  observeEvent(input$killButton,{
-    shinyjs::js$refresh()
+  observeEvent(input$killButton0,{
+    session$reload()
   })
   
+  observeEvent(input$killButton,{
+    session$reload()
+  })
+  
+  observeEvent(input$killButton1,{
+    session$reload()
+  })
+  
+  generate_library <-eventReactive(input$generateButton,{
+    
+    output_library = NULL
+    mms = ""
+    
+    library_name = input$input_library$name
+    library_file = input$input_library$datapath
+
+    lcms_names = input$lcms_files$name
+    lcms_files = input$lcms_files$datapath
+    
+    metadata_name = input$metadata_file$name
+    metadata_file = input$metadata_file$datapath
+    
+    tmp_ref = NULL
+    if (!is.null(metadata_file)){
+      tmp_ref = read.csv(metadata_file, sep=";", dec=".",header=T)
+      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep=",", dec=".", header=T)}  
+      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep="\t", dec=".", header=T)}
+      if ("FILENAME" %in% colnames(tmp_ref)){
+        new_filenames =  lcms_files[match(tmp_ref$FILENAME, lcms_names)]
+      }
+      tmp_ref$FILENAME = new_filenames
+      tmp_ref = tmp_ref[which(!is.na(tmp_ref$FILENAME)),,drop=FALSE]
+    }
+
+    polarity = input$polarity
+    add.adduct = input$add.adduct
+    mslevel = input$search_mslevel
+    if (mslevel == "Both"){
+      mslevel = c(1,2)
+    } else {mslevel = as.numeric(mslevel)
+    }
+    search_mz = input$search_mz
+    search_ppm = input$search_ppm
+    search_rt = input$search_rt
+    search_gap = input$search_gap
+    
+    normalized = input$process_normalized
+    consensus = input$process_consensus
+    baseline = input$process_baseline
+    relative = input$process_relative
+    max_peaks = input$process_max_peak
+  
+    lib_name = input$lib_name
+    sample_type = input$sample_type
+    user_name = input$user_name
+    comments = input$user_notes
+    
+    if (!is.null(lcms_files) & !is.null(tmp_ref) & !is.null(lib_name)){
+
+      output_library = try(library_generator(input_library = library_file, lcms_files = lcms_files, metadata_file = tmp_ref,
+            polarity = polarity, mslevel = mslevel, add.adduct = add.adduct, processing.algorithm = "Default",
+            params.search = list(mz_search = search_mz, ppm_search = search_ppm, rt_search = search_rt, rt_gap = search_gap),
+            params.ms.preprocessing = list(normalized = normalized, baseline = baseline, relative = relative, max_peaks = max_peaks, recalibration = 0),
+            params.consensus = list(consensus = consensus, consensus_method = "consensus", consensus_window = search_mz*2),
+            params.user = list(sample_type = sample_type, user_name = user_name, comments = comments)), silent = T)
+
+      if (class(output_library)=="try-error"){
+          mms = as.character(output_library)
+          output_library = NULL
+      } else {mms = "Library successfully built!"}
+    } else {mms = "Please check library_generator input!"} 
+    
+    return(list(library1 = output_library, mms = mms))
+  })
+  
+  observeEvent(input$generateButton,{
+    
+    withProgress({
+      setProgress(message ="Generating library...")
+      Sys.sleep(1)
+      mms = generate_library()$mms
+    })
+     output$blank_message0 <- renderPrint({mms})
+  })
+  
+  output$downloadButton <- downloadHandler(
+    
+     filename = function(){
+       paste0(input$lib_name, ".", input$lib_format)
+     },
+     content = function(con) {
+       library_writer(generate_library()$library1, con)
+     }
+   )
+
   check_input <-eventReactive(input$goButton,{
     
     query_spectrum = NULL
@@ -36,7 +132,8 @@ shinyServer(function(input, output,clientData, session) {
         mms="Precursor mass must be a numeric value!"
         valid = 0
       } else {
-        prec_mz = as.numeric(input$prec_mz)}
+        prec_mz = as.numeric(input$prec_mz)
+      }
     
     if (input$blank_file1!=""){
       
@@ -70,7 +167,7 @@ shinyServer(function(input, output,clientData, session) {
       }
     }
     
-    list(query_spectrum = query_spectrum, message=mms,valid=valid)
+    list(query_spectrum = query_spectrum, mms = mms,valid=valid)
   })
 
   observeEvent(input$exampleButton1, {
@@ -80,24 +177,22 @@ shinyServer(function(input, output,clientData, session) {
   
   
   observeEvent(input$goButton,{
-    
     withProgress({
-      setProgress(message="Check data format...")
+      setProgress(message = "Check data format...")
       Sys.sleep(1)
-      setProgress(message=check_input()$message)
+      mms = check_input()$mms
       if (check_input()$valid==1){
-        setProgress(message="Annotating by spectral library...")
+        setProgress(message = "Annotating by spectral library...")
         Sys.sleep(1)
-        setProgress(message=find_candidates()$message)
+        mms = find_candidates()$mms
       }
     })
     
     if (check_input()$valid==0){
       updateActionButton(session, "goButton",label = "Try again")
-      output$blank_message1<-renderText({check_input()$message})
-    } else {
-      output$blank_message1<-renderText({find_candidates()$message})
-    }
+    } 
+    
+    output$blank_message1<-renderPrint({mms})
   })
   
   find_candidates <- eventReactive(input$goButton,{
@@ -108,8 +203,8 @@ shinyServer(function(input, output,clientData, session) {
     library_name = input$db_source$name
     library_file = input$db_source$datapath
     query_spectrum = check_input()$query_spectrum
-    params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_seach = 10, rt_gap = 0)
-    params.query.sp = list(prec_mz = as.numeric(input$prec_mz), use_prec = input$use_prec, polarity = input$prec_polarity, method = input$sim_methods, min_frag_match = 6, reaction_type = "Metabolic")
+    params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_search = 10, rt_gap = 0)
+    params.query.sp = list(prec_mz = as.numeric(input$prec_mz), use_prec = input$use_prec, polarity = input$prec_polarity, method = input$sim_methods, min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")
 
     if (input$prec_rt!=""){
       query_expression = paste0("RT = ", input$prec_rt)
@@ -120,10 +215,14 @@ shinyServer(function(input, output,clientData, session) {
       candidates = library_query(input_library = library_file, query_expression = query_expression, 
                   query_spectrum = query_spectrum, query_file = NULL,params.search, params.query.sp)
 
-      candidates = candidates$consensus
-    }
+      if (is.null(candidates)==0){
+        mms = "No candidates found!"
+      } else {
+        mms = "Candidates found! See next panel for annotation results!"
+        candidates = candidates$consensus
+    }} else {mms = "No valid query MS2 spectrum!"}
     
-    return(list(candidates = candidates, mms = ""))
+    return(list(candidates = candidates, mms = mms))
   })
   
   output$table0 <- renderDataTable({
@@ -234,5 +333,89 @@ shinyServer(function(input, output,clientData, session) {
     renderSMILES.rcdk(selected_smi,kekulise=TRUE)    
   })
     
+  generate_network <-eventReactive(input$networkButton,{
+    
+    output_network = NULL
+    mms = ""
+    
+    library_name = input$input_library1$name
+    library_file = input$input_library1$datapath
+    lcms_name = input$lcms_files1$name
+    lcms_file = input$lcms_files1$datapath
+    polarity = input$polarity1
+    
+    search_mz = input$search_mz1
+    search_ppm = input$search_ppm1
+    search_rt = input$search_rt1
+    search_gap = input$search_gap1
+    
+    max_peaks = input$network_max_peak
+    min_frag_match = input$network_min_frag
+    sim_method = input$network_similarity
+    min_sim = input$network_min_score
+    topK = input$network_topK
+    reaction_type  = input$network_reaction_type
+    
+    network_name = input$network_name
+    sample_type = input$network_sample_type
+
+    if (!is.null(lcms_file) & !is.null(network_name)){
+      
+      output_network = try(library_generator(input_library = library_file, lcms_files = lcms_file, metadata_file = NULL,
+                            polarity = polarity, mslevel = 2, add.adduct = FALSE, processing.algorithm = "Default",
+                            params.search = list(mz_search = search_mz, ppm_search = search_ppm, rt_search = search_rt, rt_gap = search_gap),
+                            params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0.1, max_peaks = max_peaks, recalibration = 0),
+                            params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = search_mz*2),
+                            params.network = list(network = TRUE, similarity_method = sim_method, min_frag_match = min_frag_match, min_score = min_sim, topK = topK, reaction_type = reaction_type, use_reaction = FALSE),
+                            params.user = list(sample_type = sample_type, user_name = "network generator", comments = "")), silent = T)
+      
+      if (class(output_network)=="try-error"){
+        mms = as.character(output_network)
+        output_network = NULL
+      } else {mms = "Network successfully built!"}
+    } else {mms = "Please check library_generator input!"} 
+    
+    return(list(network1 = output_network, mms = mms))
+  })
   
+  observeEvent(input$networkButton,{
+    
+    withProgress({
+      setProgress(message ="Generating network...")
+      Sys.sleep(1)
+      mms = generate_network()$mms
+    })
+    output$blank_message2 <- renderPrint({mms})
+  })
+  
+  output$downloadNodes <- downloadHandler(
+    
+    filename = function(){
+      paste0(input$network_name, "_nodes.txt")
+    },
+    content = function(con) {
+      write.table(generate_network()$network1$network$nodes, con, quote = F, sep = "\t", col.names = T, row.names = F, dec= ".")
+    }
+  )
+
+  output$downloadEdges <- downloadHandler(
+    
+    filename = function(){
+      paste0(input$network_name, "_network.txt")
+    },
+    content = function(con) {
+      write.table(generate_network()$network1$network$network, con, quote = F, sep = "\t", col.names = T, row.names = F, dec= ".")
+    }
+  )
+  
+  output$downloadNetworkObj <- downloadHandler(
+    
+    filename = function(){
+      paste0(input$network_name, ".RData")
+    },
+    content = function(con) {
+      network_obj  = generate_network()$network1
+      save(network_obj, file = con)
+    }
+  )
 })

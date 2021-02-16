@@ -85,9 +85,9 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
       cpd1 = "Unknown"
       if ("COMPOUND" %in% colnames(metadata)){cpd1 = metadata$COMPOUND[ind1]}
 
-      xrange = c(prec_mz-2,prec_mz+8)
-      ranges = which((spectrum1[,1]>=prec_mz-2) & (spectrum1[,1]<=prec_mz+8))
-      yrange = c(5, max(spectrum1[ranges,2])*1.2)
+      xrange = c(prec_mz-30,prec_mz+60)
+      ranges = which((spectrum1[,1]>=prec_mz-30) & (spectrum1[,1]<=prec_mz+60))
+      yrange = c(-1, max(spectrum1[ranges,2])*1.2)
 
       plot(spectrum1[,1],spectrum1[,2], type = "h", xlim = xrange, ylim = yrange,
          xlab = "m/z", ylab = "Intensity", font.lab=2)
@@ -125,14 +125,15 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
     xrange = c(50,prec_mz+8)
     ranges = which((spectrum2[,1]>=50) & (spectrum2[,1]<=prec_mz+8))
-    yrange = c(5, max(spectrum2[ranges,2])*1.2)
+    yrange = c(-1, max(spectrum2[ranges,2])*1.2)
 
     spectrum2 = spectrum2[ranges,]
     if (length(ranges)==1){spectrum = matrix(spectrum, ncol=2)}
 
     plot(spectrum2[,1],spectrum2[,2], type = "h", xlim = xrange, ylim = yrange,
          xlab = "m/z", ylab = "Intensity", font.lab=2)
-
+    abline(h=0)
+    
     kkk = min(nrow(spectrum2), max_display)
     max_pics = order(spectrum2[,2], decreasing = T)[1:kkk]
     max_pics = intersect(max_pics,which(spectrum2[,2]>=max(spectrum2[,2])*0.05))

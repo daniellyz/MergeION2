@@ -18,8 +18,8 @@ library_reporter<-function(input_library){
   options(warn=-1)
 
   input_library = library_reader(input_library)
-  input_library1 = output_library$complete
-  input_library2 = output_library$consensus
+  input_library1 = input_library$complete
+  input_library2 = input_library$consensus
   input_network = input_library$network
   
   cat("The entire library contains:")

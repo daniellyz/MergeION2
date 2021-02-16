@@ -10,19 +10,19 @@
 #' @export
 #' 
 process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
-                      rt_search = 10, rt_gap = 30, ppm_search = 10, mz_search = 0.01,
-                      baseline = 1000, relative = 5, max_peaks = 200, normalized=T){
-
+                           rt_search = 10, rt_gap = 30, ppm_search = 10, mz_search = 0.01,
+                           baseline = 1000, relative = 5, max_peaks = 200, normalized=T){
+  
   options(stringsAsFactors = F)
   options(warn=-1)
-
+  
   if ("FILENAME" %in% colnames(ref)){
     valid = c(which(basename(ref$FILENAME) == basename(mzdatafiles)),  which(ref$FILENAME =="N/A"))
     ref = ref[valid,,drop=FALSE]
   }
-  
-  ### Initialize variables
 
+  ### Initialize variables
+  
   new_MS1_meta_data = c() # Compounds detected in the ms data
   MS1_scan_list = list() # List of spectrum2 objects
   scan_number = c() # Which scan number in the raw chromatogram
@@ -42,55 +42,55 @@ process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
   if (nrow(ref)==0){MS1_Janssen=NULL}
   
   if (!is.null(MS1_Janssen) & nrow(ref)>0){ # If data contains MS1 scan
-
+    
     print(paste0("Processing MS1 scans of data file ..."))
-
+    
     ### Extract useful informations from raw data:
-
+    
     NS = length(MS1_Janssen) # Total number of scans
     MS1_prec_rt = rtime(MS1_Janssen) # In second
-    MS1_tic = as.numeric(tic(MS1_Janssen))
+    MS1_tic = as.numeric(MSnbase::tic(MS1_Janssen))
     
     prec_theo=as.numeric(ref$PEPMASS)
     prec_rt=as.numeric(ref$RT)*60 # Allow N/A
-
+    
     ####################################################
     ### Go through each ref item to find adequate scan##
     ####################################################
     
     for (i in 1:nrow(ref)){
-
+      
       # 1. Define a wide search range based on targeted rt
       
       if (!is.na(prec_rt[i])){
-          scan_range=which(MS1_prec_rt >= prec_rt[i] - rt_search & MS1_prec_rt <= prec_rt[i] + rt_search)
+        scan_range=which(MS1_prec_rt >= prec_rt[i] - rt_search & MS1_prec_rt <= prec_rt[i] + rt_search)
       } else {scan_range=1:length(MS1_prec_rt)}
-
+      
       # 2. Refine the search range based on exact mass detected in MS1 spectrum
       
       if (length(scan_range)>0){
-       
+        
         temp_scan_range = c() # Validated scan number
         temp_mz0 = c()
-
+        
         for (k in scan_range){ # Check whether the precursor peak is detected in selected scan range
           
           checked = 0
           Frag_data = MS1_Janssen[[k]]
-
+          
           # Check the actual m/z in experimental spectrum:
           
           if (length(Frag_data@mz)>1){ 
             
-             ppm_dis = ppm_distance(Frag_data@mz,prec_theo[i])
-             mz_dev = abs(Frag_data@mz - prec_theo[i])
-             prec_ind = which.min(ppm_dis)
-             prec_int = Frag_data@intensity[prec_ind] # The intensity of precursor ion
-               
-             if (prec_int>10*baseline & (ppm_dis[prec_ind]<=ppm_search || mz_dev[prec_ind]<=mz_search)){ # The precursor mass must be 10 times higher than baseline
-                checked = 1
-                mz0 = Frag_data@mz[prec_ind]
-             }
+            ppm_dis = ppm_distance(Frag_data@mz,prec_theo[i])
+            mz_dev = abs(Frag_data@mz - prec_theo[i])
+            prec_ind = which.min(ppm_dis)
+            prec_int = Frag_data@intensity[prec_ind] # The intensity of precursor ion
+            
+            if (prec_int>10*baseline & (ppm_dis[prec_ind]<=ppm_search || mz_dev[prec_ind]<=mz_search)){ # The precursor mass must be 10 times higher than baseline
+              checked = 1
+              mz0 = Frag_data@mz[prec_ind]
+            }
           }
           
           # Add to filters scans  
@@ -100,78 +100,78 @@ process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
             temp_mz0 = c(temp_mz0, mz0)
           }
         } 
-      
-      scan_range = temp_scan_range
-      scan_mz0 = temp_mz0
         
-    ### 3. Select "best" scan and calculate deviation
+        scan_range = temp_scan_range
+        scan_mz0 = temp_mz0
         
-      if (length(scan_range)>0){ # Find peaks
+        ### 3. Select "best" scan and calculate deviation
         
+        if (length(scan_range)>0){ # Find peaks
+          
           scan_rts = MS1_prec_rt[scan_range]
           scan_tics = MS1_tic[scan_range]
-          valid_k = separated_peaks(scan_range, scan_rts, scan_tics, rt_gap)
-        
+          valid_k = separated_peaks1(scan_range, scan_rts, scan_tics, rt_gap)
+
           NV = length(valid_k) # >1 if isomers present
           mz = scan_mz0[match(valid_k, scan_range)] # Precursor m/z of valid scan
           dev_ppm= round(sapply(mz, function(x) min(ppm_distance(x,prec_theo[i]))),2)
-      
+          
           scan_number = c(scan_number,valid_k)  # Save scan numbers
           new_PEP_mass = c(new_PEP_mass,mz)
           mass_dev = c(mass_dev,dev_ppm)
-    
-    ### 4. Append spectra and metadata:
-    
+          
+          ### 4. Append spectra and metadata:
+          
           for (vvv in 1:NV){
-              MS1_scan_list[[NNN+vvv]]=MS1_Janssen[[valid_k[vvv]]]
-              new_MS1_meta_data = rbind(new_MS1_meta_data,ref[i,])
+            MS1_scan_list[[NNN+vvv]]=MS1_Janssen[[valid_k[vvv]]]
+            new_MS1_meta_data = rbind(new_MS1_meta_data,ref[i,])
           }
-      NNN = NNN+NV
-    }
-  }} # End of screening all reference masses
-
-  #####################   
-  ### Create metadata##
-  #####################
-
-  if (NNN>0){ 
+          NNN = NNN+NV
+        }
+      }} # End of screening all reference masses
+    
+    #####################   
+    ### Create metadata##
+    #####################
+    
+    if (NNN>0){ 
       
-   new_MS1_meta_data[,"PEPMASS"]=round(as.numeric(new_PEP_mass),5)
-   new_MS1_meta_data[,"RT"]= round(MS1_prec_rt[scan_number]/60,2)
-   new_MS1_meta_data[,"FILENAME"]=rep(basename(mzdatafiles),NNN)
-   new_MS1_meta_data[,"MSLEVEL"]=rep(1,NNN)
-   new_MS1_meta_data[,"TIC"]= MS1_tic[scan_number]
-   new_MS1_meta_data[,"PEPMASS_DEV"]=mass_dev
-   new_MS1_meta_data[,"SCAN_NUMBER"] = scan_number
+      new_MS1_meta_data[,"PEPMASS"]=round(as.numeric(new_PEP_mass),5)
+      new_MS1_meta_data[,"RT"]= round(MS1_prec_rt[scan_number]/60,2)
+      new_MS1_meta_data[,"FILENAME"]=rep(basename(mzdatafiles),NNN)
+      new_MS1_meta_data[,"MSLEVEL"]=rep(1,NNN)
+      new_MS1_meta_data[,"TIC"]= MS1_tic[scan_number]
+      new_MS1_meta_data[,"PEPMASS_DEV"]=mass_dev
+      new_MS1_meta_data[,"SCAN_NUMBER"] = scan_number
 
-   #################################
-   ### Process and collect spectra##
-   #################################
-
-   included=c()
-   n0=0
-
-   for (i in 1:NNN){
+      #################################
+      ### Process and collect spectra##
+      #################################
       
-      sp0 = cbind(MS1_scan_list[[i]]@mz, MS1_scan_list[[i]]@intensity)
-      sp1 = denoise_ms1_spectrum(sp0, new_MS1_meta_data$PEPMASS[i], max_peaks, relative, normalized)
+      included=c()
+      n0=0
       
-      if (nrow(sp1)>1){
-        included = c(included, i)
-        n0 = n0 + 1
-        spectrum_list[[n0]]=sp1
+      for (i in 1:NNN){
+        
+        sp0 = cbind(MS1_scan_list[[i]]@mz, MS1_scan_list[[i]]@intensity)
+        sp1 = denoise_ms1_spectrum(sp0, new_MS1_meta_data$PEPMASS[i], max_peaks, relative, normalized)
+        
+        if (nrow(sp1)>1){
+          included = c(included, i)
+          n0 = n0 + 1
+          spectrum_list[[n0]]=sp1
+        }
       }
-   }
-   
-   new_MS1_meta_data = new_MS1_meta_data[included,,drop=FALSE]
-   }
+      
+      new_MS1_meta_data = new_MS1_meta_data[included,,drop=FALSE]
+    }
   }
   
   if (!is.null(new_MS1_meta_data)){
     if (nrow(new_MS1_meta_data)==0){  
       print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))
-  }} else {print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))}
-
+    }} else {print(paste0("No MS1 scan in the data file ",mzdatafiles," matches with metadata!"))}
+  
   return(list(sp=spectrum_list,metadata=new_MS1_meta_data))
 }
 
@@ -195,7 +195,7 @@ ppm_distance<-function(x,y){
 
 # Find indexes from "ranges": separated isomer peaks according to rt and intensity
 
-separated_peaks<-function(ranges, rts, tics, rt_gap){
+separated_peaks1<-function(ranges, rts, tics, rt_gap){
   
   # ranges: scan or peak number
   NR = length(ranges)

@@ -51,7 +51,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
    MS2_prec_mz = precursorMz(MS2_Janssen) # Label precursor mass
    targets =  unique(MS2_prec_mz) # All targeted masses
    MS2_prec_rt = rtime(MS2_Janssen) # In second
-   MS2_tic = as.numeric(tic(MS2_Janssen))
+   MS2_tic = as.numeric(MSnbase::tic(MS2_Janssen))
 
    ### Filter ref because not all targeted m/z exists or fragmented in the sample! Important for not to search whatever
 
@@ -128,27 +128,45 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
           scan_range = temp_scan_range
           scan_mz0 = temp_mz0
           
-            
       ### 3. Select "best" scan and calculate deviation
     
           if (length(scan_range)>0){
 
             scan_rts = MS2_prec_rt[scan_range]
             scan_tics = MS2_tic[scan_range]
-            valid_k = separated_peaks(scan_range, scan_rts, scan_tics, rt_gap)
-      
+            ind_features = separated_peaks2(scan_range, scan_rts, scan_tics, rt_gap)
+
+            valid_k = sapply(ind_features, function(x) x[1]) # Highest TIC scan
+
             NV = length(valid_k) # >1 if isomers present
             mz = scan_mz0[match(valid_k,scan_range)] # Precursor m/z of valid scan
             dev_ppm= round(sapply(mz, function(x) min(ppm_distance(x,prec_theo[i]))),2)
-      
+
             scan_number = c(scan_number,valid_k)  # Save scan numbers
-            new_PEP_mass = c(new_PEP_mass,mz)
+            new_PEP_mass = c(new_PEP_mass, mz)
             mass_dev = c(mass_dev,dev_ppm)
         
-          ### 4. Append spectra and metadata:
+          ### 4. Calculate smart ion append spectra and metadata:
       
             for (vvv in 1:NV){
-                MS2_scan_list[[NNN+vvv]]=MS2_Janssen[[valid_k[vvv]]]
+              
+                ind_feature = as.numeric(ind_features[[vvv]])
+                tmp_scans = MS2_Janssen[ind_feature]
+
+                scan_best_tic = MS2_Janssen[[ind_feature[as.numeric(which.max(MSnbase::tic(tmp_scans)))]]]
+                scan_best_tic = cbind(scan_best_tic@mz, scan_best_tic@intensity)
+
+                scan_most_peaks = MS2_Janssen[[ind_feature[as.numeric(which.max(peaksCount(tmp_scans)))]]]
+                scan_most_peaks = cbind(scan_most_peaks@mz, scan_most_peaks@intensity)
+
+                scan_least_peaks = MS2_Janssen[[ind_feature[as.numeric(which.min(peaksCount(tmp_scans)))]]]
+                scan_least_peaks = cbind(scan_least_peaks@mz, scan_least_peaks@intensity)
+
+                scan_all = list(scan_best_tic, scan_most_peaks, scan_least_peaks)
+                scan_merged = average_spectrum(scan_all, mz_window = mz_search*2)
+                scan_merged = scan_merged$new_spectrum
+                
+                MS2_scan_list[[NNN+vvv]] = scan_merged
                 new_MS2_meta_data = rbind(new_MS2_meta_data,ref[i,])
             }
             
@@ -180,7 +198,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
       
     for (i in 1:NNN){
         
-       sp0 = cbind(MS2_scan_list[[i]]@mz, MS2_scan_list[[i]]@intensity)
+       sp0 = MS2_scan_list[[i]]
        sp1 = denoise_ms2_spectrum(sp0, new_MS2_meta_data$PEPMASS[i], max_peaks, relative, normalized)
 
        if (nrow(sp1)>1){
@@ -224,28 +242,27 @@ ppm_distance<-function(x,y){
 
 # Find indexes from "ranges": separated isomer peaks according to rt and intensity
 
-separated_peaks<-function(ranges, rts, tics, rt_gap){
+separated_peaks2<-function(ranges, rts, tics, rt_gap){
 
   # ranges: scan or peak number
   NR = length(ranges)
-
+  ind_features = list()
+  kf = 0
+  
  # screen:
   if (NR>1){
     tmp = data.matrix(cbind(ranges,rts,tics))
-    tmp = tmp[order(tics,decreasing=T),] # Order the tmp by intensity
-    valid_k = tmp[1,1]
-    previous_rt = tmp[1,2]
-    for (i in 2:NR){
-       dis = abs(tmp[i,2]-previous_rt)
-       valid = which(dis<=rt_gap) # Check peak overlap
-       if (length(valid)==0){ # No overlap
-         valid_k = c(valid_k,tmp[i,1])
-         previous_rt = c(previous_rt,tmp[i,2])}
-    }} else {valid_k = ranges}
+    tmp = tmp[order(tmp[,3],decreasing=T),] # Order the tmp by intensity
+    while (nrow(tmp)>0){
+      kf = kf +1
+      feature_rt = tmp[1,2]
+      valid = which(abs(tmp[,2]-feature_rt)<=rt_gap)
+      ind_features[[kf]] = tmp[valid, 1]
+      tmp  = tmp[-valid,,drop = FALSE]
+  }} else {ind_features[[1]] = ranges}
   
   # check:
-  if (length(valid_k)==0){valid_k = -1}
-  return(unique(valid_k))
+  return(ind_features)
 }
 
 # Keep top peaks
@@ -281,6 +298,7 @@ denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     if (nrow(sp)>0 & checked){
       sp = sp[order(sp[,1]),,drop=FALSE]
+      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
       denoised_spectrum = sp
     }
   }

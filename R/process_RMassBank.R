@@ -182,7 +182,7 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
           temp_metadata_ms1$SCAN_NUMBER = prec_scan_ms1 # Median scan of aggregated
           temp_metadata_ms1$ID = ref0$ID[rr]
           
-          temp_sp_ms1 = denoise_ms1_spectrum(sp1, prec_mz, max_peaks, relative, normalized)
+          temp_sp_ms1 = denoise_ms1_spectrum(sp1, prec_mz, 10000, 0, normalized)
           
           kkk = kkk+1
           output_metadata = rbind(output_metadata, temp_metadata_ms1)
@@ -833,6 +833,7 @@ denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     if (nrow(sp)>0 & checked){
       sp = sp[order(sp[,1]),,drop=FALSE]
+      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
       denoised_spectrum = sp
     }
   }
@@ -848,13 +849,7 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     # Check resolution:
     
     checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
-    
-    # Filter top peaks:
-    
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
-    tops = min(max_peak, nrow(sp))  
-    sp = sp[1:tops,,drop=FALSE]
-    
+
     # Normalize to 100:
     
     sp1 = sp
@@ -862,14 +857,22 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     # Relative Intensity filter:
     
-    filter = which(sp1[,2]>=min_relative & sp1[,1]>=mz0-0.5 & sp1[,1]<=mz0+10)
-    if (normalized){sp = sp1}  
-    sp = sp[filter,,drop=FALSE]
+    filter = which(sp1[,2]>=min_relative & sp1[,1]>=mz0-40 & sp1[,1]<=mz0+70)
+    if (normalized){
+      sp = sp1[filter,,drop = FALSE]
+    } else {sp = sp[filter,,drop=FALSE]}
     
+    # Filter top peaks:
+    
+    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+    tops = min(max_peak, nrow(sp))  
+    sp = sp[1:tops,,drop=FALSE]
+  
     # Check validity:
     
     if (nrow(sp)>=2 & checked){
       sp = sp[order(sp[,1]),]
+      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
       denoised_spectrum = sp
     }
   }

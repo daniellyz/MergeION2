@@ -47,10 +47,11 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
   # Remove opposite polarity and add default polarity to metadata:
   
   if ("IONMODE" %in% colnames(ref)){
-    if (polarity=="Positive"){nonvalid = which(ref$IONMODE=="Negative")}
-    if (polarity=="Negative"){nonvalid = which(ref$IONMODE=="Positive")}
-    ref = ref[-nonvalid,,drop=FALSE]
+    if (polarity=="Positive"){valid = which(ref$IONMODE=="Positive")}
+    if (polarity=="Negative"){valid = which(ref$IONMODE=="Negative")}
+    ref = ref[valid,,drop=FALSE]
   }
+  
   ref$IONMODE = polarity
   
   # Remove invalid adduct and add default M+H or M-H:
