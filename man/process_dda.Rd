@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_dda.R
 \name{process_dda}
 \alias{process_dda}
-\title{Create pseudo-library file from a LC-MS/MS data file through XC-MS centWave non-targeted feature screening}
+\title{Create pseudo-library file from a LC-MS/MS data file through non-targeted feature screening}
 \usage{
 process_dda(
   raw_data_file,

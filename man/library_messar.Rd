@@ -23,7 +23,7 @@ library_messar(
 \itemize{
   \item{prec_mz:}{ Numeric. Precursor mass of query spectrum. please put the correct value of precursor mass.}
   \item{use_prec:}{ Boolean. If set to TRUE, precursor mass is used to calculate the neutral loss.}
-  \item{compound.type:}{ Character. Either "Metabolite" or "Drug".}
+  \item{compound.type:}{ Character. Either "Metabolite" or "Drug". Different models are applied to Metabolite or Drug.}
 }}
 }
 \value{
@@ -38,7 +38,7 @@ url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/sp
 
 test = read.table(url_test, header = F, sep=" ")
 
-results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 100, use_prec = T, compound.type = "Metabolic")
+results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))
 
 }
 \author{

@@ -12,7 +12,7 @@ library_generator(
   mslevel = c(1, 2),
   add.adduct = TRUE,
   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
-  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30),
+  params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
     max_peaks = 200, recalibration = 0),
   params.consensus = list(consensus = FALSE, consensus_method = c("consensus",
@@ -106,7 +106,7 @@ polarity = "Positive"
 mslevel= 2 # Only MS2 scans are extracted!
 add.adduct = F # No additional adducts are searched besides M+H 
 
-params.search = list(mz_search = 0.005, ppm_search = 10, rt_seach = 15, rt_gap = 30)
+params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15, rt_gap = 30)
 params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
 
 # Building a spectral library with default (SmartION) algorithm by simply gathering scans that matched with metadata:

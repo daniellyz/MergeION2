@@ -20,8 +20,9 @@
 #'   \item{polarity:}{ Character. Ion mode of the query spectrum, either positive or negative.}
 #'   \item{method:}{ Character. Similarity metrics.}
 #'    \enumerate{
-#'        \item{Matches:}{ Conting number of fragment or neutral loss matches}
-#'        \item{Dot:}{ Dot similarity score based on intensity vectors of fragments.}
+#'        \item{Precision:}{ Percentage of fragment or neutral loss matched in query spectrum.}
+#'        \item{Recall:}{ Percentage of fragment or neutral loss matched in reference spectrum.}
+#'        \item{F1:}{ Harmonic mean of precision and recall.}
 #'        \item{Cosine:}{ COsine similarity score based on intensity vectors of fragments.}
 #'        \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
 #'        \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}

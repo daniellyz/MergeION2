@@ -1,4 +1,4 @@
-#' Create feature-based molecular networks from a conesnsus spectra library
+#' Create feature-based molecular networks from a consensus spectra library
 #'
 #' Function used by library_generator to create molecular networks
 #'
@@ -12,9 +12,9 @@
 #' }
 #' @param params.similarity Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 #' \itemize{
-#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST". Please check function library_query for more details.}
-#'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
-#'  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
+#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" (library_query for more details).}
+#'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness. Not applicable if method = "Messar".}
+#'  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. Not applicable if method = "Messar".}
 #' }
 #'@param params.network Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 #' \itemize{
@@ -77,44 +77,89 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   new_nodes = metadata
   new_network = c()
   
-  #######################################
-  ### Spectral similarity calculation ###
-  #######################################
-  
   if (networking){
   
     message("Generating molecular network...")
     
-    for (i in 1:(NI-1)){
+    #######################################
+    ### Spectral similarity calculation ###
+    #######################################
+    
+    if (sim.method!="Messar"){
+
+      for (i in 1:(NI-1)){
   
-      temp_spectrum = splist[[i]]
-      temp_library = list(complete = complete_library, consensus = NULL, network = NULL)
+        temp_spectrum = splist[[i]]
+        temp_library = list(complete = complete_library, consensus = NULL, network = NULL)
       
-      # Search part of library
+        # Search part of library
       
-      lib_range = (i+1):NI
-      temp_library$consensus$metadata = consensus_library$metadata[lib_range,,drop=FALSE]
-      temp_library$consensus$sp = consensus_library$sp[lib_range]
-      temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
-      temp_library$network$db_feature =  library_matrix$db_feature
+        lib_range = (i+1):NI
+        temp_library$consensus$metadata = consensus_library$metadata[lib_range,,drop=FALSE]
+        temp_library$consensus$sp = consensus_library$sp[lib_range]
+        temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
+        temp_library$network$db_feature =  library_matrix$db_feature
       
-      temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
+        temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
             method = sim.method, prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
 
-      if (!is.null(temp_scores)){
-        NSC = nrow(temp_scores)
-        temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], MS2.Similarity = round(temp_scores[,2],3))  
-        new_network = rbind.data.frame(new_network, temp_network)
+        if (!is.null(temp_scores)){
+          NSC = nrow(temp_scores)
+          temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], MS2.Matches = temp_scores[,2], MS2.Similarity = round(temp_scores[,3],3))  
+          new_network = rbind.data.frame(new_network, temp_network)
+        }
+      }
+
+    ### Top K filtering
+
+      if (!is.null(new_network)){
+        new_network = mutual_filter(new_network, topK = topK)
+        if (nrow(new_network)==0){new_network = NULL}
       }
     }
-
-    #######################
-    ### Top K filtering ###
-    #######################
-  
-    if (!is.null(new_network)){
-      new_network = mutual_filter(new_network, topK = topK)
-      if (nrow(new_network)==0){new_network = NULL}
+    
+    ##########################
+    ### MESSAR calculation ###
+    ##########################
+    
+    if (sim.method=="Messar"){
+      
+      messar_output = list()
+      
+      # Messar substructure prediction:
+      
+      for (i in 1:NI){
+        
+        tmp_sp = splist[[i]]
+        tmp_prec = metadata$PEPMASS[i]
+        tmp_messar = library_messar(query_spectrum = tmp_sp, params.query.sp = list(prec_mz = tmp_prec, use_prec = T, compound.type = "Metabolite"))
+        
+        if (!is.null(tmp_messar[,1])){
+          messar_output[[i]] = tmp_messar[,1]
+        } else {messar_output[[i]] = "0"}
+      }
+      
+      # From common substructure to network:
+      
+      for (i in 1:(NI-1)){
+        for (j in (i+1):NI){
+          kkk = intersect(messar_output[[i]], messar_output[[j]])
+          kkk = kkk[kkk!="0"]
+          NC = length(kkk) # Calculate common substructures
+          common_sub = paste0(kkk, collapse=":")
+          
+          if (NC>1){
+            tmp_edge = c(IDList[i], IDList[j], NC, common_sub)
+            new_network = rbind(new_network, tmp_edge)
+          }
+        }
+      }
+      
+      if (nrow(new_network)>0){
+       colnames(new_network) = c("ID1", "ID2", "Common.Substructure.Count", "Common.Substructures")
+       rownames(new_network) = NULL
+       new_network = data.frame(new_network)
+      }
     }
     
     ##################################
@@ -274,16 +319,21 @@ mutual_filter <- function(network, topK = 10){
   NI = length(temp_id)
   
   # Transformation to matrix:
+
+  NNN = matrix(0, NI, NI)  
+  colnames(NNN) = rownames(NNN) = temp_id
   
   MMM = matrix(0, NI, NI)  
   colnames(MMM) = rownames(MMM) = temp_id
-  
+
   from_ind = match(network[,1], temp_id)
   to_ind = match(network[,2], temp_id) # Index in the temp_ind
   
   for(x in 1:NR){
-    MMM[from_ind[x], to_ind[x]] = as.numeric(network[x,3])
-    MMM[to_ind[x], from_ind[x]] = as.numeric(network[x,3])
+    NNN[from_ind[x], to_ind[x]] = as.numeric(network[x,3])
+    NNN[to_ind[x], from_ind[x]] = as.numeric(network[x,3])
+    MMM[from_ind[x], to_ind[x]] = as.numeric(network[x,4])
+    MMM[to_ind[x], from_ind[x]] = as.numeric(network[x,4])
   }
   
   # Take topK of each row
@@ -309,7 +359,7 @@ mutual_filter <- function(network, topK = 10){
   to_id = temp_id[valid[,2]]
   sim_score = MMM[valid]
   
-  network_filtered = cbind.data.frame(ID1 = from_id, ID2 = to_id, MS2.Similarity = MMM[valid])
+  network_filtered = cbind.data.frame(ID1 = from_id, ID2 = to_id, MS2.Matches = NNN[valid], MS2.Similarity = MMM[valid])
   
   return(network_filtered)
 }

@@ -161,7 +161,6 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                      
                       br(),
                       h4("Please choose input spectral library file: "),
-                     #selectInput("db_source", label = "", choices=c("Janssen", "Drug", "GNPS", "MassBank")),  
                       fileInput("db_source", "", multiple = FALSE),
                      
                       selectInput("prec_polarity", h4("Polarity of query spectrum:"), choices=c("Positive", "Negative")),  
@@ -186,7 +185,7 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                      
                       br(),
                       h4("Spectral similarity metrics:"),
-                      selectInput("sim_methods", label = "", choices= c("Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST")),  
+                      selectInput("sim_methods", label = "", choices= c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST")),  
                     
                       br(),
                       tags$head(
@@ -238,8 +237,9 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                             sidebarPanel(width = 12, id="sidebar1bis",
                                          h3("1. Input Files"),
                                          fileInput("input_library1",h5("Spectral library file [Optional]: "), multiple = FALSE, width = '500px'),
-                                         fileInput("lcms_files1", h5("Converted LC-MS files (mzXML or netCDF): "), multiple = FALSE, width = '500px'),
-                                         radioButtons("polarity1", h5("LC-MS files polarity: "), choices = c("Positive","Negative"))
+                                         fileInput("lcms_files1", h5("Converted LC-MS files (mzXML or netCDF): "), multiple = TRUE, width = '500px'),
+                                         radioButtons("polarity1", h5("LC-MS files polarity: "), choices = c("Positive","Negative")),
+                                         fileInput("metadata_file1", h5("Features to collect in a .csv metadata file: "), multiple = FALSE)
                             ),
                             mainPanel(width = 0)
                           )
@@ -250,7 +250,8 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                                   numericInput("search_mz1", h5("Mass tolerance (Da): "), min = 0, max = 0.1, value = 0.01, width = '500px'),
                                   numericInput("search_ppm1", h5("Mass tolerance (ppm): "), min = 0, max = 50, value = 5, width = '500px'),
                                   numericInput("search_rt1", h5("RT tolerance (second): "), min = 0, max = 30, value = 6, width = '500px'),
-                                  numericInput("search_gap1", h5("RT gap (second): "), min = 0, max = 10000, value = 12, width = '500px')
+                                  numericInput("search_gap1", h5("RT gap (second): "), min = 0, max = 10000, value = 12, width = '500px'),
+                                  numericInput("search_baseline1", h5("Baseline: "), min = 0, max = 100000, value = 25000, width = '500px')
                     ),
                      mainPanel(width = 0)
                    ))),
@@ -261,7 +262,7 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                                  h3("3. Networking parameters"),
                                  numericInput("network_max_peak", h5("Maximum number of peaks kept: "), min = 10, max = 1000, value = 200, width = '500px'),
                                  numericInput("network_min_frag", h5("Minimum of fragment matches: "), min = 5, max = 1000, value = 8, width = '500px'),
-                                 selectInput("network_similarity", h5("Spectral similarity type: "), choices= c("Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST"), width = '500px'),
+                                 selectInput("network_similarity", h5("Spectral similarity type: "), choices= c("Messar", "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST"), width = '500px'),
                                  numericInput("network_min_score", h5("Minimum similarity to connect two nodes: "), min = 0, max = 1, value = 0.6, width = '500px'),
                                  numericInput("network_topK", h5("Each other's top K most similar nodes: "), min = 5, max = 50, value = 10, width = '500px'),                                 
                                  radioButtons("network_reaction_type", h5("Precursor mass difference type: "), choices = c("Chemical","Metabolic"))

@@ -1,7 +1,8 @@
 #' MS1 or MS2 spectra alignment
 #'
 #' Function used by process_consensus and process_lib2matrix for m/z alignment
-#'
+#' 
+#' @importFrom bigmemory big.matrix
 #' @export
 #'
 average_spectrum<-function(splist, mz_window = 0.01){
@@ -37,12 +38,14 @@ average_spectrum<-function(splist, mz_window = 0.01){
   ### Combine and average m/z with the same label##
   #################################################
   
-  I_matrix = matrix(0,N_feature,NBS) # Intensity matrix N_feature x Nb of spectra
-  #I_matrix <- big.matrix(N_feature, NBS, type='integer', init=0)
+  print(N_feature)
+  print(NBS)
+  #I_matrix = matrix(0,N_feature,NBS) # Intensity matrix N_feature x Nb of spectra
+  I_matrix <- big.matrix(N_feature, NBS, type='integer', init=0)
   
   avg_mzlist=rep(0,N_feature) # Averaged mass list
-  dev_matrix = matrix(0,N_feature,NBS)
-  #dev_matrix <- big.matrix(N_feature, NBS, type='double', init=0)
+  #dev_matrix = matrix(0,N_feature,NBS)
+  dev_matrix <- big.matrix(N_feature, NBS, type='double', init=0)
 
   for (i in 1:N_feature){
 

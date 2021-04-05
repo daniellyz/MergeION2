@@ -2,13 +2,12 @@
 % Please edit documentation in R/process_lib2network.R
 \name{process_lib2network}
 \alias{process_lib2network}
-\title{Create feature-based molecular networks from a conesnsus spectra library}
+\title{Create feature-based molecular networks from a consensus spectra library}
 \usage{
 process_lib2network(
   input_library,
   networking = T,
   polarity = c("Positive", "Negative"),
-  params.screening = list(baseline = 1000, relative = 0.01, max_peaks = 200),
   params.search = list(mz_search = 0.005, ppm_search = 10),
   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
   params.network = list(topK = 10, reaction.type = "Metabolic", use.reaction = TRUE)
@@ -21,13 +20,6 @@ process_lib2network(
 
 \item{polarity}{character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file.}
 
-\item{params.screening}{Parameters for feature screening and MS2 spectra pre-processing from raw_data_file:
-\itemize{
- \item{baseline:}{ Numeric. Absolute intensity threshold that is considered as a mass peak and written into the library.}
- \item{relative:}{ Numeric between 0 and 100. Relative intensity threshold of the highest peak in each spectrum, peaks above both absolute and relative thresholds are saved in the library.}
- \item{max_peaks:}{ Integer higher than 3. Maximum number of peaks kept per spectrum from the highest peak.}
-}}
-
 \item{params.search}{List of parameters for feature screening, combining precursor ions and fragments in the input file, as well as for searching in the spectral library. The list must contain following elements:
 \itemize{
  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da.}
@@ -36,9 +28,9 @@ process_lib2network(
 
 \item{params.similarity}{Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 \itemize{
- \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be "Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST". Please check function library_query for more details.}
- \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
- \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
+ \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" (library_query for more details).}
+ \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness. Not applicable if method = "Messar".}
+ \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. Not applicable if method = "Messar".}
 }}
 
 \item{params.network}{Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference

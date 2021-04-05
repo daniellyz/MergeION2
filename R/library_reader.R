@@ -113,7 +113,11 @@ readMGF2<-function(con){
   
   # From a MSnBase object to a list of spectra m/z intensity
   spectrum_list=list()
+  print(N)
+  
   for (i in 1:N){
+    print(i)
+    
     spectrum_list[[i]]=cbind(db[[i]]@mz,db[[i]]@intensity)
   }
   

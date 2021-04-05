@@ -215,7 +215,7 @@ shinyServer(function(input, output,clientData, session) {
       candidates = library_query(input_library = library_file, query_expression = query_expression, 
                   query_spectrum = query_spectrum, query_file = NULL,params.search, params.query.sp)
 
-      if (is.null(candidates)==0){
+      if (is.null(candidates)){
         mms = "No candidates found!"
       } else {
         mms = "Candidates found! See next panel for annotation results!"
@@ -344,10 +344,21 @@ shinyServer(function(input, output,clientData, session) {
     lcms_file = input$lcms_files1$datapath
     polarity = input$polarity1
     
+    metadata_name = input$metadata_file1$name
+    metadata_file = input$metadata_file1$datapath
+    
+    tmp_ref = NULL
+    if (!is.null(metadata_file)){
+      tmp_ref = read.csv(metadata_file, sep=";", dec=".",header=T)
+      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep=",", dec=".", header=T)}  
+      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep="\t", dec=".", header=T)}
+    }
+    
     search_mz = input$search_mz1
     search_ppm = input$search_ppm1
     search_rt = input$search_rt1
     search_gap = input$search_gap1
+    search_baseline = input$search_baseline1
     
     max_peaks = input$network_max_peak
     min_frag_match = input$network_min_frag
@@ -361,10 +372,10 @@ shinyServer(function(input, output,clientData, session) {
 
     if (!is.null(lcms_file) & !is.null(network_name)){
       
-      output_network = try(library_generator(input_library = library_file, lcms_files = lcms_file, metadata_file = NULL,
+      output_network = try(library_generator(input_library = library_file, lcms_files = lcms_file, metadata_file = tmp_ref,
                             polarity = polarity, mslevel = 2, add.adduct = FALSE, processing.algorithm = "Default",
                             params.search = list(mz_search = search_mz, ppm_search = search_ppm, rt_search = search_rt, rt_gap = search_gap),
-                            params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0.1, max_peaks = max_peaks, recalibration = 0),
+                            params.ms.preprocessing = list(normalized = TRUE, baseline = search_baseline, relative = 0.1, max_peaks = max_peaks, recalibration = 0),
                             params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = search_mz*2),
                             params.network = list(network = TRUE, similarity_method = sim_method, min_frag_match = min_frag_match, min_score = min_sim, topK = topK, reaction_type = reaction_type, use_reaction = FALSE),
                             params.user = list(sample_type = sample_type, user_name = "network generator", comments = "")), silent = T)

@@ -53,9 +53,10 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
     metadata1= metadata[index1,,drop=FALSE]
     spectrum_list1 = spectrum_list[index1]
     ID_list1=unique(metadata1$ID)
-
+    
     for (ID in ID_list1){
-
+      
+      print(which(ID_list1==ID))
       selected_rows = which(metadata1$ID==ID)
       NSR = length(selected_rows)
       

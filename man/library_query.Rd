@@ -6,12 +6,12 @@
 \usage{
 library_query(
   input_library = NULL,
-  query_expression = "Polarity = Positive",
+  query_expression = "IONMODE = Positive",
   query_spectrum = NULL,
   query_file = NULL,
-  params.search = list(mz_search = 0.01, ppm_search = 10, rt_seach = 15, rt_gap = 30),
+  params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
   params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method =
-    "Cosine", min_frag_match = 6, reaction_type = "Metabolic")
+    "Cosine", min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ library_query(
 
 \item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided.}
 
-\item{query_file}{Character. The file name of query spectra collection, must in mgf, msp or mz(X)ML, cdf format.}
+\item{query_file}{Character. Only used if query_spectrum = NULL. The file name of query spectra collection or DDA mode LC-MS file. The file must in mgf, msp or mz(X)ML, cdf format.}
 
 \item{params.search}{General parameters for searching spectral library
 \itemize{
@@ -38,13 +38,15 @@ library_query(
   \item{polarity:}{ Character. Ion mode of the query spectrum, either positive or negative.}
   \item{method:}{ Character. Similarity metrics.}
    \enumerate{
-       \item{Matches:}{ Conting number of fragment or neutral loss matches}
-       \item{Dot:}{ Dot similarity score based on intensity vectors of fragments.}
+       \item{Precision:}{ Percentage of fragment or neutral loss matched in query spectrum.}
+       \item{Recall:}{ Percentage of fragment or neutral loss matched in reference spectrum.}
+       \item{F1:}{ Harmonic mean of precision and recall.}
        \item{Cosine:}{ COsine similarity score based on intensity vectors of fragments.}
        \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
        \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}
        \item{NIST:}{Similarity score used by NIST using weighted pearson score}}
    \item{min_frag_match}{ Minimum matched peaks (or corresponding neutral losses) to allow a match.}
+   \item{min_score}{ Minimum similarity score to be considered as a successful query.}
    \item{reaction_type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
 }}
 }

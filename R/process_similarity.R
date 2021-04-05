@@ -7,7 +7,7 @@
 #' @export
 
 process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 100, use.prec = FALSE, input_library = NULL,  
-                              method = c("Matches", "Dot", "Cosine", "Spearman", "MassBank", "NIST"), 
+                              method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST"), 
                               prec_ppm_search = 10, frag_mz_search = 0.005, min_frag_match = 6){
   
   options(stringsAsFactors = FALSE)
@@ -87,6 +87,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
       dat1 = rbind(dat1, dat[i,,drop=FALSE])
     }
   }
+  
   if (is.null(db_profile1)){return(NULL)}
   
   if (!is.null(db_profile1)){
@@ -100,6 +101,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   valid = which(peak_matches>=min_frag_match)  
   if (length(valid)==0){return(NULL)}
   db_profile1 = db_profile1[,valid,drop = FALSE]
+  consensus_library1  = list(metadata = consensus_library$metadata[valid,,drop=FALSE], sp = consensus_library$sp[valid])
   
   # Filter out empty db features:
   
@@ -122,15 +124,23 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat[,2] = dat[,2]/max(dat[,2])*100 # Normalize
   db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)
 
-  if (method == "Matches"){
-    sim = apply(db_profile, 2, function(x) sum(x>0))
+  # Calculate useful info:
+  NP_query = nrow(dat) # Nb of peaks in query
+  NP_reference = sapply(consensus_library1$sp, nrow)
+  nb_matches = apply(db_profile, 2, function(x) sum(x>0))
+  
+  if (method == "Precision"){
+    sim = nb_matches/NP_query
+  }
+    
+  if (method == "Recall"){
+    sim = nb_matches/NP_reference
   }
   
-  if (method == "Dot"){
-    sim = cov(dat[,2], db_profile)
-    sim = sim/max(sim)
+  if (method == "F1"){
+    sim = 2*(nb_matches/NP_reference*nb_matches/NP_query)/(nb_matches/NP_reference+nb_matches/NP_query)
   }
-  
+
   if (method == "Cosine"){
     sim = cor(dat[,2], db_profile, method = "pearson")/2 + 0.5
   }
@@ -152,7 +162,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   }
   
   sim = round(as.numeric(sim),2)
-  sim.scores = cbind.data.frame(ID = colnames(db_profile), SCORES = sim)
+  sim.scores = cbind.data.frame(ID = colnames(db_profile), PEAK.MATCHES = nb_matches, SCORES = sim)
 
   ########################################
   ### Filter, add formula and output #####
