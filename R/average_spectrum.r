@@ -37,11 +37,9 @@ average_spectrum<-function(splist, mz_window = 0.01){
   #################################################
   ### Combine and average m/z with the same label##
   #################################################
-  
-  print(N_feature)
-  print(NBS)
-  #I_matrix = matrix(0,N_feature,NBS) # Intensity matrix N_feature x Nb of spectra
-  I_matrix <- big.matrix(N_feature, NBS, type='integer', init=0)
+
+  I_matrix = matrix(0,N_feature,NBS) # Intensity matrix N_feature x Nb of spectra
+  #I_matrix <- big.matrix(N_feature, NBS, type='integer', init=0)
   
   avg_mzlist=rep(0,N_feature) # Averaged mass list
   #dev_matrix = matrix(0,N_feature,NBS)

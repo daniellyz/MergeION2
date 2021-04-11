@@ -132,10 +132,12 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         
         tmp_sp = splist[[i]]
         tmp_prec = metadata$PEPMASS[i]
-        tmp_messar = library_messar(query_spectrum = tmp_sp, params.query.sp = list(prec_mz = tmp_prec, use_prec = T, compound.type = "Metabolite"))
+        tmp_messar1 = library_messar(query_spectrum = tmp_sp, params.search = list(mz_search = 0.01, tops = 2), params.query.sp = list(prec_mz = tmp_prec, use_prec = T, compound.type = "Metabolite"))
+        tmp_messar2 = library_messar(query_spectrum = tmp_sp, params.search = list(mz_search = 0.01, tops = 2), params.query.sp = list(prec_mz = tmp_prec, use_prec = T, compound.type = "Drug"))
+        tmp_messar = rbind(tmp_messar1, tmp_messar2)
         
         if (!is.null(tmp_messar[,1])){
-          messar_output[[i]] = tmp_messar[,1]
+          messar_output[[i]] = unique(tmp_messar[,1])
         } else {messar_output[[i]] = "0"}
       }
       
