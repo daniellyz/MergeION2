@@ -154,14 +154,15 @@ process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
       for (i in 1:NNN){
         
         sp0 = cbind(MS1_scan_list[[i]]@mz, MS1_scan_list[[i]]@intensity)
-        sp1 = denoise_ms1_spectrum(sp0, new_MS1_meta_data$PEPMASS[i], max_peaks, relative, normalized)
-        
-        if (nrow(sp1)>1){
-          included = c(included, i)
-          n0 = n0 + 1
-          spectrum_list[[n0]]=sp1
+
+        if (!is.null(sp0)){
+          sp1 = denoise_ms1_spectrum(sp0, new_MS1_meta_data$PEPMASS[i], max_peaks, relative, normalized)
+          if (nrow(sp1)>1){
+            included = c(included, i)
+            n0 = n0 + 1
+            spectrum_list[[n0]]=sp1
         }
-      }
+      }}
       
       new_MS1_meta_data = new_MS1_meta_data[included,,drop=FALSE]
     }

@@ -72,7 +72,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
 
         # 1. Define a wide search range based on targeted precursor mass
         
-        scan_range = which(abs(MS2_prec_mz-prec_theo[i])<1) 
+        scan_range = which(abs(MS2_prec_mz-prec_theo[i])<1 & MS2_tic>baseline) 
         
         if (!is.na(prec_rt[i])){
             time_range = which(MS2_prec_rt >= prec_rt[i] - rt_search & MS2_prec_rt <= prec_rt[i] + rt_search)
@@ -110,7 +110,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
               mz_dev = abs(Frag_data@mz - prec_theo[i])
               prec_ind = which.min(ppm_dis)
               prec_int = Frag_data@intensity[prec_ind] # The intensity of precursor ion
-              
+
               if (prec_int>baseline*2 & (ppm_dis[prec_ind]<=ppm_search || mz_dev[prec_ind]<=mz_search)){
                 checked = 1
                 mz0 = Frag_data@mz[prec_ind]
@@ -163,6 +163,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
                 scan_least_peaks = cbind(scan_least_peaks@mz, scan_least_peaks@intensity)
 
                 scan_all = list(scan_best_tic, scan_most_peaks, scan_least_peaks)
+                
                 scan_merged = average_spectrum(scan_all, mz_window = mz_search*2)
                 scan_merged = scan_merged$new_spectrum
                 
@@ -199,13 +200,19 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
     for (i in 1:NNN){
         
        sp0 = MS2_scan_list[[i]]
-       sp1 = denoise_ms2_spectrum(sp0, new_MS2_meta_data$PEPMASS[i], max_peaks, relative, normalized)
 
-       if (nrow(sp1)>1){
-          included = c(included, i)
-          n0 = n0 + 1
-          spectrum_list[[n0]]=sp1
-        }
+       if (!is.null(sp0)){
+         
+          if (nrow(sp0)>2){
+            sp1 = denoise_ms2_spectrum(sp0, new_MS2_meta_data$PEPMASS[i], max_peaks, relative, normalized)
+        
+            if (!is.null(sp1)){
+          
+            if (nrow(sp1)>1){
+              included = c(included, i)
+              n0 = n0 + 1
+              spectrum_list[[n0]]=sp1
+        }}}}
     }
     
     new_MS2_meta_data = new_MS2_meta_data[included,,drop=FALSE]

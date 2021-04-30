@@ -251,7 +251,7 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
 
     # Combine three networks
     
-    query_network = rbind(lib_network, test_network, qs_network)
+    query_network = rbind.fill(lib_network, test_network, qs_network)
     
     # Extra info to network
     

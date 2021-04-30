@@ -12,6 +12,9 @@ library(DT)
 library(prozor)
 library(markdown)
 library(RChemMass)
+library(pracma)
+library(plyr)
+library(tools)
 
 shinyServer(function(input, output,clientData, session) {
   
