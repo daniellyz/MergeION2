@@ -166,7 +166,7 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                       selectInput("prec_polarity", h4("Polarity of query spectrum:"), choices=c("Positive", "Negative")),  
                      
                       br(),
-                      textInput("prec_mz", h4("Precursor mass:"), value = ""),
+                      textInput("prec_mz", h4("Precursor mass:"), value = "10000"),
               
                       br(),
                       textInput("prec_rt", h4("Retention time in min [Optional]:"), value = "")),

@@ -6,6 +6,7 @@
 \usage{
 library_query(
   input_library = NULL,
+  query_ids = NULL,
   query_expression = "IONMODE = Positive",
   query_spectrum = NULL,
   query_file = NULL,
@@ -16,6 +17,8 @@ library_query(
 }
 \arguments{
 \item{input_library}{Character or a list object. If character, file name with extension mgf, msp or RData. If list, must contain "complete", "consensus" and "network".}
+
+\item{query_ids}{Vector. Vectors of molecular ids that will be extracted from input library}
 
 \item{query_expression}{Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.}
 

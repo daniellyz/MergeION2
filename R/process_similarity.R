@@ -24,7 +24,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   prec_mz = as.numeric(prec_mz)
   
-  dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.1)
+  dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.01)
   NP = nrow(dat)
   
   if (NP<3){

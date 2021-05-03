@@ -3,6 +3,7 @@
 #' The function queries the input spectral library based on a query expression and/or (a) query MS/MS spectra or raw LC-MS/MS file
 #'
 #' @param input_library Character or a list object. If character, file name with extension mgf, msp or RData. If list, must contain "complete", "consensus" and "network". 
+#' @param query_ids Vector. Vectors of molecular ids that will be extracted from input library
 #' @param query_expression Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
 #' @param query_spectrum Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided. 
 #' @param query_file Character. Only used if query_spectrum = NULL. The file name of query spectra collection or DDA mode LC-MS file. The file must in mgf, msp or mz(X)ML, cdf format. 
@@ -48,9 +49,9 @@
 #' 
 #' @export
 
-library_query<-function(input_library = NULL, query_expression = "IONMODE = Positive", query_spectrum = NULL, query_file = NULL,
+library_query<-function(input_library = NULL, query_ids = NULL, query_expression = "IONMODE = Positive", query_spectrum = NULL, query_file = NULL,
             params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30), 
-            params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method = "Cosine", min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")){
+            params.query.sp = list(prec_mz = 10000, use_prec = T, polarity = "Positive", method = "Cosine", min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")){
   
     options(stringsAsFactors = FALSE)
     options(warn=-1)
@@ -79,13 +80,42 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
     if (query_reaction=="Chemical"){
       reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionChem.txt", sep = "\t")
     }  
+    
+  ######################
+  ### Filter Library ###
+  ######################
+    
+  input_library = library_reader(input_library)
+    
+  if (!is.null(query_ids)){
+    if (!is.null(input_library$complete)){
+        valid = which(input_library$complete$metadata$ID %in%query_ids)
+        input_library$complete$metadata = input_library$complete$metadata[valid,,drop=FALSE]
+        input_library$complete$sp = input_library$complete$sp[valid]
+    }  
+    if (!is.null(input_library$consensus)){
+      valid = which(input_library$consensus$metadata$ID %in%query_ids)
+      input_library$consensus$metadata = input_library$consensus$metadata[valid,,drop=FALSE]
+      input_library$consensus$sp = input_library$consensus$sp[valid]
+    }  
+  }
+    
+    if (query_expression!=""){
+      if (!is.null(input_library$complete)){
+        input_library$complete = process_query(input_library$complete, query = query_expression, ppm_search, rt_search)$SELECTED
+      }   
+      if (!is.null(input_library$consensus)){
+        input_library$consensus = process_query(input_library$consensus, query = query_expression, ppm_search, rt_search)$SELECTED
+      }   
+  }
+    
+  #####################
+  ### Load query sp ###
+  #####################
   
-  ##################################
-  ### Load database and query sp ###
-  ##################################
-  
-  input_library = library_reader(input_library) 
-  
+  qs_library = NULL
+  score_summary = c()
+    
   if (!is.null(query_spectrum)){
      qs_library = list()
      
@@ -116,57 +146,51 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
      qs_library = tmp_qs$complete
    }
   }
-  
-  NQS = length(qs_library$sp) # Number of query spectra
-  qs_metadata = qs_library$metadata
-  qs_metadata$ID = paste0("Query_", qs_metadata$ID)
-  qs_sp = qs_library$sp
-  tmp_qs = list(complete = qs_library, consensus = qs_library, network = NULL)
-  score_summary = c()
-  
-  ################################
-  ###Query 1: Complete Library ###
-  ################################
     
-  if (!is.null(input_library$complete)){
-      if (query_expression!=""){
-        complete_selected = process_query(input_library$complete, query = query_expression, ppm_search, rt_search)$SELECTED
-      } else {
-        complete_selected = input_library$complete
-      }
-  } 
+  if (!is.null(qs_library)){
+    NQS = length(qs_library$sp) # Number of query spectra
+    qs_metadata = qs_library$metadata
+    qs_metadata$ID = paste0("Query_", qs_metadata$ID)
+    qs_sp = qs_library$sp
+    tmp_qs = list(complete = qs_library, consensus = qs_library, network = NULL)
+  } else {
+    NQS = 0
+    qs_metadata = NULL
+    qs_sp = NULL
+    tmp_qs = NULL
+  }
 
-  #################################
-  ###Query 2: Consensus Library ###
-  #################################
+  ####################
+  ###Query spectrum ##
+  ####################
+  
+  if (!is.null(input_library$complete)){ 
+    complete_selected = input_library$complete
+  }
+  
+  if (!is.null(input_library$consensus)){ 
+    consensus_selected = input_library$consensus
+  } 
       
-  if (!is.null(complete_selected) & is.null(input_library$consensus) & !is.null(qs_sp)){
+  if (!is.null(complete_selected) & is.null(consensus_selected) & !is.null(qs_sp)){
     
-       message("Generating consensus MS/MS spectral library...")
+      message("Generating consensus MS/MS spectral library...")
        
-       tmp_library = list(complete = complete_selected)
-       
-       input_library <-library_generator(input_library = tmp_library, mslevel = 2,
+      tmp_library = list(complete = complete_selected)
+      
+      input_library <-library_generator(input_library = tmp_library, mslevel = 2,
             params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
             params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
             params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = mz_search*2),
             params.network = list(network = TRUE, similarity_method = query_method, min_frag_match = query_min_frag, min_score = 0.6, topK = 10, reaction_type = query_reaction, use_reaction = FALSE))
    } 
       
-  if (!is.null(input_library$consensus) & !is.null(qs_sp)){
+  if (!is.null(consensus_selected) & !is.null(qs_sp)){
       
-      consensus_ids = input_library$consensus$metadata$ID
-      
-      if (query_expression!=""){
-        consensus_selected = process_query(input_library$consensus, query = query_expression, ppm_search, rt_search)$SELECTED
-      } else {
-        consensus_selected = input_library$consensus
-      }
-
       id_selected = consensus_selected$metadata$ID
         
       tmp_library = list(complete = complete_selected, consensus = consensus_selected, network = input_library$network)
-      
+
       for (jjj in 1:NQS){
         
         tmp_scores = process_similarity(qs_sp[[jjj]], 
@@ -174,8 +198,10 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
               use.prec = query_use_prec, input_library = tmp_library,  
               method = query_method, prec_ppm_search = ppm_search, 
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
-      
-        if (!is.null(tmp_scores)){   
+        
+        if (!is.null(tmp_scores)){
+          
+            tmp_scores = tmp_scores[which(tmp_scores$ID %in% consensus_selected$metadata$ID),,drop=FALSE]
             tmp_scores$QS = qs_metadata$ID[jjj]
             score_summary = rbind.data.frame(score_summary, tmp_scores)
         }
@@ -183,7 +209,8 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
       
     # Total ID list to filter library:
 
-    if (nrow(score_summary)>0){
+    if (!is.null(score_summary)){
+      if (nrow(score_summary)>0){
       
         # Update 
         score_ids = unique(score_summary$ID)
@@ -195,14 +222,14 @@ library_query<-function(input_library = NULL, query_expression = "IONMODE = Posi
         idx = match(score_ids, consensus_selected$metadata$ID)
         consensus_selected = list(metadata =  consensus_selected$metadata[idx,,drop=FALSE], sp = consensus_selected$sp[idx])
         if (NQS == 1){consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES}
-    }
+    }}
   }
   
-  #######################
-  ###Query 3: Network ###
-  #######################
+  ###########################
+  ###Query filter Network ###
+  ###########################
   
-  if (!is.null(input_library$network$network) & nrow(score_summary)>0){
+  if (!is.null(input_library$network$network) & !is.null(score_summary)){
     
     # Update profile matrix::
     
