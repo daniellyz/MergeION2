@@ -258,7 +258,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   if ("FILENAME" %in% colnames(ref)){
       valid = which(basename(ref$FILENAME) %in% basename(lcms_files))
       ref = ref[valid,,drop = FALSE]
-      valid = which(lcms_files %in% ref$FILENAME)
+      valid = which(basename(lcms_files) %in% ref$FILENAME)
       lcms_files = lcms_files[valid]
       
       if (length(lcms_files)==0){stop("FILENAME in metadata does not match with raw lcms file name!")}
