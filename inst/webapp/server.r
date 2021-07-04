@@ -112,9 +112,14 @@ shinyServer(function(input, output,clientData, session) {
      filename = function(){
        paste0(input$lib_name, ".", input$lib_format)
      },
-     content = function(con) {
-       library_writer(generate_library()$library1, con)
-     }
+     content = function(con){
+       #if (input$lib_format=="mgf"){
+        # library_writer(generate_library()$library1, con)
+       #} else {
+       kkk = generate_library()$library1
+        save(kkk, file = con)
+      # }
+    }
    )
 
   check_input <-eventReactive(input$goButton,{

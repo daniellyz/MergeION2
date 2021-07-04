@@ -4,7 +4,7 @@
 #'
 #' @param input_library Character or a list object. If character, file name with extension mgf, msp or RData. If list, must contain "complete", "consensus" and "network". 
 #' @param query_ids Vector. Vectors of molecular ids that will be extracted from input library
-#' @param query_expression Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
+#' @param query_expression Vector of characters or "". Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
 #' @param query_spectrum Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided. 
 #' @param query_file Character. Only used if query_spectrum = NULL. The file name of query spectra collection or DDA mode LC-MS file. The file must in mgf, msp or mz(X)ML, cdf format. 
 #' @param params.search General parameters for searching spectral library

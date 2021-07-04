@@ -23,7 +23,7 @@ library_generator(
 )
 }
 \arguments{
-\item{input_library}{Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.}
+\item{input_library}{Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to NULL if the new library has no dependency with previous ones.}
 
 \item{lcms_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!}
 

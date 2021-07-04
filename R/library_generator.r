@@ -2,9 +2,9 @@
 #'
 #' The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data, merge them into a spectral library and create a spectral similarity-based molecular network.
 #' 
-#' @param input_library Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to empty string "" or NULL if the new library has no dependency with previous ones.
+#' @param input_library Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to NULL if the new library has no dependency with previous ones.
 #' @param lcms_files A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!
-#' @param metadata_file A single character or NULL. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking. 
+#' @param metadata_file A single character, NULL object or data frame. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking. 
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
 #' @param mslevel A numeric vector. 1 or 2 or c(1,2). 2 if MS2 scans are extracted, 1 if isotopic pattern of the precursor mass in the MS1 scan is extracted. c(1,2) if both MS1 and MS2 scans are extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
 #' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.
@@ -59,8 +59,6 @@
 #' }
 #'
 #' @author Youzhong Liu, \email{YLiu186@ITS.JNJ.com}
-#'
-#' @examples
 #'
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom utils read.csv
@@ -426,6 +424,9 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
         NN=NN+LL12
     }}
     metadata = rbind.fill(metadata, temp_metadata)
+    
+    smile_corrected = sapply(metadata$SMILES, function(x) strsplit(x, "\\.")[[1]][1])
+    metadata$SMILES = as.character(smile_corrected)
     
     unlink("mysettings.ini")
     unlink("Compoundlist.csv")

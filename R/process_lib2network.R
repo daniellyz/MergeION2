@@ -12,7 +12,7 @@
 #' }
 #' @param params.similarity Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 #' \itemize{
-#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" (library_query for more details).}
+#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" or "All" (library_query for more details).}
 #'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness. Not applicable if method = "Messar".}
 #'  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. Not applicable if method = "Messar".}
 #' }
@@ -179,15 +179,21 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     
       reaction_annotated = rep("N/A", nrow(new_network))
       reaction_formula = rep("N/A", nrow(new_network))
+      rt_diff = rep(0, nrow(new_network))
   
       for (k in 1:nrow(new_network)){
         II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
         II2 = which(as.character(metadata$ID) == as.character(new_network$ID2[k]))[1]
         MZ1 = as.numeric(metadata$PEPMASS[II1])
         MZ2 = as.numeric(metadata$PEPMASS[II2])
-      
+        RT1 = as.numeric(metadata$RT[II1])
+        RT2 = as.numeric(metadata$RT[II2])
+        
         MDiff = abs(MZ1 - MZ2)
         MDiff_error = ppm_distance1(MDiff, reactionList$Mdiff)
+        RTDiff = abs(RT1 - RT2)
+        if (is.na(RTDiff)){RTDiff = -1}
+        rt_diff[k] = round(RTDiff, 1)
         
         if (min(MDiff_error)<=ppm_search){
           ind = which.min(MDiff_error)[1]
@@ -196,7 +202,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         }
     }
     
-    new_network = cbind.data.frame(new_network, reaction = reaction_annotated, reaction_formula = reaction_formula)
+    new_network = cbind.data.frame(new_network, rt_diff = rt_diff, reaction = reaction_annotated, reaction_formula = reaction_formula)
   }
   
   ######################################

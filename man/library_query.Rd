@@ -11,7 +11,7 @@ library_query(
   query_spectrum = NULL,
   query_file = NULL,
   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
-  params.query.sp = list(prec_mz = 100, use_prec = T, polarity = "Positive", method =
+  params.query.sp = list(prec_mz = 10000, use_prec = T, polarity = "Positive", method =
     "Cosine", min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")
 )
 }
