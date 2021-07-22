@@ -6,7 +6,7 @@
 \usage{
 process_consensus(
   input_library,
-  method = c("most_recent", "consensus", "common_peaks")[1],
+  method = c("most_recent", "consensus", "consensus2", "common_peaks")[1],
   consensus_window = 0.01,
   relative = 0.01,
   max_peaks = 200

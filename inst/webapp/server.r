@@ -15,6 +15,7 @@ library(RChemMass)
 library(pracma)
 library(plyr)
 library(tools)
+source("process_devco.R")
 
 shinyServer(function(input, output,clientData, session) {
   
@@ -41,19 +42,26 @@ shinyServer(function(input, output,clientData, session) {
     lcms_names = input$lcms_files$name
     lcms_files = input$lcms_files$datapath
     
-    metadata_name = input$metadata_file$name
-    metadata_file = input$metadata_file$datapath
-    
-    tmp_ref = NULL
-    if (!is.null(metadata_file)){
-      tmp_ref = read.csv(metadata_file, sep=";", dec=".",header=T)
-      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep=",", dec=".", header=T)}  
-      if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep="\t", dec=".", header=T)}
-      if ("FILENAME" %in% colnames(tmp_ref)){
-        new_filenames =  lcms_files[match(tmp_ref$FILENAME, lcms_names)]
+    if (length(input$metadata_file$name)>0){
+      
+      metadata_name = input$metadata_file$name
+      metadata_file = input$metadata_file$datapath
+  
+      tmp_ref = NULL
+      if (!is.null(metadata_file)){
+        tmp_ref = read.csv(metadata_file, sep=";", dec=".",header=T)
+        if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep=",", dec=".", header=T)}  
+        if (ncol(tmp_ref)==1){tmp_ref = read.csv(metadata_file, sep="\t", dec=".", header=T)}
+        if ("FILENAME" %in% colnames(tmp_ref)){
+          new_filenames =  lcms_files[match(tmp_ref$FILENAME, lcms_names)]
       }
       tmp_ref$FILENAME = new_filenames
       tmp_ref = tmp_ref[which(!is.na(tmp_ref$FILENAME)),,drop=FALSE]
+     }
+    }
+    
+    if (length(input$metadata_file$name)==0 & input$sample_id!=""){
+      tmp_ref = process_devco(input$sample_id, polarity = input$polarity)
     }
 
     polarity = input$polarity
@@ -113,12 +121,12 @@ shinyServer(function(input, output,clientData, session) {
        paste0(input$lib_name, ".", input$lib_format)
      },
      content = function(con){
-       #if (input$lib_format=="mgf"){
-        # library_writer(generate_library()$library1, con)
-       #} else {
+       if (input$lib_format=="mgf"){
+         library_writer(generate_library()$library1, con)
+       } else {
        kkk = generate_library()$library1
         save(kkk, file = con)
-      # }
+      }
     }
    )
 

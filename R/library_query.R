@@ -198,13 +198,13 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               use.prec = query_use_prec, input_library = tmp_library,  
               method = query_method, prec_ppm_search = ppm_search, 
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
-        
+
         if (!is.null(tmp_scores)){
           
             tmp_scores = tmp_scores[which(tmp_scores$ID %in% consensus_selected$metadata$ID),,drop=FALSE]
             tmp_scores$QS = qs_metadata$ID[jjj]
             score_summary = rbind.data.frame(score_summary, tmp_scores)
-        }
+        } else {return(NULL)}
      }
       
     # Total ID list to filter library:
@@ -256,7 +256,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     idx2 = idx2[!is.na(idx2)]
 
     lib_network = input_library$network$network[idx2,,drop=FALSE]
-    lib_network = lib_network[,1:3]
+    lib_network = lib_network[,1:4]
 
     # Network of query spectra
     
@@ -267,14 +267,15 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
                 params.similarity = list(method = query_method, min.frag.match = query_min_frag, min.score = query_min_score),
                 params.network = list(topK = 10, reaction.type = query_reaction, use.reaction = FALSE))
 
-      test_network = test_network$network$network[,1:3]
+      test_network = test_network$network$network[,1:4]
       test_network[,1] = paste0("Query_", test_network[,1])
       test_network[,2] = paste0("Query_", test_network[,2])
    } else {test_network = c()}
     
     # Network of query-library matches
     
-    qs_network = cbind.data.frame(ID1 = score_summary$QS, ID2 = score_summary$ID, MS2.Similarity = score_summary$SCORES) 
+    qs_network = cbind.data.frame(ID1 = score_summary$QS, ID2 = score_summary$ID, 
+                                  MS2.Matches = score_summary$PEAK.MATCHES, MS2.Similarity = score_summary$SCORES) 
 
     # Combine three networks
     

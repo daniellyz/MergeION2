@@ -5,13 +5,13 @@
 #' @export
 #'
 #' 
-process_consensus<-function(input_library, method = c("most_recent", "consensus", "common_peaks")[1], 
+process_consensus<-function(input_library, method = c("most_recent", "consensus", "consensus2", "common_peaks")[1], 
                             consensus_window = 0.01, relative=0.01, max_peaks = 200){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
 
-  if (!(method  %in% c("consensus","common_peaks","most_recent"))){
+  if (!(method  %in% c("consensus","consensus2","common_peaks","most_recent"))){
     stop("The library processing method does not exist!")
   }
   
@@ -77,13 +77,17 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
       
       # Append consensus spectrum:
       
-      if (method %in% c("consensus", "common_peaks") && NSR>1){
+      if (method %in% c("consensus", "consensus2", "common_peaks") && NSR>1){
           output_consensus = average_spectrum(sub_spectrum_list, consensus_window)
           temp_spectrum = output_consensus$new_spectrum
           
           if (method == "common_peaks"){
             temp_zeros =  apply(output_consensus$I_matrix, 1, function(x) sum(x==0))
             temp_spectrum = temp_spectrum[temp_zeros==0,,drop=FALSE]
+          }
+          if (method == "consensus2"){
+            temp_nz =  apply(output_consensus$I_matrix, 1, function(x) sum(x>0))
+            temp_spectrum = temp_spectrum[temp_nz>=2,,drop=FALSE]
           }
           new_spectrum_list[[NN]] = temp_spectrum
       }

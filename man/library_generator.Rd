@@ -16,9 +16,10 @@ library_generator(
   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
     max_peaks = 200, recalibration = 0),
   params.consensus = list(consensus = FALSE, consensus_method = c("consensus",
-    "common_peaks", "most_recent")[1], consensus_window = 0.02),
+    "consensus2", "common_peaks", "most_recent")[1], consensus_window = 0.02),
   params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match =
-    6, min_score = 0.6, topK = 10, reaction_type = "Metabolic", use_reaction = FALSE),
+    6, min_score = 0.6, topK = 10, max_comp_size = 100, reaction_type = "Metabolic",
+    use_reaction = FALSE),
   params.user = list(sample_type = "", user_name = "", comments = "")
 )
 }
@@ -27,7 +28,7 @@ library_generator(
 
 \item{lcms_files}{A character vector of LC-MS/MS file names from which scans are extracted. All files must have be in centroid-mode with mzML, mzXML or cdf extension!}
 
-\item{metadata_file}{A single character or NULL. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking.}
+\item{metadata_file}{A single character, NULL object or data frame. If it is character, it should be the metadata file name. The file should be tab, comma or semi-colon separated txt, dat or csv format. For all algorithms, the metadata must contain the column "ID" - a unique structure identifier. The column PEPMASS (targeted precursor mass) must be provided for Default and compMS2Miner. The column RT (targeted retention time in min) must be provided for compMS2Miner and optional for MergeION and RMassBank. Please include the column SMILES (structure identifier) for RMassBank algorithm. If RMassBank is used, the column FILENAME (chromatogram file with mzML, mzXML or cdf extension) must be provided for each compound telling the algorithm from which file compound can be found. Column FILENAME is optional for Default and compMS2Miner. Column ADDUCT is optional for all algorithms, if not provided, all input will be considered as M+H or M-H depending on polarity. Please specify the adduct type if metadata contains both positive and negative ions. If metadata is NULL and lcms files are acquired in DDA mode, an automated feature screening is performed for fragmented masses. Masses and retention times of these features are used for spectral library generation and molecular networking.}
 
 \item{polarity}{A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files.}
 
@@ -72,6 +73,7 @@ library_generator(
   \item{min_frag_match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
   \item{min_score:}{ Numeric between 0 and 1. Minimum similarity score to connect two nodes in the library annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
   \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}
+  \item{max_comp_size:}{ Numeric between 0 and 200. Maximum size of nodes allowed in each network component. Default value is 100. Network component = Cluster of connected node. Set to 0 if no limitation on componet size.}
   \item{reaction_type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
   \item{use_reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 }}
@@ -94,7 +96,6 @@ library_generator(
 The function proposes three data processing algorithms to pick up MS1/MS2 scans from DDA or targeted mode LC-MS/MS data, merge them into a spectral library and create a spectral similarity-based molecular network.
 }
 \examples{
-
 
 library(RMassBankData)
 
@@ -131,7 +132,7 @@ save(lib2, file = "test_compMS2Miner_consensus.RData")  # Save the library as RD
 # Building a spectral library with RMassBank algorithm (recalibration based on elemental formula annotation), creating consensus spectral library and building a molecular network based on the consensus library
 processing.algorithm = "RMassBank"
 params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 2)
-params.network = list(network = T, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, reaction_type = "Chemical", use_reaction = F)
+params.network = list(network = T, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, max_comp_size = 100, topK = 10, reaction_type = "Chemical", use_reaction = F)
 lib3 = library_generator(input_library, lcms_files, metadata_file, 
                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
                       params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)

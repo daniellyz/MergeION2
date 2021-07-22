@@ -12,6 +12,7 @@ library(DT)
 library(prozor)
 library(markdown)
 library(RChemMass)
+source("process_devco.R")
 
 #data(JANSSEN_POS)
 
@@ -64,7 +65,8 @@ shinyUI(navbarPage("TRACTION WEBTOOL 2.0 (Pipeline)",
                           fileInput("input_library",h5("Previous spectral library file [Optional]: "), multiple = FALSE),
                           fileInput("lcms_files", h5("Converted LC-MS files (mzXML or netCDF): "), multiple = TRUE),
                           radioButtons("polarity", h5("LC-MS files polarity: "), choices = c("Positive","Negative")),
-                          fileInput("metadata_file", h5("Features to collect in a .csv metadata file: "), multiple = FALSE),
+                          textInput("sample_id", h5("Devco Sample ID")),
+                          fileInput("metadata_file", h5("Metadata to collect in a .csv (w/o sample id): "), multiple = FALSE),
                           checkboxInput("add.adduct", h6("Add common adducts"), FALSE, width = "200%")
                         ),
                           mainPanel(width = 0)

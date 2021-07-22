@@ -20,7 +20,7 @@ library_query(
 
 \item{query_ids}{Vector. Vectors of molecular ids that will be extracted from input library}
 
-\item{query_expression}{Vector of characters. Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.}
+\item{query_expression}{Vector of characters or "". Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.}
 
 \item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided.}
 

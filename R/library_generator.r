@@ -41,6 +41,7 @@
 #'   \item{min_frag_match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness.}
 #'   \item{min_score:}{ Numeric between 0 and 1. Minimum similarity score to connect two nodes in the library annotate an unknown feature with spectral library or to connect two unknown features because they are similar. It does NOT affect method = "Matches".}
 #'   \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}
+#'   \item{max_comp_size:}{ Numeric between 0 and 200. Maximum size of nodes allowed in each network component. Default value is 100. Network component = Cluster of connected node. Set to 0 if no limitation on componet size.}
 #'   \item{reaction_type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
 #'   \item{use_reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 #' }
@@ -103,7 +104,7 @@
 #' # Building a spectral library with RMassBank algorithm (recalibration based on elemental formula annotation), creating consensus spectral library and building a molecular network based on the consensus library
 #' processing.algorithm = "RMassBank"
 #' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 2)
-#' params.network = list(network = T, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, reaction_type = "Chemical", use_reaction = F)
+#' params.network = list(network = T, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, max_comp_size = 100, topK = 10, reaction_type = "Chemical", use_reaction = F)
 #' lib3 = library_generator(input_library, lcms_files, metadata_file, 
 #'                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
 #'                       params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)
@@ -114,8 +115,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
                   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30), 
                   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
-                  params.consensus = list(consensus = FALSE, consensus_method = c("consensus", "common_peaks","most_recent")[1], consensus_window = 0.02),
-                  params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, reaction_type = "Metabolic", use_reaction = FALSE),
+                  params.consensus = list(consensus = FALSE, consensus_method = c("consensus", "consensus2", "common_peaks","most_recent")[1], consensus_window = 0.02),
+                  params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, max_comp_size = 100, reaction_type = "Metabolic", use_reaction = FALSE),
                   params.user = list(sample_type = "", user_name = "", comments = "")){
 
   options(stringsAsFactors = FALSE)
@@ -460,12 +461,12 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     output_library = library_reader(library_consensus)
     NN = nrow(output_library$consensus$metadata)
 
-    if (NN>1 & params.network$network){
+    if (NN>1){
 
-      library_network = process_lib2network(library_consensus, networking = params.network$network,polarity = polarity, 
-        params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
-        params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
-        params.network = list(topK = params.network$topK, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
+      library_network = process_lib2network(library_consensus, networking = params.network$network, polarity = polarity, 
+          params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
+          params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
+          params.network = list(topK = params.network$topK, max.comp.size = params.network$max_comp_size, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
       
       output_library = library_reader(library_network)
     }

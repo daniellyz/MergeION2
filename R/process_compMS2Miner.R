@@ -276,7 +276,6 @@ compMS2Construct1 <-  function(MS1features = NULL, msDataDir = NULL, MS2files=NU
       Res.tmp <- compMS2Create1(MS2file=MS2files[i], TICfilter=TICfilter, 
                                 MS1features=MS1features, precursorPpm=precursorPpm,
                                 ret=ret, adducts=adducts, isoWid=isoWid)
-
       Results[[i]] <- Res.tmp
     }
 
@@ -392,6 +391,7 @@ compMS2Create1 <- function(MS2file = NULL, MS1features = NULL,
                             MoreArgs=list(metaData=metaData, 
                                           MS2file=MS2file, adducts=adducts, 
                                           isoWid=isoWid))
+      
       # for(i in 1:nrow(MS1features)){
       #   tmp <- MS1MatchSpectra(EIC=MS1features[i, 1], 
       #                          mz=MS1features[i, 2], RT=MS1features[i, 3], 
@@ -453,15 +453,14 @@ MS1MatchSpectra1 <- function(metaData=NULL, MS2file=NULL, mz=NULL, RT=NULL,
   } else {
     # match MS1 mass by ppm tolerance to precursor m/z
     # match MS1 RT in seconds to precursor RT
-    MS1.match <- which({metaData$precursorMz < 
-        mz+(mz/1E06)*precursorPpm &
-        metaData$precursorMz > 
-        mz-(mz/1E06)*precursorPpm &
+    
+    MS1.match <- which(metaData$precursorMz < mz+(mz/1E06)*precursorPpm &
+        metaData$precursorMz > mz-(mz/1E06)*precursorPpm &
         metaData$retentionTime < RT+ret &
         metaData$retentionTime > RT-ret &
-        metaData$MS2TICfilt.indx == 1} == TRUE)
+        metaData$MS2TICfilt.indx == 1)
     
-    if(length(MS1.match) == 0){
+   if(length(MS1.match) == 0){
       MS1.match <- 0
       return(MS1.match)
       

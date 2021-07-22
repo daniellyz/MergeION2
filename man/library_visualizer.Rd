@@ -8,7 +8,8 @@ library_visualizer(
   input_library,
   id = input_library$metadata$ID[1],
   type = "complete",
-  query_spectrum = NULL
+  query_spectrum = NULL,
+  add.legend = T
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ library_visualizer(
 \item{type}{Character. "Complete" if raw specra are visualized. "Consensus" if consensus spectra are visualized}
 
 \item{query_spectrum}{Two-column data matrix. Optional for mirror plot. Two columns represent m/z and intensity of query tandem spectrum.}
+
+\item{add.legend}{Boolean. If TRUE, figure legend is added.}
 }
 \description{
 The function plots mass spectra of selected compound in a library

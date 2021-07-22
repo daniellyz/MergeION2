@@ -75,18 +75,22 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     mze = abs(frags - db_feature[,2])
     nle = abs(nls - db_feature[,2])
   
-    valid1 = which(mze <= frag_mz_search & db_feature$Type == "Frag")[1]
-    valid2 = which(nle <= frag_mz_search & db_feature$Type == "Nloss")[1]
+    valid1 = intersect(which(mze <= frag_mz_search), which(db_feature$Type == "Frag"))
+    valid2 = intersect(which(nle <= frag_mz_search), which(db_feature$Type == "Nloss"))
     
     valid = c(valid1, valid2)
 
     if (length(valid)>0){
-      valid = valid[1]
-      db_profile1 = rbind(db_profile1, db_profile[valid,,drop=FALSE])
-      db_feature1 = rbind(db_feature1, db_feature[valid,,drop=FALSE])
-      dat1 = rbind(dat1, dat[i,,drop=FALSE])
+      tmp_profile =  apply(db_profile[valid,,drop=FALSE], 2, max)
+      for (rk in 1:length(valid)){
+        dat1 = rbind(dat1, dat[i,,drop=FALSE])
+        db_feature1 = rbind(db_feature1, db_feature[valid[rk],,drop = FALSE])
+        db_profile1 = rbind(db_profile1, tmp_profile)
+      }
     }
   }
+  
+  rownames(db_profile1) = rownames(db_feature1)
   
   if (is.null(db_profile1)){return(NULL)}
   
@@ -95,6 +99,13 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     return(NULL)
   }}
   
+  # Filter out duplicated features
+  
+  filter = which(!duplicated(dat1[,1]))
+  dat1 = dat1[filter,,drop=FALSE]
+  db_profile1 = db_profile1[filter,,drop=FALSE]
+  db_feature1 = db_feature1[filter,,drop=FALSE]
+  
   # Filter out db samples with fewer than minimum fragment matches:
   
   peak_matches = apply(db_profile1, 2, function(x) sum(x>0, na.rm = T))
@@ -102,7 +113,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   if (length(valid)==0){return(NULL)}
   db_profile1 = db_profile1[,valid,drop = FALSE]
   consensus_library1  = list(metadata = consensus_library$metadata[valid,,drop=FALSE], sp = consensus_library$sp[valid])
-  
+
   # Filter out empty db features:
   
   feature_matches = apply(db_profile1, 1, function(x) sum(x>0, na.rm = T))
@@ -114,7 +125,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat = dat1[valid,,drop=FALSE]
   
   NDB = ncol(db_profile)
-
+  
   ###########################
   ### Calculate Similarity###
   ###########################
@@ -128,7 +139,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
-  
+
   if (method == "Precision"){
     sim = nb_matches/NP_query
   }

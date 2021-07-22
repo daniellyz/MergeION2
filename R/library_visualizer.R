@@ -6,6 +6,7 @@
 #' @param id Compound id of the spectra to be plotted (both most recent MS1 and MS2 spectra will be plotted!)
 #' @param type Character. "Complete" if raw specra are visualized. "Consensus" if consensus spectra are visualized
 #' @param query_spectrum  Two-column data matrix. Optional for mirror plot. Two columns represent m/z and intensity of query tandem spectrum.
+#' @param add.legend Boolean. If TRUE, figure legend is added.
 #' 
 #' @examples
 #'
@@ -28,11 +29,11 @@
 #' @importFrom grDevices png dev.off
 #' @importFrom OrgMassSpecR SpectrumSimilarity
 
-library_visualizer<-function(input_library, id = input_library$metadata$ID[1], type = "complete", query_spectrum=NULL){
+library_visualizer<-function(input_library, id = input_library$metadata$ID[1], type = "complete", query_spectrum=NULL, add.legend = T){
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-  max_display = 10 # Display text of 5 most abundant mass peaks and higher than 5%
+  max_display = 100 # Display text of 5 most abundant mass peaks and higher than 5%
 
   #####################################
   ### Reading from spectral library:###
@@ -87,7 +88,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       xrange = c(prec_mz-30,prec_mz+60)
       ranges = which((spectrum1[,1]>=prec_mz-30) & (spectrum1[,1]<=prec_mz+60))
-      yrange = c(-1, max(spectrum1[ranges,2])*1.2)
+      yrange = c(-max(spectrum1[ranges,2])*0.01, max(spectrum1[ranges,2])*1.2)
 
       plot(spectrum1[,1],spectrum1[,2], type = "h", xlim = xrange, ylim = yrange,
          xlab = "m/z", ylab = "Intensity", font.lab=2)
@@ -102,11 +103,12 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
       title(main = paste0("ID: ",id, " ; SCAN: ", scan1, " (", cpd1, ")"),
           font = 3, cex.main = 1.5)
       
+      if (add.legend){
       legend("topleft", bty = "n", cex = 1.2, text.font = 1.5,
            legend = paste0(
              "Precursor: ", prec_mz,  "\n",
              "Adduct: ", adduct1, "\n",
-             "MS Level: 1"))
+             "MS Level: 1"))}
     }
   
   # Plot MS2 spectrum:
@@ -125,10 +127,10 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
     xrange = c(50,prec_mz+8)
     ranges = which((spectrum2[,1]>=50) & (spectrum2[,1]<=prec_mz+8))
-    yrange = c(-1, max(spectrum2[ranges,2])*1.2)
+    yrange = c( max(spectrum2[ranges,2])*0.01, max(spectrum2[ranges,2])*1.2)
 
-    spectrum2 = spectrum2[ranges,]
-    if (length(ranges)==1){spectrum = matrix(spectrum, ncol=2)}
+    spectrum2 = spectrum2[ranges,1:2,drop=FALSE]
+    #spectrum2 = apply(spectrum2[,1:2,drop=FALSE], 2, as.numeric)
 
     plot(spectrum2[,1],spectrum2[,2], type = "h", xlim = xrange, ylim = yrange,
          xlab = "m/z", ylab = "Intensity", font.lab=2)
@@ -141,11 +143,12 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
     int_pics = spectrum2[max_pics,2]*1.1
     text(text_pics, int_pics, as.character(round(text_pics,3)))
 
+    if (add.legend){
     legend("topleft", bty = "n", cex = 1.2, text.font = 1.5,
           legend = paste0(
           "Precursor: ", prec_mz,  "\n",
           "Adduct: ", adduct2, "\n",
-          "MS Level: 2"))
+          "MS Level: 2"))}
    }
   }
   

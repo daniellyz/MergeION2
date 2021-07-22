@@ -257,6 +257,11 @@ standarlize_library<-function(library0){
   ind = which(temp_col=="COMMENTS")
   if (length(ind)==1){metadata = metadata[,-ind]}
   
+  # sp
+  
+  if (!is.list(sp)){sp = list(sp)}
+  sp = lapply(sp, function(x) data.matrix(x[,1:2,drop=FALSE]))
+
   library1 = list(metadata = metadata, sp = sp)
   return(library1)
 }

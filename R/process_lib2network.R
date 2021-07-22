@@ -19,16 +19,18 @@
 #'@param params.network Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 #' \itemize{
 #'  \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}
+#'  \item{max.comp.size:}{ Numeric between 0 and 200. Maximum size of nodes allowed in each network component. Default value is 100. Network component = Cluster of connected node. Set to 0 if no limitation on componet size.}
 #'  \item{reaction.type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
 #'  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 #' }
 #'  
+#' @importFrom igraph cluster_louvain graph_from_data_frame components
 #' @export
 #'
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
                   params.search = list(mz_search = 0.005, ppm_search = 10),
                   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
-                  params.network = list(topK = 10, reaction.type = "Metabolic", use.reaction = TRUE)){
+                  params.network = list(topK = 10, max.comp.size = 50, reaction.type = "Metabolic", use.reaction = TRUE)){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
@@ -61,6 +63,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   min.score = params.similarity$min.score
   
   topK = params.network$topK
+  max.comp.size = params.network$max.comp.size
   reaction.type = params.network$reaction.type
   use.reaction = params.network$use.reaction
 
@@ -100,12 +103,14 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
         temp_library$network$db_feature =  library_matrix$db_feature
       
-        temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, input_library = temp_library,
-            method = sim.method, prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
+        temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, 
+                                         input_library = temp_library, method = sim.method, 
+                                         prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
 
         if (!is.null(temp_scores)){
           NSC = nrow(temp_scores)
-          temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], MS2.Matches = temp_scores[,2], MS2.Similarity = round(temp_scores[,3],3))  
+          temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], 
+                               MS2.Matches = temp_scores[,2], MS2.Similarity = round(temp_scores[,3],3))  
           new_network = rbind.data.frame(new_network, temp_network)
         }
       }
@@ -114,6 +119,13 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
 
       if (!is.null(new_network)){
         new_network = mutual_filter(new_network, topK = topK)
+        if (nrow(new_network)==0){new_network = NULL}
+      }
+      
+    ### Maxi Component filtering
+      
+      if (!is.null(new_network) & max.comp.size>2){
+        new_network = max_comp_filter(new_network, max.comp = max.comp.size)
         if (nrow(new_network)==0){new_network = NULL}
       }
     }
@@ -370,6 +382,52 @@ mutual_filter <- function(network, topK = 10){
   network_filtered = cbind.data.frame(ID1 = from_id, ID2 = to_id, MS2.Matches = NNN[valid], MS2.Similarity = MMM[valid])
   
   return(network_filtered)
+}
+
+max_comp_filter <- function(network, max.component = 50){
+  
+  backup_colnames = colnames(network)
+  
+  colnames(network)[1:2] = c("from", "to")
+  ind = which(colnames(network) == "MS2.Similarity")
+  colnames(network)[ind] = "weight"
+  
+  g <- graph_from_data_frame(network, directed=FALSE)
+  g_partition <- cluster_louvain(g, weights = E(g)$weight)
+   
+  tmp_node = cbind.data.frame(ID = g_partition$names, Group = g_partition$membership)
+  NP = max(g_partition$membership)
+  
+  new_network = c()
+  
+  for (i in 1:NP){
+    
+    id_partition = tmp_node$ID[which(tmp_node$Group == i)]
+    valid = which(network$from %in% id_partition & network$to %in% id_partition)
+    subnetwork = network[valid,,drop=FALSE]
+    subnetwork = subnetwork[order(subnetwork$weight,decreasing =T),]
+    
+    # Cutdown network size:
+    
+    NC = length(unique(c(subnetwork$from, subnetwork$to)))
+    NS = nrow(subnetwork)
+    
+    if (NC > max.component){
+        while (NC > max.component & NS>2){
+        
+        subnetwork = subnetwork[-nrow(subnetwork),,drop=FALSE]
+        sub_g = graph_from_data_frame(subnetwork, directed=FALSE)
+        
+        sub_components = components(sub_g)
+        NC = max(sub_components$csize)
+        NS = nrow(subnetwork)
+    }}
+    new_network = rbind.data.frame(new_network, subnetwork)
+  }
+  
+  colnames(new_network) = backup_colnames
+  
+  return(new_network)
 }
 
 ##########################

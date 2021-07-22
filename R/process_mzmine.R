@@ -6,7 +6,7 @@
 #' @export
 #
 process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"), 
-                         combine.adduct = FALSE, remove.halogene = FALSE, mz_search = 0.01, rt_search = 0.2){
+                combine.adduct = FALSE, remove.halogene = FALSE, remove.insource = FALSE, mz_search = 0.01, rt_search = 0.2){
   
   #if (polarity == "Positive" & combine.adduct){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
   #if (polarity == "Positive" & !add.adduct){ref_adducts = "M+H"}
@@ -16,8 +16,6 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
   ref = read.csv(mzmine_file,sep=";",dec=".",header=T)
   if (ncol(ref)==1){ref = read.csv(mzmine_file,sep=",",dec=".",header=T)}  
   if (ncol(ref)==1){ref = read.csv(mzmine_file,sep="\t",dec=".",header=T)}   
-  new_dat = c()
-  new_ft = c()
   
   ##############
   ## Formating##
@@ -44,13 +42,22 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
   #########################
   
   if (nrow(dat)>0){
+    
+    new_dat = c()
+    new_ft = c()
+    
+    ft = ft[order(dat$RT),]
     dat = dat[order(dat$RT),]
+    
     rt_cluster = cut_rt_list(dat$RT, rt_search*2)
     rt_id = unique(rt_cluster)
   
     for (rt in rt_id){  
       valid = which(rt_cluster == rt)
       tmp_dat = dat[valid,,drop=FALSE]
+      tmp_ft = ft[valid,,drop=FALSE]
+      
+      tmp_ft = tmp_ft[order(tmp_dat$PEPMASS),]
       tmp_dat = tmp_dat[order(tmp_dat$PEPMASS),]
 
       if (nrow(tmp_dat)>1){
@@ -58,17 +65,15 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
         output = simple_deisotope(tmp_sp, remove.halogene)
         filter = match(output[,3], tmp_dat$ID)
         tmp_dat = tmp_dat[filter,,drop=FALSE]
+        tmp_ft = tmp_ft[filter,,drop=FALSE]
       }
+      new_ft = rbind.data.frame(new_ft, tmp_ft)
       new_dat = rbind.data.frame(new_dat,tmp_dat)
     }
+  } else {
+    new_dat = dat
+    new_ft = ft
   }
-
-  new_dat = new_dat[order(new_dat$ID),]
-  new_ft = ft[which(ft$ID %in% new_dat$ID),]
-  new_ft = new_ft[order(new_ft$ID),]
-  
-  dat= new_dat
-  ft = new_ft
   
   #####################
   ## Grouping adducts##
@@ -76,50 +81,107 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
   
   if (combine.adduct){
     
+    dat= new_dat
+    ft = new_ft
+    
+    # Label & group adduct:
+    dat_adducts = c()
     if (nrow(dat)>0){
       dat = dat[order(dat$RT),]
       rt_cluster = cut_rt_list(dat$RT, rt_search*2)
       rt_id = unique(rt_cluster)
-      new_dat = c()
-  
+
       for (rt in rt_id){  
         valid = which(rt_cluster == rt)
         tmp_dat = dat[valid,,drop=FALSE]
         tmp_dat = tmp_dat[order(tmp_dat$PEPMASS),]
         tmp_dat2 = group_adducts(tmp_dat, polarity, mz_search)
-        new_dat = rbind(new_dat, tmp_dat2)
+        dat_adducts = rbind(dat_adducts, tmp_dat2)
       }
     }
-    new_dat = new_dat[order(new_dat$ID),]
     
-    ID2list = unique(new_dat$ID2)
+    dat_adducts = dat_adducts[order(dat_adducts$ID),]
+    dat = dat[order(dat$ID),]
+    ft = ft[order(ft$ID),]
+    
+    # Combine adduct:
+    
+    new_dat = c()
+    new_ft = c()
+    
+    ID2list = unique(dat_adducts$ID2)
     NI = length(ID2list)
     ID_LIST = rep("0", NI)
     PEPMASS_LIST = rep(0, NI)
     RT_LIST = rep(0, NI)
+    AVG_LIST = rep(0, NI)
     ADDUCT_TYPE = rep("0", NI)
-    new_ft = c()
-  
+
     for (i in 1:NI){
-      valid = which(new_dat$ID2 == ID2list[i])
-      tmp_dat3 = new_dat[valid,,drop=FALSE]
+      
+      valid = which(dat_adducts$ID2 == ID2list[i])
+      tmp_dat3 = dat_adducts[valid,,drop=FALSE]
+      tmp_ft3 = ft[valid,,drop=FALSE]
+      
       ID_LIST[i] = ID2list[i]
-      PEPMASS_LIST[i] = round(min(new_dat$PEPMASS[valid]),4)
-      RT_LIST[i] =  round(mean(new_dat$RT[valid]), 2)
-      ADDUCT_TYPE[i] = paste0(new_dat$ADDUCT[valid], collapse = ":")
-      tmp_ft = colSums(ft[valid,,drop=FALSE])
+      PEPMASS_LIST[i] = round(min(dat_adducts$PEPMASS[valid]),4)
+      RT_LIST[i] =  round(mean(dat_adducts$RT[valid]), 2)
+      AVG_LIST[i] = sum(dat_adducts$AVG[valid])
+      ADDUCT_TYPE[i] = paste0(unique(dat_adducts$ADDUCT[valid]), collapse = ":")
+      tmp_ft = colSums(tmp_ft3)
       tmp_ft[1] =  ID2list[i]
       new_ft = rbind.data.frame(new_ft, tmp_ft)
     }
   
     colnames(new_ft) = colnames(ft)
-    new_dat = cbind.data.frame(ID = ID_LIST, PEPMASS = PEPMASS_LIST, RT = RT_LIST, ADDUCT_TYPE = ADDUCT_TYPE)
+    new_dat = cbind.data.frame(ID = ID_LIST, PEPMASS = PEPMASS_LIST, RT = RT_LIST, AVG = AVG_LIST, ADDUCT_TYPE = ADDUCT_TYPE)
   } else {
-    new_dat = dat[,1:3]
+    if (polarity == "Positive"){dat$ADDUCT_TYPE ="M+H"}
+    if (polarity == "Negative"){dat$ADDUCT_TYPE ="M-H"}
+    new_dat = dat
     new_ft = ft
   }
   
-  return(list(metadata = new_dat, profile =  new_ft))
+  ###############
+  ## In source ##
+  ###############
+  
+  if (remove.insource){
+    
+      dat= new_dat
+      ft = new_ft
+      
+      if (nrow(dat)>0){
+        
+          new_dat = c()
+          new_ft = c()
+          
+          ft = ft[order(dat$RT),]
+          dat = dat[order(dat$RT),]
+          
+          rt_cluster = cut_rt_list(dat$RT, rt_search*2)
+          rt_id = unique(rt_cluster)
+   
+          for (rt in rt_id){  
+            valid = which(rt_cluster == rt)
+            tmp_dat = dat[valid,,drop=FALSE]
+            tmp_ft = ft[valid,,drop=FALSE]
+            tmp_adduct= lapply(tmp_dat$ADDUCT_TYPE, function(x) strsplit(x, ":")[[1]])
+            
+            valid_ind = c(which.max(tmp_dat$PEPMASS), which.max(tmp_dat$AVG), which(sapply(tmp_adduct, length)>1))
+            valid_ind = unique(valid_ind)
+            
+            tmp_dat2 = tmp_dat[valid_ind,,drop=FALSE]
+            tmp_ft2 = tmp_ft[valid_ind,,drop=FALSE]
+            
+            new_dat = rbind.data.frame(new_dat, tmp_dat2)
+            new_ft = rbind.data.frame(new_ft, tmp_ft2)
+          }
+      }
+  }
+  
+  output_metadata = cbind.data.frame(new_dat[,c(1:3,5),drop=FALSE], new_ft[,-1,drop=FALSE])
+  return(output_metadata)
 }
 
 #############################

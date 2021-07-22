@@ -9,6 +9,7 @@ process_mzmine(
   polarity = c("Positive", "Negative"),
   combine.adduct = FALSE,
   remove.halogene = FALSE,
+  remove.insource = FALSE,
   mz_search = 0.01,
   rt_search = 0.2
 )

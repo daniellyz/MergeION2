@@ -10,7 +10,8 @@ process_lib2network(
   polarity = c("Positive", "Negative"),
   params.search = list(mz_search = 0.005, ppm_search = 10),
   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
-  params.network = list(topK = 10, reaction.type = "Metabolic", use.reaction = TRUE)
+  params.network = list(topK = 10, max.comp.size = 50, reaction.type = "Metabolic",
+    use.reaction = TRUE)
 )
 }
 \arguments{
@@ -28,7 +29,7 @@ process_lib2network(
 
 \item{params.similarity}{Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 \itemize{
- \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" (library_query for more details).}
+ \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" or "All" (library_query for more details).}
  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness. Not applicable if method = "Messar".}
  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. Not applicable if method = "Messar".}
 }}
@@ -36,6 +37,7 @@ process_lib2network(
 \item{params.network}{Parameters for post-filtering and annotation of network edges: based on feature correlation (if feature quantification table is provided) and mass difference
 \itemize{
  \item{topK:}{ Integer higher than 0. For networking, the edge between two nodes are kept only if both nodes are within each other's TopK most similar nodes. For example, if this value is set at 20, then a single node may be connected to up to 20 other nodes. Keeping this value low makes very large networks (many nodes) much easier to visualize. We suggest keeping this value at 10.}
+ \item{max.comp.size:}{ Numeric between 0 and 200. Maximum size of nodes allowed in each network component. Default value is 100. Network component = Cluster of connected node. Set to 0 if no limitation on componet size.}
  \item{reaction.type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 }}
