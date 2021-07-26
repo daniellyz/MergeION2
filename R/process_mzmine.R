@@ -6,7 +6,7 @@
 #' @export
 #
 process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"), 
-                combine.adduct = FALSE, remove.halogene = FALSE, remove.insource = FALSE, mz_search = 0.01, rt_search = 0.2){
+                combine.adduct = FALSE, remove.halogene = FALSE, remove.minor.coelution = FALSE, mz_search = 0.01, rt_search = 0.2){
   
   #if (polarity == "Positive" & combine.adduct){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
   #if (polarity == "Positive" & !add.adduct){ref_adducts = "M+H"}
@@ -33,6 +33,8 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
   colnames(ref)[ind3] = "RT"
   colnames(ref)[inds] = str_remove(colnames(ref)[inds], ".Peak.area")
   
+  ref = remove_duplicate_feature(ref,mz_search,rt_search) # MZMine sometimes give duplicate features
+  
   avg = apply(ref[,inds,drop=FALSE], 1,  mean) # average 
   dat = cbind(ref[,c(ind1, ind2, ind3)], AVG = avg) # Feature table
   ft = cbind(ID = ref[,ind1], ref[,inds, drop=FALSE]) # Quantification table
@@ -49,7 +51,7 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
     ft = ft[order(dat$RT),]
     dat = dat[order(dat$RT),]
     
-    rt_cluster = cut_rt_list(dat$RT, rt_search*2)
+    rt_cluster = cut_rt_list_mzmine(dat$RT, rt_search*2)
     rt_id = unique(rt_cluster)
   
     for (rt in rt_id){  
@@ -88,7 +90,7 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
     dat_adducts = c()
     if (nrow(dat)>0){
       dat = dat[order(dat$RT),]
-      rt_cluster = cut_rt_list(dat$RT, rt_search*2)
+      rt_cluster = cut_rt_list_mzmine(dat$RT, rt_search*2)
       rt_id = unique(rt_cluster)
 
       for (rt in rt_id){  
@@ -142,11 +144,11 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
     new_ft = ft
   }
   
-  ###############
-  ## In source ##
-  ###############
+  #############################
+  ## Minor co-eluted species ##
+  #############################
   
-  if (remove.insource){
+  if (remove.minor.coelution){
     
       dat= new_dat
       ft = new_ft
@@ -159,7 +161,7 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
           ft = ft[order(dat$RT),]
           dat = dat[order(dat$RT),]
           
-          rt_cluster = cut_rt_list(dat$RT, rt_search*2)
+          rt_cluster = cut_rt_list_mzmine(dat$RT, rt_search*2)
           rt_id = unique(rt_cluster)
    
           for (rt in rt_id){  
@@ -188,7 +190,29 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
 ######Internal function######
 #############################
 
-cut_rt_list<-function(rtlist, rt_window){
+cut_mz_list<-function(mzlist, mz_window){
+  
+  N=length(mzlist)
+  
+  f=1
+  mz_feature=c(0, N) 
+  t0 = 1 # Start index of a cluster
+  
+  for (k in 2:N){
+    min_mz = min(mzlist[t0:(k-1)])
+    avg_mz = mean(mzlist[t0:(k-1)])
+    
+    if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
+      mz_feature[t0:(k-1)] = f 
+      f = f + 1
+      t0 = k
+    }
+  }
+  mz_feature[t0:N] = f
+  return(mz_feature)
+}
+
+cut_rt_list_mzmine<-function(rtlist, rt_window){
   
   N=length(rtlist)
   
@@ -200,7 +224,7 @@ cut_rt_list<-function(rtlist, rt_window){
     max_rt = max(rtlist[t0:(k-1)])
     min_rt = min(rtlist[t0:(k-1)])
     avg_rt = median(rtlist[t0:(k-1)])
-    if (rtlist[k] - max_rt > rt_window/4 & rtlist[k] - min_rt > rt_window & rtlist[k] - avg_rt > rt_window/2){
+    if (rtlist[k] - min_rt > rt_window & rtlist[k] - avg_rt > rt_window/2){
       rt_feature[t0:(k-1)] = f
       f = f + 1
       t0 = k
@@ -209,6 +233,39 @@ cut_rt_list<-function(rtlist, rt_window){
   rt_feature[t0:N] = f
   
   return(rt_feature)
+}
+
+remove_duplicate_feature<-function(ref, mz_search, rt_search){
+  
+  ref0 =ref
+  
+  ref = ref[order(ref$PEPMASS),]
+  ref$mlabel = cut_mz_list(ref$PEPMASS, mz_search*2)
+  ref = ref[order(ref$RT),]
+  ref$rlabel = cut_rt_list_mzmine(ref$RT, rt_search*2)
+    
+  ref$flabel = paste(ref$mlabel, ref$rlabel, sep = "-")
+  flabels = unique(ref$flabel)
+
+  new_ref = c()
+  
+  for (i in 1:length(flabels)){
+    valid = which(ref$flabel == flabels[i])
+    tmp_ref = ref[valid,,drop=FALSE]
+    
+    tmp_id = tmp_ref$ID[1]
+    tmp_ft = colMeans(tmp_ref[,2:3,drop=FALSE])
+    tmp_profile = colSums(tmp_ref[,4:(ncol(tmp_ref)-3),drop=FALSE])
+    
+    tmp_ref = c(tmp_id, tmp_ft, tmp_profile)
+
+    new_ref = rbind.data.frame(new_ref, tmp_ref)
+  }
+  
+  colnames(new_ref) = colnames(ref0)
+  rownames(new_ref) = NULL
+  
+  return(new_ref)
 }
 
 simple_deisotope<-function(sp, halogene){

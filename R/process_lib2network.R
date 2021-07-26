@@ -24,7 +24,7 @@
 #'  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 #' }
 #'  
-#' @importFrom igraph cluster_louvain graph_from_data_frame components
+#' @importFrom igraph E cluster_louvain graph_from_data_frame components
 #' @export
 #'
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
@@ -223,7 +223,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   
   if (!is.null(new_network)){
     
-      new_network = new_network[new_network[,3]>=min.score,,drop=FALSE]
+      new_network = new_network[new_network[,"MS2.Similarity"]>=min.score,,drop=FALSE]
     
       if (use.reaction){
         new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
@@ -389,7 +389,7 @@ max_comp_filter <- function(network, max.component = 50){
   backup_colnames = colnames(network)
   
   colnames(network)[1:2] = c("from", "to")
-  ind = which(colnames(network) == "MS2.Similarity")
+  ind = which(colnames(network) == "MS2.Matches")
   colnames(network)[ind] = "weight"
   
   g <- graph_from_data_frame(network, directed=FALSE)
@@ -397,6 +397,11 @@ max_comp_filter <- function(network, max.component = 50){
    
   tmp_node = cbind.data.frame(ID = g_partition$names, Group = g_partition$membership)
   NP = max(g_partition$membership)
+  
+  colnames(network) = backup_colnames
+  colnames(network)[1:2] = c("from", "to")
+  ind = which(colnames(network) == "MS2.Similarity")
+  colnames(network)[ind] = "weight"
   
   new_network = c()
   

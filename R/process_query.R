@@ -34,9 +34,10 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12){
     NI = 0
 
     for (eps in query){
-      eps1 =  str_replace_all(eps,fixed(" "),"") # Remove white space
 
     # Search pepmass and rt:
+      
+      eps1 =  str_replace_all(eps,fixed(" "),"") # Remove white space
       
       if (startsWith(eps1,"PEPMASS=")){
         target_mass = as.numeric(strsplit(eps1,"=")[[1]][2])
@@ -52,8 +53,12 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12){
       }} else {
 
     # Search other things:
-      target_variable = strsplit(eps1,"=")[[1]][1]
-      target_value = strsplit(eps1,"=")[[1]][2]
+        
+      target_variable = strsplit(eps,"=")[[1]][1]
+      target_value = gsub(paste0(target_variable,"="), "", eps)
+      target_variable = trimws(target_variable)
+      target_value = trimws(target_value)
+      
       cid = which(colnames(metadata) == target_variable)
       if (length(cid)==1){
         indexes = which(metadata[,cid]==target_value)}}
