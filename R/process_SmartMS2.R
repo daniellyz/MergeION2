@@ -36,7 +36,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  #####################
  
  MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "onDisk",  centroided = FALSE),silent=T)
- 
+
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
  if (nrow(ref)==0){MS2_Janssen=NULL}
@@ -61,7 +61,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
    ref = ref[valid,]
    prec_theo= as.numeric(ref$PEPMASS)
    prec_rt=as.numeric(ref$RT)*60 # Allow N/A
-
+   
    ####################################################
    ### Go through each ref item to find adequate scan##
    ####################################################
@@ -84,7 +84,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
         # 2. Refine the search range based on exact precursor mass or mass detected in actual spectrum
         
         if (length(scan_range)>0){
-
+          
           temp_scan_range = c() # Validated scan number
           temp_mz0 = c()
           
@@ -131,7 +131,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
       ### 3. Select "best" scan and calculate deviation
     
           if (length(scan_range)>0){
-
+            
             scan_rts = MS2_prec_rt[scan_range]
             scan_tics = MS2_tic[scan_range]
             ind_features = separated_peaks2(scan_range, scan_rts, scan_tics, rt_gap)
@@ -189,7 +189,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
     new_MS2_meta_data[,"TIC"] = MS2_tic[scan_number]
     new_MS2_meta_data[,"PEPMASS_DEV"] = mass_dev
     new_MS2_meta_data[,"SCAN_NUMBER"] = scan_number
-
+    
     #################################
     ### Process and collect spectra##
     #################################
@@ -200,7 +200,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
     for (i in 1:NNN){
         
        sp0 = MS2_scan_list[[i]]
-
+       
        if (!is.null(sp0)){
          
           if (nrow(sp0)>2){

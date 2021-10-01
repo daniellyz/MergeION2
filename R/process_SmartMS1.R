@@ -30,12 +30,12 @@ process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
   mass_dev = c() # Mass deviations in ppm
   spectrum_list = list() # List of spectra to save
   NNN=0
-  
+
   #####################
   ### Load MS1 Scans###
   #####################
   
-  MS1_Janssen <- try(readMSData(mzdatafiles, msLevel = 1, verbose = FALSE, mode = "onDisk",  centroided = F),silent=T)
+  MS1_Janssen <- try(readMSData(mzdatafiles, msLevel = 1, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
   
   if (class(MS1_Janssen)=="try-error"){MS1_Janssen=NULL}
   
@@ -150,7 +150,7 @@ process_SmartMS1<-function(mzdatafiles = NULL, ref = NULL,
       
       included=c()
       n0=0
-      
+
       for (i in 1:NNN){
         
         sp0 = cbind(MS1_scan_list[[i]]@mz, MS1_scan_list[[i]]@intensity)

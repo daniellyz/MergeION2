@@ -55,24 +55,30 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
     rt_id = unique(rt_cluster)
   
     for (rt in rt_id){  
+      
       valid = which(rt_cluster == rt)
       tmp_dat = dat[valid,,drop=FALSE]
       tmp_ft = ft[valid,,drop=FALSE]
       
       tmp_ft = tmp_ft[order(tmp_dat$PEPMASS),]
       tmp_dat = tmp_dat[order(tmp_dat$PEPMASS),]
-
+        
       if (nrow(tmp_dat)>1){
         tmp_sp = cbind.data.frame(tmp_dat$PEPMASS, tmp_dat$AVG, tmp_dat$ID)
         output = simple_deisotope(tmp_sp, remove.halogene)
-        filter = match(output[,3], tmp_dat$ID)
+        
+        filter = match(output[,3], tmp_dat[,1])
         tmp_dat = tmp_dat[filter,,drop=FALSE]
+        tmp_dat = tmp_dat[order(tmp_dat$ID),]
+        
+        filter = match(output[,3], tmp_ft[,1])
         tmp_ft = tmp_ft[filter,,drop=FALSE]
-      }
-      new_ft = rbind.data.frame(new_ft, tmp_ft)
-      new_dat = rbind.data.frame(new_dat,tmp_dat)
+        tmp_ft = tmp_ft[order(tmp_ft$ID),]
+        
+        new_ft = rbind.data.frame(new_ft, tmp_ft)
+        new_dat = rbind.data.frame(new_dat,tmp_dat)
     }
-  } else {
+  }} else {
     new_dat = dat
     new_ft = ft
   }
@@ -273,53 +279,40 @@ simple_deisotope<-function(sp, halogene){
   # Monoisotope:
   
   NP = nrow(sp) # Nb of peaks
-  ref_dis = 1
   charge_state = rep(0, NP)
   
-  for (i in 2:NP){
+  for (i in 1:NP){
     
-    delta_mz = sp[i,1] - sp[1:(i-1), 1]
-    errors = abs(delta_mz - ref_dis)
-    valid = which(errors<0.1)
-    
-    if (length(valid)>0){
-      delta_int = sp[i,2]/sum(sp[valid, 2])
-      if(delta_int<0.5){
-        charge_state[i] = 100
-        #charge_state[valid] = 1   
-     }
+    if (charge_state[i]==0){
+       mz_dist = sp[,1] - sp[i,1]
+       int_ratio = sp[,2]/sp[i,2]
+       ind0 = which(abs(mz_dist-1)<=0.05 & int_ratio<0.7)
+       if (length(ind0)==1){charge_state[ind0] = 1}
     }
-  }
-  
-  valid = which(charge_state!=100)
+  }  
+    
+  valid = which(charge_state==0)
   sp = sp[valid,,drop=FALSE]
   charge_state = charge_state[valid]
-  
+  NP = nrow(sp) # Nb of peaks
+
   # Chloride:
   
   if (halogene){
-      NP = nrow(sp) # Nb of peaks
-      ref_dis = 2
-
-      for (i in 2:NP){
     
-          delta_mz = sp[i,1] - sp[1:(i-1), 1]
-          errors = abs(delta_mz - ref_dis)
-          valid = which(errors<0.1)
-    
-          if (length(valid)>0){
-            delta_int = sp[i,2]/sum(sp[valid, 2])
-            if (!is.null(delta_int)){
-            if(delta_int<1.2){
-              charge_state[i] = 200
-            }}
-          }
+    for (i in 1:NP){
+      if (charge_state[i]==0){
+        mz_dist = sp[,1] - sp[i,1]
+        int_ratio = sp[,2]/sp[i,2]
+        ind0 = which(abs(mz_dist-2)<=0.05 & int_ratio<1.2)
+        if (length(ind0)==1){charge_state[ind0] = 1}
       }
-      
-      valid = which(charge_state!=200)
-      sp = sp[valid,,drop=FALSE]
+    }  
+    
+    valid = which(charge_state==0)
+    sp = sp[valid,,drop=FALSE]
+    charge_state = charge_state[valid]
   }
-  
   return(sp)
 }
 

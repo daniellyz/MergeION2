@@ -314,6 +314,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
             new_scans2 = (max_scan+1):(max_scan+LL2)
             max_scan = max_scan+LL2
             metadata2 = cbind.data.frame(dat2$metadata, 
+                                         PARAM_FLAG = 0,
                                          PARAM_SUBMIT_USER = params.user$user_name, 
                                          PARAM_SAMPLE_TYPE = params.user$sample_type, 
                                          PARAM_COMMENTS = params.user$comments, 
@@ -339,6 +340,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
           new_scans1 = (max_scan+1):(max_scan+LL1)
           max_scan = max_scan+LL1
           metadata1 = cbind.data.frame(dat1$metadata, 
+                                       PARAM_FLAG = 0,
                                        PARAM_SUBMIT_USER = params.user$user_name, 
                                        PARAM_SAMPLE_TYPE = params.user$sample_type, 
                                        PARAM_COMMENTS = params.user$comments, 
