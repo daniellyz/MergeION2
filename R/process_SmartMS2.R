@@ -35,7 +35,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  ### Load MS2 Scans###
  #####################
  
- MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "onDisk",  centroided = FALSE),silent=T)
+ MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
 
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
@@ -156,10 +156,10 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
                 scan_best_tic = MS2_Janssen[[ind_feature[as.numeric(which.max(MSnbase::tic(tmp_scans)))]]]
                 scan_best_tic = cbind(scan_best_tic@mz, scan_best_tic@intensity)
 
-                scan_most_peaks = MS2_Janssen[[ind_feature[as.numeric(which.max(peaksCount(tmp_scans)))]]]
+                scan_most_peaks = MS2_Janssen[[ind_feature[as.numeric(which.max(mzR::peaksCount(tmp_scans)))]]]
                 scan_most_peaks = cbind(scan_most_peaks@mz, scan_most_peaks@intensity)
 
-                scan_least_peaks = MS2_Janssen[[ind_feature[as.numeric(which.min(peaksCount(tmp_scans)))]]]
+                scan_least_peaks = MS2_Janssen[[ind_feature[as.numeric(which.min(mzR::peaksCount(tmp_scans)))]]]
                 scan_least_peaks = cbind(scan_least_peaks@mz, scan_least_peaks@intensity)
 
                 scan_all = list(scan_best_tic, scan_most_peaks, scan_least_peaks)

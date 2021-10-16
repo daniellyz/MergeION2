@@ -297,12 +297,12 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     for (ff in 1:FF){
       
       print(ff)
+      temp.ref = target.ref
       
       # Extract MS2 scans:
       
       if (2 %in% mslevel){
         
-      
         dat2 = process_SmartMS2(lcms_files[ff], ref = target.ref, 
                            rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
                            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
@@ -323,7 +323,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
             for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
             temp_metadata = rbind(temp_metadata, metadata2)
             NN=NN+LL2
-    }} else {temp.ref = target.ref}
+    }} 
 
      # Extract MS1 scans:
 
@@ -332,8 +332,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
        print(ff)
       
        dat1 = process_SmartMS1(lcms_files[ff], ref = temp.ref,
-                           rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
-                           baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
+                  rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+                  baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
 
         LL1= length(dat1$sp) # Added library size
         if (LL1>0){
