@@ -221,7 +221,11 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
         
         idx = match(score_ids, consensus_selected$metadata$ID)
         consensus_selected = list(metadata =  consensus_selected$metadata[idx,,drop=FALSE], sp = consensus_selected$sp[idx])
-        if (NQS == 1){consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES}
+ 
+        if (NQS == 1){
+          score_summary = score_summary[1,,drop=FALSE]
+          consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES
+        }
     }}
   }
   
