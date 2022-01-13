@@ -51,7 +51,7 @@ library_writer<-function(output_library, con = "output_library.mgf", type = "com
   
   output_library = library_reader(output_library)
   
-  if (type == "complete"){output_library = output_library$complete}
+  if (type == "complete" & output_format!="rdata"){output_library = output_library$complete}
   if (type == "consensus"){output_library = output_library$consensus}
   
   #############

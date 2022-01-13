@@ -11,7 +11,7 @@ library(stringr)
 library(DT) 
 library(prozor)
 library(markdown)
-library(RChemMass)
+#library(RChemMass)
 library(pracma)
 library(plyr)
 library(tools)
@@ -219,7 +219,7 @@ shinyServer(function(input, output,clientData, session) {
     library_name = input$db_source$name
     library_file = input$db_source$datapath
     query_spectrum = check_input()$query_spectrum
-    params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_search = 10, rt_gap = 0)
+    params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_search = 10, rt_gap = 30)
     params.query.sp = list(prec_mz = as.numeric(input$prec_mz), use_prec = input$use_prec, polarity = input$prec_polarity, method = input$sim_methods, min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")
 
     if (input$prec_rt!=""){
@@ -229,7 +229,7 @@ shinyServer(function(input, output,clientData, session) {
     if (!is.null(query_spectrum)){
 
       candidates = library_query(input_library = library_file, query_expression = query_expression, 
-                  query_spectrum = query_spectrum, query_file = NULL,params.search, params.query.sp)
+                  query_spectrum = query_spectrum, query_file = NULL, params.search = params.search, params.query.sp = params.query.sp)
 
       if (is.null(candidates)){
         mms = "No candidates found!"
@@ -285,7 +285,7 @@ shinyServer(function(input, output,clientData, session) {
     
     selected_id = selected_library()$selected_candidate$ID[1]
     library_file = input$db_raw$datapath
-    
+
     if (!is.null(library_file)){
       library_visualizer(input_library = library_file, id = selected_id, query_spectrum = NULL)
     }
@@ -312,7 +312,7 @@ shinyServer(function(input, output,clientData, session) {
 
       if (!is.null(candidate_table)){
             if (nrow(candidate_table)>0){
-            candidate_table = candidate_table[,c("ID", "PEPMASS", "NAME", "SCORE_MERGEION")]
+            candidate_table = candidate_table[,c("ID", "PEPMASS", "COMPOUND", "FORMULA", "SCORE_MERGEION")]
             candidate_table= datatable(candidate_table, rownames = FALSE, escape= rep(TRUE, 4), selection = "single", options = list(pageLength=5))
       }}
       return(candidate_table)
@@ -336,7 +336,9 @@ shinyServer(function(input, output,clientData, session) {
     library_file = input$db_source$datapath
     query_spectrum = check_input()$query_spectrum
     
-    library_visualizer(input_library = library_file, id = selected_id, query_spectrum = query_spectrum)
+    tmp_library = library_query(library_file, query_expression = "MSLEVEL=2")
+
+    library_visualizer(input_library = tmp_library, id = selected_id, query_spectrum = query_spectrum)
     
   })
   

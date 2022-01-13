@@ -11,7 +11,7 @@ library(stringr)
 library(DT) 
 library(prozor)
 library(markdown)
-library(RChemMass)
+#library(RChemMass)
 source("process_devco.R")
 
 #data(JANSSEN_POS)

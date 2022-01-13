@@ -87,6 +87,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     
   input_library = library_reader(input_library)
     
+  # Filter on query ids:
+    
   if (!is.null(query_ids)){
     if (!is.null(input_library$complete)){
         valid = which(input_library$complete$metadata$ID %in%query_ids)
@@ -99,6 +101,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       input_library$consensus$sp = input_library$consensus$sp[valid]
     }  
   }
+    
+    # Filter on query expressions:
     
     if (query_expression!=""){
       if (!is.null(input_library$complete)){
@@ -170,20 +174,24 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   
   if (!is.null(input_library$consensus)){ 
     consensus_selected = input_library$consensus
+    consensus_selected = process_query(consensus_selected, query = "MSLEVEL=2")$SELECTED
+    
   } 
       
   if (!is.null(complete_selected) & is.null(consensus_selected) & !is.null(qs_sp)){
     
       message("Generating consensus MS/MS spectral library...")
        
-      tmp_library = list(complete = complete_selected)
+      tmp_library = complete_selected
       
       input_library <-library_generator(input_library = tmp_library, mslevel = 2,
             params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
-            params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
+            params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0, max_peaks = 200, recalibration = 0),
             params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = mz_search*2),
-            params.network = list(network = TRUE, similarity_method = query_method, min_frag_match = query_min_frag, min_score = 0.6, topK = 10, reaction_type = query_reaction, use_reaction = FALSE))
-   } 
+            params.network = list(network = FALSE, similarity_method = query_method, min_frag_match = query_min_frag, min_score = 0.6, topK = 10, reaction_type = query_reaction, use_reaction = FALSE))
+      
+      consensus_selected =  input_library$consensus
+  } 
       
   if (!is.null(consensus_selected) & !is.null(qs_sp)){
       
@@ -200,7 +208,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
 
         if (!is.null(tmp_scores)){
-          
+            tmp_scores = tmp_scores[which(!duplicated(tmp_scores$ID)),,drop=FALSE]
             tmp_scores = tmp_scores[which(tmp_scores$ID %in% consensus_selected$metadata$ID),,drop=FALSE]
             tmp_scores$QS = qs_metadata$ID[jjj]
             score_summary = rbind.data.frame(score_summary, tmp_scores)
@@ -221,9 +229,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
         
         idx = match(score_ids, consensus_selected$metadata$ID)
         consensus_selected = list(metadata =  consensus_selected$metadata[idx,,drop=FALSE], sp = consensus_selected$sp[idx])
- 
+        
         if (NQS == 1){
-          score_summary = score_summary[1,,drop=FALSE]
           consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES
         }
     }}
