@@ -10,8 +10,8 @@
 #' @export
 #' 
 process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL, 
-                      rt_search = 10, rt_gap = 30, ppm_search = 10, mz_search = 0.01,
-                      baseline= 1000, relative = 5, max_peaks = 200, normalized=T){
+      rt_search = 10, rt_gap = 30, ppm_search = 10, mz_search = 0.01,
+      baseline= 1000, relative = 5, max_peaks = 200, normalized=T){
 
  options(stringsAsFactors = F)
  options(warn=-1)
@@ -35,7 +35,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  ### Load MS2 Scans###
  #####################
  
- MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
+ MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "onDisk",  centroided = T),silent=T)
 
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
