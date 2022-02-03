@@ -35,7 +35,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  ### Load MS2 Scans###
  #####################
  
- MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "onDisk",  centroided = T),silent=T)
+ MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
 
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
