@@ -133,12 +133,14 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     stop("Please at least provide input spectral library or a vector of lc ms files!")
   }
   
+  old_lib = old_consensus = old_network = NULL
   if (!is.null(input_library)){
     old_lib = library_reader(input_library)$complete
-  } else {old_lib = NULL}
+    old_consensus = input_library$consensus
+    old_network  = input_library$network
+  }
   
   if (!is.null(lcms_files)){
-    
     if (!is.vector(lcms_files)){
       stop("Please provide a list of chromatogram files!")
     }
@@ -304,8 +306,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
       if (2 %in% mslevel){
         
         dat2 = process_SmartMS2(lcms_files[ff], ref = target.ref, 
-                           rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
-                           baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
+            rt_search = params.search$rt_search, rt_gap = params.search$rt_gap, ppm_search = params.search$ppm_search, mz_search = params.search$mz_search, 
+            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
         
         LL2 = length(dat2$sp) # Added library size
       
@@ -455,23 +457,28 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   ### Post-processing library###
   ##############################
   
-  if (NN>1 & params.consensus$consensus){
+  if (NN>1 & params.consensus$consensus & is.null(old_consensus)){
     
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
-                                          params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
+                  params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
     
     output_library = library_reader(library_consensus)
-    NN = nrow(output_library$consensus$metadata)
+  }
+  
+  if (NN>1 & !is.null(old_consensus)){
+    output_library = list(complete = library_complete, consensus = old_consensus, network = old_network )
+  }
+  
+  NN = nrow(output_library$consensus$metadata)
 
-    if (NN>1){
+  if (NN>1){
 
-      library_network = process_lib2network(library_consensus, networking = params.network$network, polarity = polarity, 
-          params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
-          params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
-          params.network = list(topK = params.network$topK, max.comp.size = params.network$max_comp_size, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
+    library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
+        params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
+        params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
+        params.network = list(topK = params.network$topK, max.comp.size = params.network$max_comp_size, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
       
-      output_library = library_reader(library_network)
-    }
+    output_library = library_reader(library_network)
   }
  
   return(output_library)

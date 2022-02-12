@@ -75,7 +75,12 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ### Transform spectra to matrix ###
   ###################################
 
-  library_matrix = matrix_generator(consensus_library, mz_window = mz_search)
+  if (!is.null(input_library$network)){
+    library_matrix = list(db_profile = input_library$network$db_profile,
+              db_feature = input_library$network$db_feature)
+  } else {
+    library_matrix = matrix_generator(consensus_library, mz_window = mz_search)
+  }
   
   new_nodes = metadata
   new_network = c()
