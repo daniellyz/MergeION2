@@ -471,7 +471,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   NN = nrow(output_library$consensus$metadata)
 
-  if (NN>1){
+  if (!is.null(NN)){
+    if (NN>1){
 
     library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
@@ -479,7 +480,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
         params.network = list(topK = params.network$topK, max.comp.size = params.network$max_comp_size, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
       
     output_library = library_reader(library_network)
-  }
+  }}
  
   return(output_library)
 }
