@@ -81,8 +81,8 @@ library_reader<-function(raw_library){
   ### Clean and standardize complete library:##
   #############################################
   
-  library_complete = standarlize_library(library_complete)
-  if (!is.null(library_consensus)){library_consensus = standarlize_library(library_consensus)}
+  #library_complete = standarlize_library(library_complete)
+  #if (!is.null(library_consensus)){library_consensus = standarlize_library(library_consensus)}
   
   ####################
   ### Output inputs:##

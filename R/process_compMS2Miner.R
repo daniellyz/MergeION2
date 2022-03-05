@@ -6,7 +6,7 @@
 #' @importFrom utils flush.console txtProgressBar setTxtProgressBar
 #' @importFrom tcltk tk_choose.dir tclvalue tkgetOpenFile
 #' @importFrom mzR openMSfile header peaks
-#' 
+#' @importFrom compMS2Miner deconvNoise combineMS2 compSpectra metaData filePaths
 #' @export
 #' 
 process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positive", "Negative"), include.MS1 = FALSE,
@@ -15,9 +15,7 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
   
   options(stringsAsFactors = F)
   options(warn=-1)
-  library(compMS2Miner)
-  
-  # importFrom compMS2Miner deconvNoise combineMS2 compSpectra metaData filePaths
+  #library(compMS2Miner)
   
   output_metadata = c()
   output_sp = list()
@@ -46,16 +44,15 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
     
     compMS2Demo <- compMS2Construct1(MS1features = peakTable, MS2files = mzdatafiles, mode = polarity, 
                                    precursorPpm = ppm_search, ret = rt_search, TICfilter = baseline)
+
+  if (length(metaData(compMS2Demo))>0){compMS2Demo <- deconvNoise(compMS2Demo, "DNF")}
+  if (length(metaData(compMS2Demo))>0){compMS2Demo <- combineMS2(compMS2Demo, "Ions")}
+  if (length(metaData(compMS2Demo))>0){compMS2Demo <- combineMS2(compMS2Demo, "Spectra", specSimFilter= 0.7, binSizeMS2=0.1)}
   
-    if (length(metaData(compMS2Demo))>0){compMS2Demo <- deconvNoise(compMS2Demo, "DNF")}
-    if (length(metaData(compMS2Demo))>0){compMS2Demo <- combineMS2(compMS2Demo, "Ions")}
-    if (length(metaData(compMS2Demo))>0){compMS2Demo <- combineMS2(compMS2Demo, "Spectra", specSimFilter=0.5)}
-    if (length(metaData(compMS2Demo))>1){
-      compMS2Demo <- combineMS2(compMS2Demo, 'removeContam', maxRtGap=rt_gap, minSimScore= 0.5, ms1Abs=mz_search)}
+  #if (length(metaData(compMS2Demo))>1){
+    #  compMS2Demo <- combineMS2(compMS2Demo, 'removeContam', maxRtGap=rt_gap, minSimScore= 0.5, ms1Abs=mz_search)}
 
     NFeatures = length(metaData(compMS2Demo))
-    IndFeatures = as.numeric(gsub("CC_", "", names(compMS2Demo@compSpectra)))
-    IDFeatures =  ID0[IndFeatures]
 
     #########################
     ######Transformation ####
@@ -66,21 +63,17 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
       for (i in 1:NFeatures){
     
       temp_sp = list()
-      
-      old_metadata = ref[IndFeatures[i],,drop=FALSE]
-      to_remove = match(c("PEPMASS", "RT"), colnames(ref))
-      old_metadata = old_metadata[, -to_remove] # Remove PEPASS and RT
+    
       new_metadata = data.frame(compMS2Demo@metaData[[i]])
       sp0 = data.matrix(compMS2Demo@compSpectra[[i]])
     
-      ind_m0 = grep("_precursorMz", colnames(new_metadata))
-      ind_rt = grep("_retentionTime", colnames(new_metadata))
-      ind_tic = grep("_TIC", colnames(new_metadata))[1]
-      ind_dev = grep("_ppmDiff", colnames(new_metadata))
-      ind_ms2_scan_nb = grep("_acquisitionNum", colnames(new_metadata))
+      ind_m0 = grep("precursorMz", colnames(new_metadata))
+      ind_rt = grep("retentionTime", colnames(new_metadata))
+      ind_tic = grep("TIC", colnames(new_metadata))[1]
+      ind_dev = grep("ppmDiff", colnames(new_metadata))
+      ind_ms2_scan_nb = grep("acquisitionNum", colnames(new_metadata))
 
       # MS2 Metadata:
-      
       new_metadata_ms2 = new_metadata[, c(ind_m0, ind_rt, ind_tic, ind_dev, ind_ms2_scan_nb)]
       colnames(new_metadata_ms2) = c("PEPMASS", "RT", "TIC", "PEPMASS_DEV", "SCAN_NUMBER")
       new_metadata_ms2 = new_metadata_ms2[which.max(new_metadata_ms2$TIC),,drop=FALSE] # Save scan with highest TIC
@@ -89,20 +82,33 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
       new_metadata_ms2$RT = round(mean(new_metadata_ms2$RT)/60, 2)
       new_metadata_ms2$PEPMASS_DEV = round(abs(new_metadata_ms2$PEPMASS_DEV), 2)
       
+      # Find back old metadata
+     
+      Ind1 = which(abs(ref$PEPMASS - new_metadata_ms2$PEPMASS)<=0.01)
+      Ind2 = which(abs(ref$RT - new_metadata_ms2$RT)<=0.25)
+      IndFeatures = intersect(Ind1, Ind2)
+      if (length(IndFeatures)>1){IndFeatures = IndFeatures[which.min(abs(ref$RT[IndFeatures] - new_metadata_ms2$RT))[1]]}
+      
+      # Merge
+      
+      old_metadata = ref[IndFeatures,,drop=FALSE]
+      to_remove = match(c("PEPMASS", "RT"), colnames(ref))
+      old_metadata = old_metadata[, -to_remove] # Remove PEPASS and RT
+      
       temp_metadata = cbind.data.frame(new_metadata_ms2[,c(1:2)], old_metadata, 
                         FILENAME = basename(mzdatafiles), MSLEVEL = 2, new_metadata_ms2[,3:5])
       
       # MS2 Spectrum:
       
       colnames(sp0) = NULL
-      temp_sp[[1]] = denoise_ms2_spectrum(sp0, ref$PEPMASS[IndFeatures[i]], max_peaks, relative, normalized)
+      temp_sp[[1]] = denoise_ms2_spectrum(sp0, ref$PEPMASS[IndFeatures], max_peaks, relative, normalized)
 
       if (include.MS1){
 
-        ind_ms1_scan_nb = grep("_precursorScanNum", colnames(new_metadata))
-        ind_ms1_tic = grep("_precursorIntensity", colnames(new_metadata))
-        ind_ms1 = grep("_isoMass", colnames(new_metadata))
-        ind_ms1_int = grep("_isoInt", colnames(new_metadata))
+        ind_ms1_scan_nb = grep("precursorScanNum", colnames(new_metadata))
+        ind_ms1_tic = grep("precursorIntensity", colnames(new_metadata))
+        ind_ms1 = grep("isoMass", colnames(new_metadata))
+        ind_ms1_int = grep("isoInt", colnames(new_metadata))
         
         # MS1 Metadata:
         
@@ -123,7 +129,7 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
         temp_mass_intensity = as.numeric(strsplit(temp_mass_intensity, ";")[[1]])
         temp_sp_ms1 = data.matrix(cbind(temp_mass_peaks, temp_mass_intensity))
         colnames(temp_sp_ms1) =NULL
-        temp_sp_ms1 = denoise_ms1_spectrum(temp_sp_ms1, ref$PEPMASS[IndFeatures[i]], 10000, 0, normalized)
+        temp_sp_ms1 = denoise_ms1_spectrum(temp_sp_ms1, ref$PEPMASS[IndFeatures], 10000, 0, normalized)
         temp_sp[[2]] = temp_sp_ms1
       }
     
@@ -191,7 +197,7 @@ compMS2Construct1 <-  function(MS1features = NULL, msDataDir = NULL, MS2files=NU
     # remove hypens
     fileNames <- gsub('-', '_', fileNames)
     # spectra
-    compSpectra(object) <- vector('list', length(MS2files))
+    compMS2Miner::compSpectra(object) <- vector('list', length(MS2files))
     names(compSpectra(object)) <- fileNames
     # metaData
     metaData(object) <- vector('list', length(MS2files))
@@ -381,7 +387,6 @@ compMS2Create1 <- function(MS2file = NULL, MS1features = NULL,
       message("matching MS1 peak table to precursors of MS2 spectra...")
       flush.console()
       
-      #save(metaData, MS2file, adducts, isoWid, MS1features, file = "tmp.RData")
       # mapply MS1 feature match
 
       MS1MS2match <- mapply(MS1MatchSpectra1, EIC=MS1features[, 1], 
