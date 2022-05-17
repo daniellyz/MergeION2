@@ -65,7 +65,9 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
       
       # Representative scans in the library:
 
-      wm = which.max(as.numeric(sub_metadata$SCANS)) 
+      sub_scans = as.numeric(sub_metadata$SCANS)
+      if (is.na(sum(sub_scans))){sub_scans = sample(1:nrow(sub_metadata))}
+      wm = which.max(sub_scans)
       new_metadata = rbind.data.frame(new_metadata,sub_metadata[wm,,drop=FALSE]) # Update metadata
       NN = NN+1
 

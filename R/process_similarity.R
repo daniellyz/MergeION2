@@ -45,9 +45,10 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   consensus_library  = input_library$consensus
   
   if (use.prec){
+    
     consensus_library = process_query(consensus_library, query = paste0("PEPMASS=", prec_mz), ppm_search = prec_ppm_search)
     consensus_library = consensus_library$SELECTED
-  
+
     ID_SELECTED = consensus_library$metadata$ID
     valid1 = match(as.character(ID_SELECTED), colnames(db_profile))
     db_profile = db_profile[,valid1,drop=FALSE]
@@ -91,7 +92,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   }
   
   rownames(db_profile1) = rownames(db_feature1)
-  
+
   if (is.null(db_profile1)){return(NULL)}
   
   if (!is.null(db_profile1)){

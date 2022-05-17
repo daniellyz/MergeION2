@@ -134,6 +134,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   }
   
   old_lib = old_consensus = old_network = NULL
+  
   if (!is.null(input_library)){
     old_lib = library_reader(input_library)$complete
     old_consensus = input_library$consensus
@@ -316,12 +317,12 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
             new_scans2 = (max_scan+1):(max_scan+LL2)
             max_scan = max_scan+LL2
             metadata2 = cbind.data.frame(dat2$metadata, 
-                                         PARAM_FLAG = 0,
-                                         PARAM_SUBMIT_USER = params.user$user_name, 
-                                         PARAM_SAMPLE_TYPE = params.user$sample_type, 
-                                         PARAM_COMMENTS = params.user$comments, 
-                                         PARAM_ALGORITHM = "SmartION",
-                                         PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans2)
+                            PARAM_FLAG = 0,
+                            PARAM_SUBMIT_USER = params.user$user_name, 
+                            PARAM_SAMPLE_TYPE = params.user$sample_type, 
+                            PARAM_COMMENTS = params.user$comments, 
+                            PARAM_ALGORITHM = "SmartION",
+                            PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans2)
             for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
             temp_metadata = rbind(temp_metadata, metadata2)
             NN=NN+LL2
@@ -342,12 +343,12 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
           new_scans1 = (max_scan+1):(max_scan+LL1)
           max_scan = max_scan+LL1
           metadata1 = cbind.data.frame(dat1$metadata, 
-                                       PARAM_FLAG = 0,
-                                       PARAM_SUBMIT_USER = params.user$user_name, 
-                                       PARAM_SAMPLE_TYPE = params.user$sample_type, 
-                                       PARAM_COMMENTS = params.user$comments, 
-                                       PARAM_ALGORITHM = "SmartION",
-                                       PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans1)
+                            PARAM_FLAG = 0,
+                            PARAM_SUBMIT_USER = params.user$user_name, 
+                            PARAM_SAMPLE_TYPE = params.user$sample_type, 
+                            PARAM_COMMENTS = params.user$comments, 
+                            PARAM_ALGORITHM = "SmartION",
+                            PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans1)
           for (n in 1:LL1){spectrum_list[[NN+n]]=dat1$sp[[n]]} # Update spectrum list
           temp_metadata =  rbind.data.frame(temp_metadata, metadata1)
           NN=NN+LL1
@@ -457,7 +458,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   ### Post-processing library###
   ##############################
   
-  if (NN>1 & params.consensus$consensus & is.null(old_consensus)){
+  if (NN>1 & params.consensus$consensus & is.null(old_consensus$metadata)){
     
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
                   params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
@@ -465,15 +466,16 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     output_library = library_reader(library_consensus)
   }
   
-  if (NN>1 & !is.null(old_consensus)){
-    output_library = list(complete = library_complete, consensus = old_consensus, network = old_network )
+  if (NN>1 & !is.null(old_consensus$metadata)){
+    output_library = list(complete = library_complete, consensus = old_consensus, network = old_network)
   }
   
   NN = nrow(output_library$consensus$metadata)
 
   if (!is.null(NN)){
-    if (NN>1){
-
+    
+    if (NN>1 & params.consensus$consensus){
+      
     library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
@@ -511,5 +513,4 @@ remove_blanks<-function(library1){
   new_library = list(metadata= metadata, sp = sp)
   
   return(new_library)
-  
 }

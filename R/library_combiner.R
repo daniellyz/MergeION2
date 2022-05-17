@@ -37,7 +37,7 @@ library_combiner<-function(...){
       
       # Consensus:
       
-      if (!is.null(tmp_library$consensus)){
+      if (!is.null(tmp_library$consensus$metadata)){
         combined_metadata2 = rbind.fill(combined_metadata2, tmp_library$consensus$metadata)
         combined_sp2 = c(combined_sp2, tmp_library$consensus$sp)
       }

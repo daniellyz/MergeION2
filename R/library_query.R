@@ -105,10 +105,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     # Filter on query expressions:
     
     if (query_expression!=""){
-      if (!is.null(input_library$complete)){
+      if (!is.null(input_library$complete$metadata)){
         input_library$complete = process_query(input_library$complete, query = query_expression, ppm_search, rt_search)$SELECTED
       }   
-      if (!is.null(input_library$consensus)){
+      if (!is.null(input_library$consensus$metadata)){
         input_library$consensus = process_query(input_library$consensus, query = query_expression, ppm_search, rt_search)$SELECTED
       }   
   }
@@ -172,7 +172,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     complete_selected = input_library$complete
   }
   
-  if (!is.null(input_library$consensus)){ 
+  if (!is.null(input_library$consensus$metadata)){ 
     consensus_selected = input_library$consensus
     consensus_selected = process_query(consensus_selected, query = "MSLEVEL=2")$SELECTED
     
