@@ -81,7 +81,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       metadata1 = metadata[ind1,]
       spectrum1 = spectrum_list[[ind1]]
-      prec_mz = round(as.numeric(metadata[ind1,"PEPMASS"]),3)
+      prec_mz = round(as.numeric(metadata[ind1,"PEPMASS"]),4)
       adduct1 = metadata$ADDUCT[ind1]
       cpd1 = "Unknown"
       if ("COMPOUND" %in% colnames(metadata)){cpd1 = metadata$COMPOUND[ind1]}
@@ -92,13 +92,14 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       plot(spectrum1[,1],spectrum1[,2], type = "h", xlim = xrange, ylim = yrange,
          xlab = "m/z", ylab = "Intensity", font.lab=2)
-
+      abline(h=0)
+      
       kkk = min(nrow(spectrum1), max_display)
       max_pics = order(spectrum1[,2], decreasing = T)[1:kkk]
       max_pics = intersect(max_pics,which(spectrum1[,2]>=max(spectrum1[,2])*0.05))
       text_pics = spectrum1[max_pics,1]
       int_pics = spectrum1[max_pics,2]*1.1
-      text(text_pics, int_pics, as.character(round(text_pics,3)))
+      text(text_pics, int_pics, as.character(round(text_pics,4)))
 
       title(main = paste0("ID: ",id, " ; SCAN: ", scan1, " (", cpd1, ")"),
           font = 3, cex.main = 1.5)
@@ -120,7 +121,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
     metadata2 = metadata[ind2,]
     spectrum2 = spectrum_list[[ind2]]
-    prec_mz = round(as.numeric(metadata[ind2,"PEPMASS"]),3)
+    prec_mz = round(as.numeric(metadata[ind2,"PEPMASS"]),4)
     adduct2 = metadata$ADDUCT[ind2]
     cpd2 = "Unknown"
     if ("COMPOUND" %in% colnames(metadata)){cpd2 = metadata$COMPOUND[ind2]}
@@ -141,7 +142,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
     max_pics = intersect(max_pics,which(spectrum2[,2]>=max(spectrum2[,2])*0.05))
     text_pics = spectrum2[max_pics,1]
     int_pics = spectrum2[max_pics,2]*1.1
-    text(text_pics, int_pics, as.character(round(text_pics,3)))
+    text(text_pics, int_pics, as.character(round(text_pics,4)))
 
     if (add.legend){
     legend("topleft", bty = "n", cex = 1.2, text.font = 1.5,
