@@ -78,7 +78,8 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       scan1 = max(as.numeric(metadata1$SCANS)) # Scan selected
       ind1 = which(as.numeric(metadata$SCANS)==scan1)
-
+      if (length(ind)==0){ind1 = sample(1:nrow(metadata), 1)}
+      
       metadata1 = metadata[ind1,]
       spectrum1 = spectrum_list[[ind1]]
       prec_mz = round(as.numeric(metadata[ind1,"PEPMASS"]),4)
@@ -128,7 +129,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
     xrange = c(50,prec_mz+8)
     ranges = which((spectrum2[,1]>=50) & (spectrum2[,1]<=prec_mz+8))
-    yrange = c( max(spectrum2[ranges,2])*0.01, max(spectrum2[ranges,2])*1.2)
+    yrange = c(max(spectrum2[ranges,2])*0.01, max(spectrum2[ranges,2])*1.2)
 
     spectrum2 = spectrum2[ranges,1:2,drop=FALSE]
     #spectrum2 = apply(spectrum2[,1:2,drop=FALSE], 2, as.numeric)
@@ -168,6 +169,8 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
     
     scan_max = max(as.numeric(metadata$SCANS)) # Most recent Scan selected
     ind = which(as.numeric(metadata$SCANS)==scan_max)
+    if (length(ind)==0){ind = sample(1:nrow(metadata), 1)}
+    
     metadata = metadata[ind,,drop=FALSE]
     spectrum = spectrum_list[[ind]]
     
