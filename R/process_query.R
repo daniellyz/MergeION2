@@ -3,6 +3,7 @@
 #' The function is used by library_query() to select scans based on a query expression.
 #'
 #' @param query query expression - two ways to specify drop
+#' @param setString string used to seperate paramter name and expression
 #' \itemize{
 #'\item{equal:}{use e.g. 'IONMODE=Positive' to do exact search}
 #' \item{regex:}{use e.g. 'IONMODE@xxx@^Pos' to search IONMODE begins with 'Pos'}
@@ -12,7 +13,7 @@
 #' @importFrom stringr str_replace_all fixed
 #'
 
-process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12){
+process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, sepString = "@xxx@"){
 	
 	options(stringsAsFactors = FALSE)
 	options(warn=-1)
@@ -74,8 +75,8 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12){
 				}
 			}else{
 				# here we apply fuzzy search in R
-				target_variable = trimws(strsplit(eps,"@xxx@")[[1]][1])
-				target_expression = strsplit(eps,"@xxx@")[[1]][2]
+				target_variable = trimws(strsplit(eps, sepString)[[1]][1])
+				target_expression = strsplit(eps, sepString)[[1]][2]
 				indexes = which(grepl( target_expression, metadata[, target_variable], ignore.case = TRUE))
 				
 				grep( target_expression, metadata[, target_variable], value = T)
