@@ -76,7 +76,7 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12){
 				# here we apply fuzzy search in R
 				target_variable = trimws(strsplit(eps,"@xxx@")[[1]][1])
 				target_expression = strsplit(eps,"@xxx@")[[1]][2]
-				indexes = which(grepl( target_expression, metadata[, target_variable]))
+				indexes = which(grepl( target_expression, metadata[, target_variable], ignore.case = TRUE))
 				
 				grep( target_expression, metadata[, target_variable], value = T)
 			}
