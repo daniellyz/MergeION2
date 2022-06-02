@@ -6,6 +6,13 @@
 \usage{
 process_query(library0, query = "", ppm_search = 20, rt_search = 12)
 }
+\arguments{
+\item{query}{query expression - two ways to specify drop
+\itemize{
+\item{equal:}{use e.g. 'IONMODE=Positive' to do exact search}
+\item{regex:}{use e.g. 'IONMODE@xxx@^Pos' to search IONMODE begins with 'Pos'}
+}}
+}
 \description{
 The function is used by library_query() to select scans based on a query expression.
 }
