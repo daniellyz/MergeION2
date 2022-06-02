@@ -78,7 +78,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       scan1 = max(as.numeric(metadata1$SCANS)) # Scan selected
       ind1 = which(as.numeric(metadata$SCANS)==scan1)
-      if (length(ind)==0){ind1 = sample(1:nrow(metadata), 1)}
+      if (length(ind1)==0){ind1 = sample(1:nrow(metadata), 1)}
       
       metadata1 = metadata[ind1,]
       spectrum1 = spectrum_list[[ind1]]
