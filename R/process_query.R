@@ -10,7 +10,7 @@
 #'}
 #' @export
 #'
-#' @importFrom stringr str_replace_all fixed
+#' @importFrom stringr str_replace_all fixed str_detect
 #'
 
 process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, sepString = "@xxx@"){

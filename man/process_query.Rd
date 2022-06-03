@@ -4,10 +4,18 @@
 \alias{process_query}
 \title{Searching and managing the spectral library}
 \usage{
-process_query(library0, query = "", ppm_search = 20, rt_search = 12)
+process_query(
+  library0,
+  query = "",
+  ppm_search = 20,
+  rt_search = 12,
+  sepString = "@xxx@"
+)
 }
 \arguments{
-\item{query}{query expression - two ways to specify drop
+\item{query}{query expression - two ways to specify drop}
+
+\item{setString}{string used to seperate paramter name and expression
 \itemize{
 \item{equal:}{use e.g. 'IONMODE=Positive' to do exact search}
 \item{regex:}{use e.g. 'IONMODE@xxx@^Pos' to search IONMODE begins with 'Pos'}
