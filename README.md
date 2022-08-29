@@ -23,19 +23,5 @@ Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
 options(download.file.method = "libcurl")
 BiocManager::install("daniellyz/MergeION2")
 ```
-
-## 2. Data format conversion
-
-Raw LC-MS/MS files must be in centroid/line spectra-mode and in mzML, mzXML or mzData format. Such files can be usually exported from LC-MS vendor software, e.g. with Bruker Compass DataAnalysis 4.3:
-
-![choose](inst/PNG/Bruker.png)
-
-If such function is not available in vendor software or user want to convert many raw files at the same time, we recommend an alternative solution with MSConvertGUI (part of proteowizard: http://proteowizard.sourceforge.net/download.html). The software is able to batch-convert raw chromatogram files of most vendors' formats into centroid-mode mzML or mzXML files. Following instructions are given for batch-conversion of profile-mode Bruker and Water's chromatograms:
-
-![choose](inst/PNG/MSConvert.PNG)
-
-## 3. Preparation of metadata
-
-## 4. Preparation of processing parameters
-
-# Tutorial 1: Generating an in-house spectral library from mzXML
+# Tutorial 1: Forced degradation data
+The tutorial is available: https://daniellyz.github.io/mergeion.github.io/forceddegradation.html
