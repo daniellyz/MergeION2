@@ -96,7 +96,7 @@ writeMSP2 <- function(library, con) {
   .cat <- function(..., file = con, sep = "", append = TRUE) {
     cat(..., file = file, sep = sep, append = append)
   }
-  
+
   #######################
   # Conversion metadata:#
   #######################
@@ -110,9 +110,9 @@ writeMSP2 <- function(library, con) {
   ind = which(colnames(new_metadata)=="ID")
   colnames(new_metadata)[ind] = "Name"
   
-  if ("SMILES" %in% colnames(new_metadata)){
-    new_metadata$InChIKey = sapply(new_metadata$SMILES, inchikey_generator)
-  } else {new_metadata$InChIKey = "N/A"}
+  #if ("SMILES" %in% colnames(new_metadata)){
+  #  new_metadata$InChIKey = sapply(new_metadata$SMILES, inchikey_generator)
+  #} else {new_metadata$InChIKey = "N/A"}
   
   ind = which(colnames(new_metadata)=="ADDUCT")
   colnames(new_metadata)[ind] = "Precursor_type"

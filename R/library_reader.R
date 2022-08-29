@@ -49,7 +49,7 @@ library_reader<-function(raw_library){
     
     if (!("complete" %in% tmp_labels) || !("consensus" %in% tmp_labels) & !("network" %in% tmp_labels)){
       if ("metadata" %in% tmp_labels & "sp" %in% tmp_labels){
-        raw_library = list(complete = raw_library, consensus = NULL, network = NULL)
+        raw_library = list(complete = raw_library, consensus = raw_library, network = NULL)
       } else {
         stop("Format of the library is not valid")
       }

@@ -58,8 +58,7 @@ library_messar<-function(query_spectrum =NULL, params.search = list(mz_search = 
     rule_nloss = drug_rule_nloss
    # rules_training = drug_rules_training
   } else {data(METABOLITE_RULE_DB)}
-  #else {load("C:\\Users\\YLiu186\\OneDrive - JNJ\\Desktop\\TractION\\MergeION\\MergeION2\\data\\METABOLITE_RULE_DB.RData")}
-  
+
   ###############################
   ### Preprocess query spectrum:#
   ###############################

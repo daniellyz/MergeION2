@@ -7,9 +7,9 @@
 library_query(
   input_library = NULL,
   query_ids = NULL,
-  query_expression = "IONMODE = Positive",
+  query_expression = "",
   query_spectrum = NULL,
-  query_file = NULL,
+  query_library = NULL,
   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
   params.query.sp = list(prec_mz = 10000, use_prec = T, polarity = "Positive", method =
     "Cosine", min_frag_match = 6, min_score = 0, reaction_type = "Metabolic")
@@ -24,7 +24,7 @@ library_query(
 
 \item{query_spectrum}{Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided.}
 
-\item{query_file}{Character. Only used if query_spectrum = NULL. The file name of query spectra collection or DDA mode LC-MS file. The file must in mgf, msp or mz(X)ML, cdf format.}
+\item{query_library}{Character or a list object. Used when query_spectrum = NULL. If character, file name with extension mgf, msp, Rdata, cdf, mz(x)ml. If list, must contain metadata and sp, or library_generator output ("complete", "consensus" and "network")}
 
 \item{params.search}{General parameters for searching spectral library
 \itemize{
@@ -61,7 +61,7 @@ library_query(
 }
 }
 \description{
-The function queries the input spectral library based on a query expression and/or (a) query MS/MS spectra or raw LC-MS/MS file
+The function queries the input (reference) spectral library based on a query expression and/or (a) query MS/MS spectra or query library or LC-MS/MS file
 }
 \examples{
 

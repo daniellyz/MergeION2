@@ -26,6 +26,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.01)
   NP = nrow(dat)
+  dat0 = dat
   
   if (NP<3){
     message("The query spectrum must contain at least 3 valid peaks!")
@@ -58,7 +59,9 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     db_feature = db_feature[valid2,,drop=FALSE]
   }
   
-  if (nrow(db_profile)==0){return(NULL)}
+  if (nrow(db_profile)==0){
+    return(NULL)
+  }else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
     
   ##############################################
   ### Pre-search common fragment/neutral loss###
@@ -92,7 +95,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   }
   
   rownames(db_profile1) = rownames(db_feature1)
-
+  
   if (is.null(db_profile1)){return(NULL)}
   
   if (!is.null(db_profile1)){
@@ -133,14 +136,15 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
 
   # Normalize first the spectra:
   
-  dat[,2] = dat[,2]/max(dat[,2])*100 # Normalize
-  db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)
+  #dat[,2] = dat[,2]/max(dat[,2])*100 # Normalize
+  #db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)
 
   # Calculate useful info:
+  
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
-
+  
   if (method == "Precision"){
     sim = nb_matches/NP_query
   }
@@ -153,6 +157,19 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     sim = 2*(nb_matches/NP_reference*nb_matches/NP_query)/(nb_matches/NP_reference+nb_matches/NP_query)
   }
 
+  #if (method == "F3"){
+  #  print(dat)
+  #  a1 = dat[,2]*dat[,1]/dat0[,2]*dat0[,1]
+  #  print(dim(db_profile))
+   # print(dim(db_feature))
+  #  print(dim(db_profile1))
+  #  print(dim(db_feature1))
+  #  a2 = t(db_profile) %*% db_feature[,2]/t(db_profile1)%*%db_feature1[,2]
+  #  print(a1)
+  #  print(a2)
+  #  sim = 2*a1*a2/(a1+a2)
+  #}
+  
   if (method == "Cosine"){
     sim = cor(dat[,2], db_profile, method = "pearson")/2 + 0.5
   }

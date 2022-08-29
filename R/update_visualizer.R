@@ -7,7 +7,7 @@
 #' Function to generate data for interactive visulization
 #' @inheritParams library_visualizer
 #' @importFrom rex rex
-#' @importFrom dplyr fitler group_by bind_cols
+#' @importFrom dplyr filter group_by bind_cols
 #' @importFrom magrittr %>%  %<>%
 #' @return a dataframe with m/z, intensity, ID and all the metadata columns from \code{input_library} metadata
 #' @author Yingjie Zhang
@@ -84,9 +84,9 @@ dataForPlotly <- function(input_library,
 
 
 # input_library <- library_reader("//10.157.249.83/share/mergeion/JANSSEN_COMPLETE.RData")
-plotData <- dataForPlotly(input_library = input_library, 
-		id = input_library$complete$metadata$ID[1:100], 
-		type = "complete")
+#plotData <- dataForPlotly(input_library = input_library, 
+#		id = input_library$complete$metadata$ID[1:100], 
+#		type = "complete")
 #
 #library_visualizer_interactive(plotData = plotData)
 

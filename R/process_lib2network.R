@@ -227,14 +227,15 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ######################################
   
   if (!is.null(new_network)){
-    
+    if (sim.method!="Messar"){
       new_network = new_network[new_network[,"MS2.Similarity"]>=min.score,,drop=FALSE]
+    }
     
-      if (use.reaction){
-        new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
-      }
+    if (use.reaction){
+      new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
+    }
       
-      if (nrow(new_network)==0){new_network = NULL}
+    if (nrow(new_network)==0){new_network = NULL}
     }
   }
   
