@@ -17,10 +17,7 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 
 # Install MergeION:
 install.packages("remotes")
-install.packages("Rcpp")
-BiocManager::install("multtest")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
-options(download.file.method = "libcurl")
 BiocManager::install("daniellyz/MergeION2")
 ```
 # Tutorial 1: Forced degradation data
