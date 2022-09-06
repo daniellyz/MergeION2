@@ -87,7 +87,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   ######################
     
   input_library = library_reader(input_library)
-    
+  
   # Filter on query ids:
     
   if (!is.null(query_ids)){
@@ -124,6 +124,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   score_summary = c()
     
   if (!is.null(query_spectrum)){
+    
      qs_library = list()
      
      tmp_qs_metadata = c("Spectrum", query_prec_mz, 0, "N/A", 2, nrow(query_spectrum))
@@ -352,7 +353,6 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   #############
   
   if (NQS>1){
-    
     tmp_annotation = rep("0", NQS)
     tmp_scores = rep(0, NQS)
     tmp_mdiff = rep("0", NQS)
@@ -382,6 +382,12 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     output_library = list(complete = complete_selected, consensus = consensus_selected, network = network_selected)
     return(output_library)
   }
+  
+  if (NQS==0 & !is.null(complete_selected)){
+    output_library = list(complete = complete_selected, consensus = consensus_selected, network = network_selected)
+    return(output_library)
+  }
+  
 }
 
 ##########################
