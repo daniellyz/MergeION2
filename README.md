@@ -6,9 +6,7 @@ Our package fills these gaps and enables building local spectral libraries witho
 
 In addition, several spectral search algorithms are available, allowing users to search an unknown spectrum in their local database or public databases (i.e. drug structures in GNPS, MASSBANK and DrugBANK).
   
-# Preparation before library generation
-
-## 1. Installation from Github in Rstudio
+## Installation from Github in Rstudio
 
 ```R
 # Install BiocManager if it has not been installed previously:
