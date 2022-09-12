@@ -8,12 +8,15 @@ In addition, several spectral search algorithms are available, allowing users to
   
 ## Installation from Github in Rstudio
 
+For MAC users, please first install XQuartz: https://www.xquartz.org/
+
 ```R
 # Install BiocManager if it has not been installed previously:
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 
 # Install MergeION:
+options(timeout=9999999)
 install.packages("remotes")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
 BiocManager::install("daniellyz/MergeION2")
