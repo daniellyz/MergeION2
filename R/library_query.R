@@ -111,7 +111,11 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       }   
       if (!is.null(input_library$consensus$metadata)){
         input_library$consensus = process_query(input_library$consensus, query = query_expression, ppm_search, rt_search)$SELECTED
-      }   
+      } 
+      if (!is.null(input_library$network$db_profile)){
+        fff = which(colnames(input_library$network$db_profile) %in% input_library$consensus$metadata$ID)
+        input_library$network$db_profile = input_library$network$db_profile[,fff,drop=FALSE]
+      }
   }
     
   ###################################
@@ -182,7 +186,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   ###Query spectrum ##
   ####################
   
-  if (!is.null(input_library$complete)){ 
+  if (!is.null(input_library$complete$metadata)){ 
     complete_selected = input_library$complete
   }
   
@@ -210,7 +214,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       id_selected = consensus_selected$metadata$ID
         
       tmp_library = list(complete = complete_selected, consensus = consensus_selected, network = input_library$network)
-      
+
       for (jjj in 1:NQS){
         
         qs_mz = as.numeric(qs_metadata$PEPMASS[jjj])
@@ -221,7 +225,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               method = query_method, prec_ppm_search = ppm_search, 
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
-        
+      
         if (!is.null(tmp_scores)){
           if (nrow(tmp_scores)>0){
             valid = which(round(tmp_scores$SCORES, 1) == max(round(tmp_scores$SCORES,1)))
@@ -231,8 +235,6 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
             
             mdiff = round(abs(qs_mz - as.numeric(tmp_ref$PEPMASS)),3)
-          #  tmp_annotation[i] = paste(tmp$ID[valid], collapse = ":")
-           # tmp_mdiff[i] = paste(mdiff, collapse = ":")
           
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff
@@ -240,7 +242,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             score_summary = rbind.data.frame(score_summary, tmp_scores)
         }}
     }
-      
+     #print(score_summary) 
     if (!is.null(score_summary)){
         if (nrow(score_summary)>0){
           
@@ -378,7 +380,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   }
     
   if (NQS==1){
-    consensus_selected$metadata$SCORE_MERGEION = paste(score_summary$SCORES, collapse = ":")
+    consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES
     output_library = list(complete = complete_selected, consensus = consensus_selected, network = network_selected)
     return(output_library)
   }
