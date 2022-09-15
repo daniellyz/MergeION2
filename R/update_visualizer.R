@@ -96,7 +96,7 @@ dataForPlotly <- function(input_library,
 #		id = input_library$complete$metadata$ID[1:100], 
 #		type = "complete")
 
-#library_visualizer_interactive(plotData = plotData, x = "m/z")
+#library_visualizer_interactive(plotData = plotData, x = 1, y = "Intensity")
 
 #' Interactive spectral plot
 #' @param plotData A data frame used to plot
@@ -145,12 +145,32 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 	colorVar <- ensym(colorVar)
 	facetVar <- ensym(facetVar)
 
+	# chcek if Frag_Sub, Frag_Formula, Nloss, Nloss_Formula present
+	plotData$key <- 1:nrow(plotData)
+    if(all(c("Frag_Sub", "Frag_Formula", "Nloss", "Nloss_Formula") %in% colnames(plotData))){
+		p <- ggplot(data = plotData, aes(x = {{x}}, y = {{y}}, key = key,
+						text = paste( as_string(y), ": ",format({{y}}, digits = 4, trim = TRUE),
+								"\n",as_string(x), ": ", format({{x}}, digits = 4, trim = TRUE),
+								"\n ",as_string(colorVar), ": ", {{colorVar}},
+								"\n Frag_Sub: ",   Frag_Sub, 
+														"\n Frag_Formula: ", Frag_Formula, 
+															"\n Nloss: ", format(Nloss, digits = 4, trim = TRUE),
+															"\n Nloss_Formula: ", format(Nloss_Formula, digits = 4, trim = TRUE),
+								sep = "") ,
+						color = {{colorVar}}))
+		
+	}else{
+
+
+
 	p <- ggplot(data = plotData, aes(x = {{x}}, y = {{y}},
 					text = paste( as_string(y), ": ",format({{y}}, digits = 4, trim = TRUE),
 							 "\n",as_string(x), ": ", format({{x}}, digits = 4, trim = TRUE),
 							 "\n ",as_string(colorVar), ": ", {{colorVar}},
+							  "\ntest: ",   Frag_Sub, 
 							 sep = "") ,
 					color = {{colorVar}}))
+}
 	p <- p  +
 			geom_segment(aes(xend =  {{x}}, yend = 0), size = 1, lineend = "butt") + 
 			#geom_text_repel() +
@@ -167,8 +187,7 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 			) +
 			ggtitle(title)
 	#
-	ggplotly(p, tooltip = c("text"))
-	
+
 	
 
 }
