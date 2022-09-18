@@ -6,7 +6,7 @@
 #' @param query_ids Vector. Vectors of molecular ids that will be extracted from input library
 #' @param query_expression Vector of characters or "". Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
 #' @param query_spectrum Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided. 
-#' @param query_library Character or a list object. Used when query_spectrum = NULL. If character, file name with extension mgf, msp, Rdata, cdf, mz(x)ml. If list, must contain metadata and sp, or library_generator output ("complete", "consensus" and "network") 
+#' @param query_library Chara  cter or a list object. Used when query_spectrum = NULL. If character, file name with extension mgf, msp, Rdata, cdf, mz(x)ml. If list, must contain metadata and sp, or library_generator output ("complete", "consensus" and "network") 
 #' @param params.search General parameters for searching spectral library
 #' \itemize{
 #'  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da for fragment match.}
@@ -150,6 +150,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       }
     
       if (tolower(file_ext(query_file)) %in% c("cdf", "mzml", "mzxml")){
+      
       # Start Automated feature detection
         tmp_qs = library_generator(input_library = NULL, lcms_files = query_file, metadata_file = NULL, 
             polarity = query_polarity, mslevel = 2, add.adduct = FALSE, processing.algorithm = "Default",
@@ -193,9 +194,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   if (!is.null(input_library$consensus$metadata)){ 
     consensus_selected = input_library$consensus
     consensus_selected = process_query(consensus_selected, query = "MSLEVEL=2")$SELECTED
+    network_selected = input_library$network
   } 
       
-  if (!is.null(complete_selected) & is.null(consensus_selected) & !is.null(qs_sp)){
+  if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
     
       message("Generating consensus MS/MS spectral library...")
        
@@ -224,8 +226,9 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               use.prec = query_use_prec, input_library = tmp_library,  
               method = query_method, prec_ppm_search = ppm_search, 
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
+
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
-      
+
         if (!is.null(tmp_scores)){
           if (nrow(tmp_scores)>0){
             valid = which(round(tmp_scores$SCORES, 1) == max(round(tmp_scores$SCORES,1)))
