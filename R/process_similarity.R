@@ -16,7 +16,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
 
   if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
   if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
-  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
+  if (min_frag_match<2){stop("min_frag_match should not be smaller than 2!")}
 
   ################################
   ### Preprocess query spectrum:##

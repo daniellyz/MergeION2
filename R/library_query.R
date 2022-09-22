@@ -230,7 +230,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
 
         if (!is.null(tmp_scores)){
-          if (nrow(tmp_scores)>0){
+          if (nrow(tmp_scores)>0 & NQS>1){
             valid = which(round(tmp_scores$SCORES, 1) == max(round(tmp_scores$SCORES,1)))
             tmp_scores = tmp_scores[valid,,drop=FALSE]            
             tmp_scores = tmp_scores[which(!duplicated(tmp_scores$ID)),,drop=FALSE]
@@ -243,7 +243,18 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             tmp_scores$MDIFF = mdiff
             
             score_summary = rbind.data.frame(score_summary, tmp_scores)
-        }}
+          }
+          if (nrow(tmp_scores)>0 & NQS==1){
+            idx = match(tmp_scores$ID, id_selected)
+            tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
+            mdiff = round(abs(qs_mz - as.numeric(tmp_ref$PEPMASS)),3)
+            
+            tmp_scores$QS = qs_metadata$ID[jjj]
+            tmp_scores$MDIFF = mdiff
+            score_summary = rbind.data.frame(score_summary, tmp_scores)
+
+          }
+      }
     }
      #print(score_summary) 
     if (!is.null(score_summary)){
