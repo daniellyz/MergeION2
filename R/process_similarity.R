@@ -38,7 +38,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ###########################################
   
   input_library = library_reader(input_library)
-  
+
   if (is.null(input_library$consensus)){stop("To allow spectral library search, consensus library must be created!")}
   
   db_profile = input_library$network$db_profile
@@ -61,7 +61,9 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   if (nrow(db_profile)==0){
     return(NULL)
-  }else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
+  }
+  
+  #else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
     
   ##############################################
   ### Pre-search common fragment/neutral loss###
@@ -72,7 +74,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat1 = c()
   
   for (i in 1:NP){
-    
+
     frags = dat[i,1]
     nls = prec_mz - dat[i,1]
     

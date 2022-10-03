@@ -6,7 +6,7 @@
 #' @param query_ids Vector. Vectors of molecular ids that will be extracted from input library
 #' @param query_expression Vector of characters or "". Vector of conditions used for querying the library. e.g. c("IONMODE=Positive","PEPMASS=325.19"). The left-hand side must match with the metadata items of the searched library.
 #' @param query_spectrum Two-column data matrix. Two columns represent m/z and intensity of query tandem spectrum. At least 3 valid peaks should be provided. 
-#' @param query_library Chara  cter or a list object. Used when query_spectrum = NULL. If character, file name with extension mgf, msp, Rdata, cdf, mz(x)ml. If list, must contain metadata and sp, or library_generator output ("complete", "consensus" and "network") 
+#' @param query_library Character or a list object. Used when query_spectrum = NULL. If character, file name with extension mgf, msp, Rdata, cdf, mz(x)ml. If list, must contain metadata and sp, or library_generator output ("complete", "consensus" and "network") 
 #' @param params.search General parameters for searching spectral library
 #' \itemize{
 #'  \item{mz_search:}{ Numeric. Absolute mass tolerance in Da for fragment match.}
@@ -385,9 +385,15 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       }
     }
     
-    qs_library$metadata$ANNOTATION_ANALOGUE = tmp_annotation
-    qs_library$metadata$SCORE_ANALOGUE = tmp_scores
-    qs_library$metadata$MDIFF_ANALOGUE = tmp_mdiff
+    if (!query_use_prec){ # Annalog
+      qs_library$metadata$ANNOTATION_ANALOGUE = tmp_annotation
+      qs_library$metadata$SCORE_ANALOGUE = tmp_scores
+      qs_library$metadata$MDIFF_ANALOGUE = tmp_mdiff
+    } else {
+      qs_library$metadata$ANNOTATION_EXACT = tmp_annotation
+      qs_library$metadata$SCORE_EXACT = tmp_scores
+    }
+    
     qs_library$metadata$PEPMASS = round(as.numeric(qs_library$metadata$PEPMASS), 3)
     output_library = list(complete = qs_library, consensus = qs_library, network = network_selected)
     return(output_library)
