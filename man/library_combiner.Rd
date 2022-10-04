@@ -16,8 +16,8 @@ The function generates a combined library from several individual libraries
 }
 \examples{
 
-data(DRUG_THERMO_LIBRARY)
-combined_lib = library_combiner(library1, library2)
+\donttest{data(DRUG_THERMO_LIBRARY)
+combined_lib = library_combiner(library1, library2)}
 
 
 }

@@ -69,7 +69,7 @@
 #'
 #' @examples
 #'
-#' library(RMassBankData)
+#' \donttest{ library(RMassBankData)
 #'
 #' input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 #' lcms_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
@@ -108,7 +108,7 @@
 #' lib3 = library_generator(input_library, lcms_files, metadata_file, 
 #'                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
 #'                       params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)
-#' save(lib3, file = "test_RMassBank_consensus_network.RData")  # Save the library as RData
+#' save(lib3, file = "test_RMassBank_consensus_network.RData")}  # Save the library as RData
 #' 
 library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_file = NULL, 
                   polarity = c("Positive", "Negative")[1], mslevel = c(1, 2), add.adduct = TRUE,
