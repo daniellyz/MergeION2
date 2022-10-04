@@ -9,19 +9,20 @@ library_visualizer_interactive(
   x = "m/z",
   y = Intensity,
   colorVar = ID,
-  facetVar = MSLEVEL
+  facetVar = MSLEVEL,
+  title = ""
 )
 }
 \arguments{
 \item{plotData}{A data frame used to plot}
 
-\item{x}{x-axis variable quote or unquoted}
+\item{x}{x-axis variable quote or unquoted or column index}
 
-\item{y}{y-axis variable}
+\item{y}{y-axis variable or column index}
 
-\item{facetVar}{the variable used to facet the graph by row}
+\item{facetVar}{the variable used to facet the graph by row or column index}
 
-\item{coloVar}{color variable}
+\item{coloVar}{color variable or column index}
 }
 \description{
 Interactive spectral plot
