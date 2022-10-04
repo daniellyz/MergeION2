@@ -33,7 +33,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-  max_display = 100 # Display text of 5 most abundant mass peaks and higher than 5%
+  max_display = 10 # Display text of 5 most abundant mass peaks and higher than 5%
 
   #####################################
   ### Reading from spectral library:###

@@ -16,7 +16,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
 
   if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
   if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
-  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
+  if (min_frag_match<2){stop("min_frag_match should not be smaller than 2!")}
 
   ################################
   ### Preprocess query spectrum:##
@@ -38,7 +38,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ###########################################
   
   input_library = library_reader(input_library)
-  
+
   if (is.null(input_library$consensus)){stop("To allow spectral library search, consensus library must be created!")}
   
   db_profile = input_library$network$db_profile
@@ -61,7 +61,9 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   if (nrow(db_profile)==0){
     return(NULL)
-  }else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
+  }
+  
+  #else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
     
   ##############################################
   ### Pre-search common fragment/neutral loss###
@@ -72,7 +74,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat1 = c()
   
   for (i in 1:NP){
-    
+
     frags = dat[i,1]
     nls = prec_mz - dat[i,1]
     
@@ -144,7 +146,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
-  
+
   if (method == "Precision"){
     sim = nb_matches/NP_query
   }
@@ -190,6 +192,8 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     sim = cor(dat_weighted, db_profile_weighted, method = "pearson")/2 + 0.5
   }
   
+  if (is.na(sim)){sim = 0}
+  if (sim>1){sim = 1}
   sim = round(as.numeric(sim),2)
   sim.scores = cbind.data.frame(ID = colnames(db_profile), PEAK.MATCHES = nb_matches, SCORES = sim)
 

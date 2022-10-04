@@ -150,6 +150,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       }
     
       if (tolower(file_ext(query_file)) %in% c("cdf", "mzml", "mzxml")){
+      
       # Start Automated feature detection
         tmp_qs = library_generator(input_library = NULL, lcms_files = query_file, metadata_file = NULL, 
             polarity = query_polarity, mslevel = 2, add.adduct = FALSE, processing.algorithm = "Default",
@@ -193,9 +194,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   if (!is.null(input_library$consensus$metadata)){ 
     consensus_selected = input_library$consensus
     consensus_selected = process_query(consensus_selected, query = "MSLEVEL=2")$SELECTED
+    network_selected = input_library$network
   } 
       
-  if (!is.null(complete_selected) & is.null(consensus_selected) & !is.null(qs_sp)){
+  if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
     
       message("Generating consensus MS/MS spectral library...")
        
@@ -224,10 +226,11 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               use.prec = query_use_prec, input_library = tmp_library,  
               method = query_method, prec_ppm_search = ppm_search, 
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
+
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
-      
+
         if (!is.null(tmp_scores)){
-          if (nrow(tmp_scores)>0){
+          if (nrow(tmp_scores)>0 & NQS>1){
             valid = which(round(tmp_scores$SCORES, 1) == max(round(tmp_scores$SCORES,1)))
             tmp_scores = tmp_scores[valid,,drop=FALSE]            
             tmp_scores = tmp_scores[which(!duplicated(tmp_scores$ID)),,drop=FALSE]
@@ -240,7 +243,18 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             tmp_scores$MDIFF = mdiff
             
             score_summary = rbind.data.frame(score_summary, tmp_scores)
-        }}
+          }
+          if (nrow(tmp_scores)>0 & NQS==1){
+            idx = match(tmp_scores$ID, id_selected)
+            tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
+            mdiff = round(abs(qs_mz - as.numeric(tmp_ref$PEPMASS)),3)
+            
+            tmp_scores$QS = qs_metadata$ID[jjj]
+            tmp_scores$MDIFF = mdiff
+            score_summary = rbind.data.frame(score_summary, tmp_scores)
+
+          }
+      }
     }
      #print(score_summary) 
     if (!is.null(score_summary)){
@@ -371,9 +385,15 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       }
     }
     
-    qs_library$metadata$ANNOTATION_ANALOGUE = tmp_annotation
-    qs_library$metadata$SCORE_ANALOGUE = tmp_scores
-    qs_library$metadata$MDIFF_ANALOGUE = tmp_mdiff
+    if (!query_use_prec){ # Annalog
+      qs_library$metadata$ANNOTATION_ANALOGUE = tmp_annotation
+      qs_library$metadata$SCORE_ANALOGUE = tmp_scores
+      qs_library$metadata$MDIFF_ANALOGUE = tmp_mdiff
+    } else {
+      qs_library$metadata$ANNOTATION_EXACT = tmp_annotation
+      qs_library$metadata$SCORE_EXACT = tmp_scores
+    }
+    
     qs_library$metadata$PEPMASS = round(as.numeric(qs_library$metadata$PEPMASS), 3)
     output_library = list(complete = qs_library, consensus = qs_library, network = network_selected)
     return(output_library)
