@@ -123,7 +123,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
   ###################################
   
   qs_library = NULL
-  qs_network = NULL
+  qs_nn = NULL
     
   score_summary = c()
     
@@ -166,16 +166,24 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       if (!is.null(tmp_qs$consensus)) {
         qs_library = tmp_qs$consensus
       } else {qs_library = tmp_qs$complete}
-      if (!is.null(tmp_qs$network)) {qs_network = tmp_qs$network}
+      if (!is.null(tmp_qs$network)) {
+        qs_nn = tmp_qs$network
+        #qs_profile = qs_nn$db_profile
+        #qs_feature = qs_nn$db_feature
+        #qs_nodes = qs_nn$nodes
+        #qs_network = qs_nn$network
+      }
     }
   }
-    
+  
+  # Check, standardize and extract from query library:
+  
   if (!is.null(qs_library)){
     NQS = length(qs_library$sp) # Number of query spectra
     qs_metadata = qs_library$metadata
     qs_metadata$ID = paste0("Query_", qs_metadata$ID)
     qs_sp = qs_library$sp
-    tmp_qs = list(complete = qs_library, consensus = qs_library, network = qs_network)
+    tmp_qs = list(complete = qs_library, consensus = qs_library, network = qs_nn)
   } else {
     NQS = 0
     qs_metadata = NULL
@@ -220,7 +228,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       for (jjj in 1:NQS){
         
         qs_mz = as.numeric(qs_metadata$PEPMASS[jjj])
-        
+
         tmp_scores = process_similarity(qs_sp[[jjj]], 
               polarity = query_polarity, prec_mz = qs_mz, 
               use.prec = query_use_prec, input_library = tmp_library,  
@@ -256,8 +264,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
           }
       }
     }
-     #print(score_summary) 
-    if (!is.null(score_summary)){
+    
+      if (!is.null(score_summary)){
         if (nrow(score_summary)>0){
           
           # Update 
@@ -269,7 +277,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
           complete_selected = list(metadata =  complete_selected$metadata[idx,,drop=FALSE], sp = complete_selected$sp[idx])
           
           idx = match(score_ids, consensus_selected$metadata$ID)
-          consensus_selected = list(metadata =  consensus_selected$metadata[idx,,drop=FALSE], sp = consensus_selected$sp[idx])
+          consensus_selected = list(metadata = consensus_selected$metadata[idx,,drop=FALSE], sp = consensus_selected$sp[idx])
           
       }}  
   }
@@ -309,7 +317,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
 
     # Network of query spectra
     
-    test_network = tmp_qs$network$network
+    test_network = qs_nn$network
     
     if (NQS>1 & is.null(test_network)){
     
@@ -361,6 +369,9 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     }
            
     query_network = cbind.data.frame(query_network, reaction = reaction_annotated, reaction_formula = reaction_formula)
+    
+    # Update network selected only when library network is not empty
+    
     network_selected = list(db_profile = db_profile, db_feature = db_feature, nodes = query_nodes, network = query_network)
   }
   
@@ -395,6 +406,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     }
     
     qs_library$metadata$PEPMASS = round(as.numeric(qs_library$metadata$PEPMASS), 3)
+    if (is.null(network_selected$network)) {network_selected = qs_nn}
+    
     output_library = list(complete = qs_library, consensus = qs_library, network = network_selected)
     return(output_library)
   }
@@ -409,7 +422,6 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     output_library = list(complete = complete_selected, consensus = consensus_selected, network = network_selected)
     return(output_library)
   }
-  
 }
 
 ##########################

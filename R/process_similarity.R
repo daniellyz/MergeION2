@@ -145,7 +145,9 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
+  NP_reference = as.numeric(as.character(NP_reference)) # Convert NULL to NA
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
+  nb_matches = as.numeric(as.character(nb_matches))
 
   if (method == "Precision"){
     sim = nb_matches/NP_query
@@ -192,8 +194,12 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     sim = cor(dat_weighted, db_profile_weighted, method = "pearson")/2 + 0.5
   }
   
-  if (is.na(sim)){sim = 0}
-  if (sim>1){sim = 1}
+  #if (is.na(sim)){sim = 0}
+  #if (sim>1){sim = 1}
+  
+  sim[is.na(sim)] = 0
+  sim[sim>1] = 1
+  
   sim = round(as.numeric(sim),2)
   sim.scores = cbind.data.frame(ID = colnames(db_profile), PEAK.MATCHES = nb_matches, SCORES = sim)
 

@@ -475,7 +475,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   if (!is.null(NN)){
     
     if (NN>1 & params.consensus$consensus){
-      
+    
     library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
