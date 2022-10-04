@@ -6,7 +6,7 @@
 \usage{
 dataForPlotly(
   input_library,
-  id,
+  id = NULL,
   type = c("complete", "consensus"),
   query_spectrum = NULL
 )

@@ -68,7 +68,7 @@ dataForPlotly <- function(input_library,
 	
 # collapse all spectrum into one data frame
 	spectrum <- do.call("rbind", spectrum_list) %>% as_tibble()
-	#colnames(spectrum) <- c("m/z", "Intensity")
+	if(ncol(spectrum) == 2) colnames(spectrum) <- c("m/z", "Intensity")
 	
 # prepare all metadata
 	metadataExpand <- metadata[rep(1:nrow(metadata), times= unlist(lapply(spectrum_list, nrow))), ]
@@ -81,7 +81,7 @@ dataForPlotly <- function(input_library,
 			#.$SCANS %>% unique
 			mutate(ID = readr::parse_factor(ID)) %>%
 			group_by(ID, MSLEVEL) %>% filter(SCANS == max(SCANS)) %>%
-			mutate(prettyIntensity = format(Intensity, digits = 4, trim = TRUE)) %>%
+			#mutate(prettyIntensity = format(Intensity, digits = 4, trim = TRUE)) %>%
 			#filter(Intensity > max(Intensity)*0.05) %>%
 			#slice(1:100) %>%
 			mutate(MSLEVEL = paste("MSLEVEL:", MSLEVEL)) %>%
@@ -167,7 +167,6 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 					text = paste( as_string(y), ": ",format({{y}}, digits = 4, trim = TRUE),
 							 "\n",as_string(x), ": ", format({{x}}, digits = 4, trim = TRUE),
 							 "\n ",as_string(colorVar), ": ", {{colorVar}},
-							  "\ntest: ",   Frag_Sub, 
 							 sep = "") ,
 					color = {{colorVar}}))
 }

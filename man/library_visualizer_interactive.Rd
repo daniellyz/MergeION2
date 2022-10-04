@@ -9,7 +9,8 @@ library_visualizer_interactive(
   x = "m/z",
   y = Intensity,
   colorVar = ID,
-  facetVar = MSLEVEL
+  facetVar = MSLEVEL,
+  title = ""
 )
 }
 \arguments{
