@@ -70,8 +70,9 @@ id_matched = search_result$consensus$metadata$ID
 library_visualizer(library1c, id = id_matched, query_spectrum = query.sp)
 ```
 
-![alt text](https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/Mirror3.PNG){width=50%}
-
+```{r, echo=FALSE, out.width="50%", fig.cap="A nice mirror."}
+knitr::include_graphics("https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/Mirror3.PNG")
+```
 
 # Tutorial 1: Building a local database
 
