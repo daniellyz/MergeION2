@@ -414,6 +414,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     
   if (NQS==1){
     consensus_selected$metadata$SCORE_MERGEION = score_summary$SCORES
+    if (is.null(score_summary)){
+      consensus_selected = NULL
+      complete_selected = NULL
+    }
     output_library = list(complete = complete_selected, consensus = consensus_selected, network = network_selected)
     return(output_library)
   }
