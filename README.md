@@ -19,6 +19,7 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 options(timeout=9999999)
 install.packages("remotes")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
+remotes::install_github("daqana/dqshiny")
 BiocManager::install("daniellyz/MergeION2")
 ```
 
