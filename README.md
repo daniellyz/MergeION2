@@ -11,6 +11,10 @@ Several library search algorithms are available, allowing users to search and an
 For MAC users, please first install XQuartz: https://www.xquartz.org/
 
 For WINDOWS users, please first make sure JAVA is installed: https://www.java.com/download/ie_manual.jsp
+```R
+Sys.setenv(JAVA_HOME="C:/Program Files/Java/...)"
+library(rJava)
+```
 
 ```R
 # Install BiocManager if it has not been installed previously:
