@@ -35,7 +35,7 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, s
 	if (!is.character(query)){
 		stop("Query expression is not valid!")}
 	
-	if (query!=""){
+	if (all(query!="") & (length(query) > 0)){
 		
 		indexes_list = list()
 		NI = 0
