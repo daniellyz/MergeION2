@@ -36,7 +36,7 @@ library_query(
 
 \item{params.query.sp}{Parameters for matching an unknown spectra
 \itemize{
-  \item{prec_mz:}{ Numeric. Precursor mass of query spectrum.}
+  \item{prec_mz:}{ Numeric. Precursor mass of query spectrum. Not used query_library is used.}
   \item{use_prec:}{ Boolean. If set to TRUE, precursor mass is used to "pre-query" the library.}
   \item{polarity:}{ Character. Ion mode of the query spectrum, either positive or negative.}
   \item{method:}{ Character. Similarity metrics.}

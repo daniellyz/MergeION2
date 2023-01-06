@@ -136,9 +136,10 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   old_lib = old_consensus = old_network = NULL
   
   if (!is.null(input_library)){
-    old_lib = library_reader(input_library)$complete
-    old_consensus = input_library$consensus
-    old_network  = input_library$network
+    if (is.character(input_library)){input_library = library_reader(input_library)}
+      old_lib = input_library$complete
+      old_consensus = input_library$consensus
+      old_network  = input_library$network
   }
   
   if (!is.null(lcms_files)){
@@ -413,7 +414,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                             rt_search = params.search$rt_search, ppm_search = params.search$ppm_search, 
                             baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
                             recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
-      
+
       LL12 = length(dat12$sp) # Added library size
       
       if (LL12>0){

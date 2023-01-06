@@ -29,16 +29,14 @@ library_combiner<-function(...){
     for (i in 1:NL){
       
       tmp_library = library_reader(all_libraries[[i]])
-  #print(tmp_library)
+
       # Complete:
       
       combined_metadata1 = rbind.fill(combined_metadata1, tmp_library$complete$metadata)
       combined_sp1 = c(combined_sp1, tmp_library$complete$sp)
       
       # Consensus:
-      if (i==2){
-        print(tmp_library$consensus$metadata)
-      }
+
       if (!is.null(tmp_library$consensus$metadata)){
         combined_metadata2 = rbind.fill(combined_metadata2, tmp_library$consensus$metadata)
         combined_sp2 = c(combined_sp2, tmp_library$consensus$sp)

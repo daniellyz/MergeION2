@@ -44,7 +44,7 @@ Imports:
     magrittr,
     rlang
 Remotes: WMBEdmands/compMS2Miner
-SystemRequirements: OpenBabel
+SystemRequirements: OpenBabel, Java JDK 8 or higher
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GNU
 LazyData: true

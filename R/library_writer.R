@@ -161,6 +161,9 @@ writeMSP2 <- function(library, con) {
     ind = which(colnames(new_metadata)=="Ion_mode")
     .cat("Ion_mode: ",as.character(new_metadata[i,ind]),"\n")
     
+    ind = which(colnames(new_metadata)=="SMILES")
+    .cat("SMILES: ",as.character(new_metadata[i,ind]),"\n")
+    
     .cat("Comments: \n")
     
     sp=splist[[i]]
