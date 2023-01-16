@@ -104,7 +104,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     
   # Filter on query expressions:
     
-    if (query_expression!=""){
+    if (any(query_expression!="")){
       if (!is.null(input_library$complete$metadata)){
         input_library$complete = process_query(input_library$complete, query = query_expression, ppm_search, rt_search)$SELECTED
       }   
