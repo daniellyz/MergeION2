@@ -1,10 +1,5 @@
 
 
-# input_library <- library_reader("//10.157.249.83/share/mergeion/JANSSEN_COMPLETE.RData")
-# input_library<- library_reader("//10.157.249.83/share/mergeion/JANSSEN_CONSENSUS_POS_SUBSTRUCTURE.RData")
-# id =  input_library$complete$metadata$ID[1]
-# type = "complete"
-
 #' Function to generate data for interactive visulization
 #' @inheritParams library_visualizer
 #' @importFrom rex rex
@@ -90,13 +85,6 @@ dataForPlotly <- function(input_library,
 }
 
 
-
-# input_library <- library_reader("//10.157.249.83/share/mergeion/JANSSEN_COMPLETE.RData")
-#plotData <- dataForPlotly(input_library = input_library, 
-#		id = input_library$complete$metadata$ID[1:100], 
-#		type = "complete")
-
-#library_visualizer_interactive(plotData = plotData, x = 1, y = "Intensity")
 
 #' Interactive spectral plot
 #' @param plotData A data frame used to plot
