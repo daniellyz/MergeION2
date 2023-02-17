@@ -16,6 +16,7 @@ For WINDOWS users, please use the newest 64 bit version of R, and first make sur
 Sys.setenv(JAVA_HOME="C:/Program Files/Java/...)"
 library(rJava)
 ```
+Please check this forum post if you encounter errors: https://support.microsoft.com/en-us/topic/qa-when-i-try-to-load-the-rjava-package-using-the-library-command-i-get-an-error-531cb2e1-6ee1-5f5f-e4cf-40b819b5aaa3
 
 ```R
 # Install BiocManager if it has not been installed previously:
@@ -82,7 +83,7 @@ library_visualizer(library1c, id = id_matched, query_spectrum = query.sp)
 
 # Tutorial 1: Building a local database
 
-Onging
+The tutorial is available at: https://daniellyz.github.io/mergeion.github.io/Library_Generation.html
 
 # Tutorial 2: Forced degradation data analysis
 
