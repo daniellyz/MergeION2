@@ -28,8 +28,8 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 options(timeout=9999999)
 install.packages("remotes")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
-remotes::install_github("daqana/dqshiny")
-remotes::install_github("schymane/RChemMass")
+remotes::install_github("daqana/dqshiny", force = T)
+remotes::install_github("schymane/RChemMass", force = T)
 BiocManager::install("daniellyz/MergeION2")
 ```
 
