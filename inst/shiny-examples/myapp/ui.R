@@ -1,16 +1,16 @@
 
 options(shiny.maxRequestSize=100*1024^2) 
 options(stringsAsFactors = F)
+memory.limit(size=1000000000)
 
 library(shiny)
-library("V8")
+#library("V8")
 library(shinyjs)
 library(MergeION)
 library(formattable)
 library(stringr)
 library(DT) 
-library(prozor)
-library(markdown)
+#library(markdown)
 library(RChemMass)
 
 #data(JANSSEN_POS)
@@ -72,10 +72,7 @@ shinyUI(navbarPage("meRgeION WEBTOOL 2.0 (Library Search)",
                       selectInput("prec_polarity", h4("Polarity of query spectrum:"), choices=c("Positive", "Negative")),  
                      
                       br(),
-                      textInput("prec_mz", h4("Precursor mass:"), value = "10000"),
-              
-                      br(),
-                      textInput("prec_rt", h4("Retention time in min [Optional]:"), value = "")),
+                      textInput("prec_mz", h4("Precursor mass:"), value = "10000")),
 
                             
                column(4,
@@ -83,7 +80,7 @@ shinyUI(navbarPage("meRgeION WEBTOOL 2.0 (Library Search)",
                       checkboxInput("use_prec", h4("Searching precursor mass"), TRUE, width = "200%"),
                       
                       br(),
-                      numericInput("ppm_search", h5("Mass tolerance for precursor mass (ppm)"), min = 0, max = 20, value = 3, width = '500px'),
+                      numericInput("ppm_search", h4("Mass tolerance for precursor mass (ppm)"), min = 0, max = 20, value = 3, width = '500px'),
                       
                       br(),
                       h4("Mass tolerance for fragment matching (Da):"),

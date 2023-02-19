@@ -1,20 +1,17 @@
 
 options(shiny.maxRequestSize=10000*1024^2) 
 options(stringsAsFactors = F)
+memory.limit(size=1000000000)
 
 library(shiny)
-library(V8)
+#library(V8)
 library(shinyjs)
 library(MergeION)
 library(formattable)
 library(stringr)
 library(DT) 
-library(prozor)
-library(markdown)
+#library(markdown)
 library(RChemMass)
-library(pracma)
-library(plyr)
-library(tools)
 
 shinyServer(function(input, output,clientData, session) {
   
@@ -107,6 +104,7 @@ shinyServer(function(input, output,clientData, session) {
   
     candidates = NULL
     mms = ""
+    query_expression = ""
     
     library_name = input$db_source$name
     library_file = input$db_source$datapath
@@ -114,10 +112,6 @@ shinyServer(function(input, output,clientData, session) {
     params.search = list(mz_search = input$mz_search, ppm_search = input$ppm_search, rt_search = 10, rt_gap = 30)
     params.query.sp = list(prec_mz = as.numeric(input$prec_mz), use_prec = input$use_prec, polarity = input$prec_polarity, method = input$sim_methods, min_frag_match = 5, min_score = 0, reaction_type = "Metabolic")
 
-    if (input$prec_rt!=""){
-      query_expression = paste0("RT = ", input$prec_rt)
-    } else {query_expression = ""}
-    
     if (!is.null(query_spectrum)){
 
       candidates = library_query(input_library = library_file, query_expression = query_expression, 
@@ -145,9 +139,11 @@ shinyServer(function(input, output,clientData, session) {
 
       if (!is.null(candidate_table)){
             if (nrow(candidate_table)>0){
-            #candidate_table = candidate_table[,c("ID", "PEPMASS", "FORMULA", "NAME","SCORE_MERGEION")]
-            candidate_table = candidate_table[,c("ID", "PEPMASS", "FORMULA","SCORE_MERGEION")]
-            candidate_table= datatable(candidate_table, rownames = FALSE, escape= rep(TRUE, 4), selection = "single", options = list(pageLength=5))
+            ref_names = c("ID", "PEPMASS", "FORMULA","SMILES","SCORE_MERGEION")
+            idx= match(ref_names, colnames(candidate_table))
+            idx = idx[which(!is.na(idx))]
+            candidate_table = candidate_table[,idx]
+            candidate_table= datatable(candidate_table, rownames = FALSE, escape= rep(TRUE, length(idx)), selection = "single", options = list(pageLength=5))
       }}
       return(candidate_table)
     })
