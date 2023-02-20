@@ -7,9 +7,9 @@
 library_visualizer_interactive(
   plotData,
   x = "m/z",
-  y = Intensity,
-  colorVar = ID,
-  facetVar = MSLEVEL,
+  y = "Intensity",
+  colorVar = "ID",
+  facetVar = "MSLEVEL",
   title = ""
 )
 }

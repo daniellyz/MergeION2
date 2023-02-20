@@ -27,17 +27,15 @@ library_visualizer(
 The function plots mass spectra of selected compound in a library
 }
 \examples{
-
 data(DRUG_THERMO_LIBRARY)
 
 # Search library using query command lines:
-query = library_manager(library2,query=c("IONMODE=Positive","RT=1.2"), logical="AND", rt_search=6)
-
+ query = process_query(library2,query=c("IONMODE=Positive"),  rt_search=6, sepString = "@xxx@")
 # Visualize the first compound found:
-library_visualizer(query$SELECTED, id = query$ID_SELECTED[1])
+ library_visualizer(query$SELECTED, id = "1")
 
 # Plot against query spectrum:
 query_spectrum = cbind(c(71.084, 89.6, 455.178), c(90,40,39))
-library_visualizer(library2, id = "Selexipag", query_spectrum) 
+library_visualizer(library2, id = "1", query_spectrum,  type = "complete") 
 
 }

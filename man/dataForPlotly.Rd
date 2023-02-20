@@ -8,7 +8,9 @@ dataForPlotly(
   input_library,
   id = NULL,
   type = c("complete", "consensus"),
-  query_spectrum = NULL
+  query_spectrum = NULL,
+  t = 0.25,
+  b = 10
 )
 }
 \arguments{
@@ -19,6 +21,10 @@ dataForPlotly(
 \item{type}{Character. "Complete" if raw specra are visualized. "Consensus" if consensus spectra are visualized}
 
 \item{query_spectrum}{Two-column data matrix. Optional for mirror plot. Two columns represent m/z and intensity of query tandem spectrum.}
+
+\item{t}{numeric value specifying the tolerance used to align the m/z values of the two spectra (used in calculating consine similarity score), 0.25 by default.}
+
+\item{b}{numeric value specifying the baseline threshold for peak identification. Expressed as a percent of the maximum intensity (used in calculating consine similarity score), 10 by default.}
 }
 \value{
 a dataframe with m/z, intensity, ID and all the metadata columns from \code{input_library} metadata
