@@ -81,7 +81,7 @@ id_matched = search_result$consensus$metadata$ID
 library_visualizer(library1c, id = id_matched, query_spectrum = query.sp)
 ```
 
-![Alt text](https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/Mirror3.PNG "Mirror Cinnarizine")
+![Alt text](https://github.com/daniellyz/MergeION2/raw/master/inst/mirror.png "Mirror Cinnarizine")
 
 ## Calling a GUI for compound annotation
 
