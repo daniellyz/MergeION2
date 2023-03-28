@@ -84,6 +84,7 @@ dataForPlotly <- function(input_library,
 	if(is.null(	query_spectrum)){
 		plotData <- bind_cols(spectrum, metadataExpand)
 		
+ if(!requireNamespace("readr", quietly = TRUE)) install.packages("readr")
 # for each ID, MSLELVE select the largest scan
 		plotData %<>% 
 				#.$SCANS %>% unique
@@ -171,7 +172,8 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 		y = "Intensity", 
 		colorVar = "ID", 
 		facetVar = "MSLEVEL",
-		title = ""){
+		title = "",
+		returnData = FALSE){
 	
 	
 	
@@ -184,7 +186,8 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 #	
 		plotData$key <- 1:nrow(plotData)
 		
-		plotData %<>% filter(Intensity != 0) %>% mutate(Intensity2 = ifelse(set == "Reference", -Intensity, Intensity))
+		plotData %<>% filter(Intensity != 0) %>% 
+				mutate(Intensity2 = ifelse(set == "Reference", -Intensity, Intensity))
 		
 		p <- ggplot(data = plotData,aes(x = `m/z`, y = 0, text = paste0("Intensity: ",Intensity, "%\n",
 										"m/z:", `m/z`, "\n", set), key = key)) + 
@@ -265,10 +268,9 @@ library_visualizer_interactive <- function(plotData, x = "m/z",
 	
 	
 	p <- p + ggtitle(title)
-	p
+	if(returnData) return(list(data = plotData, plot = p)) else return(p)
 	
-	
-	
+
 }
 
 

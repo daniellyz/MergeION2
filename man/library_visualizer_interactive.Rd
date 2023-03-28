@@ -10,7 +10,8 @@ library_visualizer_interactive(
   y = "Intensity",
   colorVar = "ID",
   facetVar = "MSLEVEL",
-  title = ""
+  title = "",
+  returnData = FALSE
 )
 }
 \arguments{
