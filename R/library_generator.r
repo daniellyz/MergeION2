@@ -8,6 +8,7 @@
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
 #' @param mslevel A numeric vector. 1 or 2 or c(1,2). 2 if MS2 scans are extracted, 1 if isotopic pattern of the precursor mass in the MS1 scan is extracted. c(1,2) if both MS1 and MS2 scans are extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
 #' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.
+#' @param adductType. User-specified adduct type, default is NULL. Set `add.adduct` to TRUE and specify `adductType` to fiter records limited to `adductType` before appending the additional adduct types.
 #' @param processing.algorithm A single character. "Default", "compMS2Miner" or "RMassBank". 
 #' @param params.search Parameters for searching and collecting ions from chromatogram files in a list. These parameters define the tolerance window when input metadata is searched. The list must contain following elements:
 #' \itemize{
@@ -111,7 +112,7 @@
 #' save(lib3, file = "test_RMassBank_consensus_network.RData")  # Save the library as RData
 #' 
 library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_file = NULL, 
-                  polarity = c("Positive", "Negative")[1], mslevel = c(1, 2), add.adduct = TRUE,
+                  polarity = c("Positive", "Negative")[1], mslevel = c(1, 2), add.adduct = TRUE, adductType = NULL,
                   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
                   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30), 
                   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
@@ -281,7 +282,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     if (!("SMILES" %in% colnames(ref))){stop("To use RMassBank algorithm, SMILES must be provided!")}
     if (!("FILENAME" %in% colnames(ref))){stop("To use RMassBank algorithm, please provide LC-MS file name corresponding to each compound!")}
   }
-    target.ref = process_metadata(ref, processing.algorithm, polarity, add.adduct)
+    target.ref = process_metadata(ref, processing.algorithm, polarity, add.adduct, adductType)
     if (nrow(target.ref)==0){target.ref= NULL}
   }
   
