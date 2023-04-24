@@ -194,7 +194,7 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
    ###########################
    ####Filter empty spectra###
    ###########################
-      
+
   filter = which(sapply(output_sp, nrow)>0)
   output_metadata = output_metadata[filter,,drop=FALSE]
   output_sp = output_sp[filter]
@@ -272,12 +272,13 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
     }), "SimpleList")
     suppressWarnings(do.call(progressbar, list(object = pb, 
                                                close = TRUE)))
-
   }
+  
   if (3 %in% steps) {
     message("msmsWorkflow: Step 3. Aggregate all spectra")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete = TRUE)
+    w@aggregated <- aggregateSpectra1(w@spectra, addIncomplete = TRUE)
   }
+  
   if (allUnknown) {
     w@aggregated$noise <- FALSE
     w@aggregated$noise <- FALSE
@@ -296,7 +297,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
   if (4 %in% steps) {
     message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
     if (newRecalibration) {
-      recal <- makeRecalibration(w, mode, recalibrateBy = settings$recalibrateBy, 
+      recal <- makeRecalibration1(w, mode, recalibrateBy = settings$recalibrateBy, 
                                  recalibrateMS1 = settings$recalibrateMS1, recalibrator = settings$recalibrator, 
                                  recalibrateMS1Window = settings$recalibrateMS1Window)
       w@rc <- recal$rc
@@ -305,7 +306,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
     w@parent <- w
     w@aggregated <- data.frame()
     spectra <- recalibrateSpectra(mode, w@spectra, w = w, 
-                                  recalibrateBy = settings$recalibrateBy, recalibrateMS1 = settings$recalibrateMS1)
+              recalibrateBy = settings$recalibrateBy, recalibrateMS1 = settings$recalibrateMS1)
     w@spectra <- spectra
   }
   if (5 %in% steps) {
@@ -333,7 +334,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
   }
   if (6 %in% steps) {
     message("msmsWorkflow: Step 6. Aggregate recalibrated results")
-    w@aggregated <- aggregateSpectra(w@spectra, addIncomplete = TRUE)
+    w@aggregated <- aggregateSpectra1(w@spectra, addIncomplete = TRUE)
     if (!is.na(archivename)) 
       archiveResults(w, paste(archivename, ".RData", 
                               sep = ""), settings)
@@ -798,6 +799,53 @@ analyzeMsMs1<-function (msmsPeaks, mode = "pH", detail = FALSE, run = "prelimina
   return(r)
 }
 
+aggregateSpectra1 <- function (spec, addIncomplete = FALSE){
+  if (addIncomplete) 
+    aggSpectra <- selectSpectra(spec, "found", "object")
+  else aggSpectra <- selectSpectra(spec, "complete", 
+                                   "object")
+  compoundTables <- lapply(aggSpectra, function(s) {
+    tables.c <- lapply(s@children, function(c) {
+      table.c <- getData(c)
+      table.c <- table.c[table.c$rawOK, , drop = FALSE]
+      table.c$rawOK <- NULL
+      table.c$low <- NULL
+      table.c$satellite <- NULL
+      table.c$scan <- rep(c@acquisitionNum, nrow(table.c))
+      return(table.c)
+    })
+    table.cpd <- do.call(rbind, tables.c)
+    columnNames <- c("mzCalc", "formula", "dbe", 
+                     "formulaCount", "dppm", "dppmBest")
+    if (all(!(columnNames %in% colnames(table.cpd)))) 
+      for (columnName in columnNames) table.cpd[, columnName] <- as.numeric(rep(x = NA, 
+                                                                                times = nrow(table.cpd)))
+    
+    table.cpd$cpdID <- rep(s@id, nrow(table.cpd))
+    if (length(s@name)==0){s@name = "N/A"}
+    table.cpd$name <- rep(s@name, nrow(table.cpd))
+    table.cpd$parentScan <- rep(s@parent@acquisitionNum, 
+                                nrow(table.cpd))
+    return(table.cpd)
+  })
+  aggTable <- do.call(rbind, compoundTables)
+  if (is.null(aggTable)) 
+    aggTable <- data.frame(mz = numeric(), intensity = numeric(), 
+                           good = logical(), mzCalc = numeric(), formula = character(), 
+                           dbe = numeric(), formulaCount = integer(), dppm = numeric(), 
+                           dppmBest = numeric(), scan = integer(), cpdID = integer(), 
+                           parentScan = integer(), stringsAsFactors = FALSE)
+  colnames(aggTable)[1] <- "mzFound"
+  aggTable <- addProperty(aggTable, "dppmRc", "numeric")
+  aggTable <- addProperty(aggTable, "index", "integer")
+  if (nrow(aggTable) > 0) 
+    aggTable$index <- 1:nrow(aggTable)
+  aggTable[aggTable$good, "dppmRc"] <- (aggTable[aggTable$good, 
+                                                 "mzFound"]/aggTable[aggTable$good, "mzCalc"] - 
+                                          1) * 1e+06
+  return(aggTable)
+}
+
 ###############################
 ###Post-Processing functions ##
 ###############################
@@ -885,6 +933,42 @@ decimalplaces <- function(x){
   } else {
     return(0)
   }
+}
+
+makeRecalibration1<-function (w, mode, recalibrateBy = getOption("RMassBank")$recalibrateBy, 
+                              recalibrateMS1 = getOption("RMassBank")$recalibrateMS1, 
+                              recalibrator = getOption("RMassBank")$recalibrator, 
+                              recalibrateMS1Window = getOption("RMassBank")$recalibrateMS1Window) 
+{
+  if (is.null(w@spectra)) 
+    stop("No spectra present to generate recalibration curve.")
+  rcdata <- peaksMatched(w)
+  rcdata <- rcdata[!is.na(rcdata$formulaCount) & rcdata$formulaCount == 
+                     1, , drop = FALSE]
+  rcdata <- rcdata[, c("mzFound", "dppm", "mzCalc")]
+  if (nrow(rcdata) == 0) 
+    stop("No peaks matched to generate recalibration curve.")
+  ms1data <- recalibrate.addMS1data(w@spectra, mode, recalibrateMS1Window)
+  ms1data <- ms1data[, c("mzFound", "dppm", "mzCalc")]
+  if (recalibrateMS1 != "none") {
+    rcdata <- rbind(rcdata, ms1data)
+  }
+  rcdata$dmz <- rcdata$mzFound - rcdata$mzCalc
+  ms1data$dmz <- ms1data$mzFound - ms1data$mzCalc
+  if (recalibrateBy == "dppm") {
+    rcdata$recalfield <- rcdata$dppm
+    ms1data$recalfield <- ms1data$dppm
+  }
+  else {
+    rcdata$recalfield <- rcdata$dmz
+    ms1data$recalfield <- ms1data$dmz
+  }
+  rc <- do.call(recalibrator$MS2, list(rcdata))
+  if (recalibrateMS1 == "separate") 
+    rc.ms1 <- do.call(recalibrator$MS1, list(ms1data))
+  else rc.ms1 <- rc
+  
+  return(list(rc = rc, rc.ms1 = rc.ms1))
 }
 
 cut_mz_list<-function(mzlist, mz_window){

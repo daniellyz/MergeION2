@@ -21,11 +21,11 @@
 #'
 #' @examples
 #' 
-#' url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
+#'\dontrun{ url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
 #' 
-#' test = read.table(url_test, header = F, sep=" ")
+#' test = read.table(url_test, header = FALSE, sep=" ")
 #' 
-#' results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))
+#' results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))}
 #'
 #' @export
 
@@ -58,8 +58,7 @@ library_messar<-function(query_spectrum =NULL, params.search = list(mz_search = 
     rule_nloss = drug_rule_nloss
    # rules_training = drug_rules_training
   } else {data(METABOLITE_RULE_DB)}
-  #else {load("C:\\Users\\YLiu186\\OneDrive - JNJ\\Desktop\\TractION\\MergeION\\MergeION2\\data\\METABOLITE_RULE_DB.RData")}
-  
+
   ###############################
   ### Preprocess query spectrum:#
   ###############################

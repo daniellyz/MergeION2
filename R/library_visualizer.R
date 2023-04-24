@@ -9,18 +9,16 @@
 #' @param add.legend Boolean. If TRUE, figure legend is added.
 #' 
 #' @examples
-#'
 #' data(DRUG_THERMO_LIBRARY)
 #'
 #' # Search library using query command lines:
-#' query = library_manager(library2,query=c("IONMODE=Positive","RT=1.2"), logical="AND", rt_search=6)
-#'
+#'  query = process_query(library2,query=c("IONMODE=Positive"),  rt_search=6, sepString = "@xxx@")
 #' # Visualize the first compound found:
-#' library_visualizer(query$SELECTED, id = query$ID_SELECTED[1])
+#'  library_visualizer(query$SELECTED, id = "1")
 #' 
 #' # Plot against query spectrum:
 #' query_spectrum = cbind(c(71.084, 89.6, 455.178), c(90,40,39))
-#' library_visualizer(library2, id = "Selexipag", query_spectrum) 
+#' library_visualizer(library2, id = "1", query_spectrum,  type = "complete") 
 #'
 #' @export
 #'
@@ -33,7 +31,7 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-  max_display = 100 # Display text of 5 most abundant mass peaks and higher than 5%
+  max_display = 10 # Display text of 5 most abundant mass peaks and higher than 5%
 
   #####################################
   ### Reading from spectral library:###
@@ -78,7 +76,10 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
       scan1 = max(as.numeric(metadata1$SCANS)) # Scan selected
       ind1 = which(as.numeric(metadata$SCANS)==scan1)
-      if (length(ind1)==0){ind1 = sample(1:nrow(metadata), 1)}
+      if (is.na(scan1)){
+        scan1 = max(metadata1$SCANS) # Scan selected
+        ind1 = which(metadata$SCANS==scan1)
+      }
       
       metadata1 = metadata[ind1,]
       spectrum1 = spectrum_list[[ind1]]
@@ -119,7 +120,12 @@ library_visualizer<-function(input_library, id = input_library$metadata$ID[1], t
 
     scan2 = max(as.numeric(metadata2$SCANS)) # Scan selected
     ind2 = which(as.numeric(metadata$SCANS)==scan2)
-
+    
+    if (is.na(scan2)){
+      scan2 = max(metadata2$SCANS) # Scan selected
+      ind2 = which(metadata$SCANS==scan2)
+    }
+    
     metadata2 = metadata[ind2,]
     spectrum2 = spectrum_list[[ind2]]
     prec_mz = round(as.numeric(metadata[ind2,"PEPMASS"]),4)

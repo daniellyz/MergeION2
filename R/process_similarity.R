@@ -7,7 +7,7 @@
 #' @export
 
 process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 100, use.prec = FALSE, input_library = NULL,  
-                              method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST"), 
+                              method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST", "HM", "Entropy"), 
                               prec_ppm_search = 10, frag_mz_search = 0.005, min_frag_match = 6){
   
   options(stringsAsFactors = FALSE)
@@ -16,7 +16,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
 
   if (!is.null(query_spectrum)){if (ncol(query_spectrum)<2){stop("Spectrum must have 2 columns m/z and intensity!")}}
   if (!(polarity %in% c("Positive", "Negative"))){stop("Polarity of query spectrum must be positive or negative")}
-  if (min_frag_match<5){stop("min_frag_match should not be smaller than 5!")}
+  if (min_frag_match<2){stop("min_frag_match should not be smaller than 2!")}
 
   ################################
   ### Preprocess query spectrum:##
@@ -26,6 +26,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.01)
   NP = nrow(dat)
+  dat0 = dat
   
   if (NP<3){
     message("The query spectrum must contain at least 3 valid peaks!")
@@ -37,7 +38,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ###########################################
   
   input_library = library_reader(input_library)
-  
+
   if (is.null(input_library$consensus)){stop("To allow spectral library search, consensus library must be created!")}
   
   db_profile = input_library$network$db_profile
@@ -58,7 +59,11 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     db_feature = db_feature[valid2,,drop=FALSE]
   }
   
-  if (nrow(db_profile)==0){return(NULL)}
+  if (nrow(db_profile)==0){
+    return(NULL)
+  }
+  
+  #else {db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)}
     
   ##############################################
   ### Pre-search common fragment/neutral loss###
@@ -69,7 +74,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   dat1 = c()
   
   for (i in 1:NP){
-    
+
     frags = dat[i,1]
     nls = prec_mz - dat[i,1]
     
@@ -92,7 +97,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   }
   
   rownames(db_profile1) = rownames(db_feature1)
-
+  
   if (is.null(db_profile1)){return(NULL)}
   
   if (!is.null(db_profile1)){
@@ -131,15 +136,13 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ### Calculate Similarity###
   ###########################
 
-  # Normalize first the spectra:
-  
-  dat[,2] = dat[,2]/max(dat[,2])*100 # Normalize
-  db_profile <- apply(db_profile, 2, function(x) x/max(x)*100)
-
   # Calculate useful info:
+  
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
+  NP_reference = as.numeric(as.character(NP_reference)) # Convert NULL to NA
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
+  nb_matches = as.numeric(as.character(nb_matches))
 
   if (method == "Precision"){
     sim = nb_matches/NP_query
@@ -153,6 +156,20 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     sim = 2*(nb_matches/NP_reference*nb_matches/NP_query)/(nb_matches/NP_reference+nb_matches/NP_query)
   }
 
+  if (method == "HM"){
+    # Normalize first the spectra to sum!
+    dat[,2] = dat[,2]/sum(dat[,2]) # Normalize
+    db_profile <- apply(db_profile, 2, function(x) x/sum(x))
+    sim = 2*colSums((dat[,2]*db_profile)/(dat[,2]+db_profile))
+  }
+  
+  if (method == "Dot"){
+    dat[,2] = dat[,2]/sum(dat[,2]) # Normalize
+    db_profile <- apply(db_profile, 2, function(x) x/sum(x))
+    sim = colSums((dat[,2]*db_profile)^2)/(sum((dat[,2]^2))*colSums(db_profile^2))
+    sim = sim/2+0.5  
+  }
+  
   if (method == "Cosine"){
     sim = cor(dat[,2], db_profile, method = "pearson")/2 + 0.5
   }
@@ -173,6 +190,37 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
     sim = cor(dat_weighted, db_profile_weighted, method = "pearson")/2 + 0.5
   }
   
+  if (method == "Entropy"){ 
+    dat[,2] = dat[,2]/sum(dat[,2]) # Normalize
+    
+    global_min = min(apply(db_profile, 2, function(myvector) min(myvector[myvector > 0])))
+    db_profile_imputed = db_profile
+    db_profile_imputed[db_profile_imputed==0] = global_min
+    db_profile_imputed <- apply(db_profile_imputed, 2, function(x) x/sum(x))
+  
+    mixed = (dat[,2]+db_profile_imputed)/2 # 1:1 Mixed
+    mixed = apply(mixed, 2, function(x) x/sum(x)) # Normalize mixed again
+    
+    S_A = -sum(dat[,2]*log(dat[,2], base = exp(1)))
+    #if (S_A<3){S_A = -sum(dat[,2]^(0.25+S_A*0.25)*log(dat[,2]^(0.25+S_A*0.25), base = exp(1)))}
+    
+    S_B = -colSums(db_profile_imputed*log(db_profile_imputed, base = exp(1)))
+    #I_B_bis = db_profile_imputed[,S_B<3,drop=FALSE]^(0.25+S_B[S_B<3]*0.25)
+    #S_B[S_B<3] =  -colSums(I_B_bis*log(I_B_bis, base = exp(1)))
+    
+    S_AB = -colSums(mixed*log(mixed, base = exp(1)))
+    #I_AB_bis = mixed[,S_AB<3,drop=FALSE]^(0.25+S_AB[S_AB<3]*0.25)
+    #S_AB[S_AB<3] = -colSums(I_AB_bis*log(I_AB_bis, base = exp(1)))
+    
+    sim  = 1 - (2*S_AB - S_A - S_B)/log(4, base = exp(1))
+  }
+  
+  #if (is.na(sim)){sim = 0}
+  #if (sim>1){sim = 1}
+  
+  sim[is.na(sim)] = 0
+  sim[sim>1] = 1
+  
   sim = round(as.numeric(sim),2)
   sim.scores = cbind.data.frame(ID = colnames(db_profile), PEAK.MATCHES = nb_matches, SCORES = sim)
 
@@ -180,7 +228,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ### Filter, add formula and output #####
   ########################################
   
-  sim.scores = sim.scores[sim.scores$SCORES>0,,drop=FALSE]
+  sim.scores = sim.scores[sim.scores$SCORES>=0,,drop=FALSE]
   if (nrow(sim.scores)==0){return(NULL)}
   
   if ("FORMULA" %in% colnames(consensus_library$metadata)){

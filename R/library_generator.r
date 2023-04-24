@@ -70,7 +70,7 @@
 #'
 #' @examples
 #'
-#' library(RMassBankData)
+#' \dontrun{ library(RMassBankData)
 #'
 #' input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 #' lcms_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
@@ -78,7 +78,7 @@
 #' 
 #' polarity = "Positive"
 #' mslevel= 2 # Only MS2 scans are extracted!
-#' add.adduct = F # No additional adducts are searched besides M+H 
+#' add.adduct = FALSE # No additional adducts are searched besides M+H 
 #' 
 #' params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15, rt_gap = 30)
 #' params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
@@ -109,7 +109,7 @@
 #' lib3 = library_generator(input_library, lcms_files, metadata_file, 
 #'                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
 #'                       params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)
-#' save(lib3, file = "test_RMassBank_consensus_network.RData")  # Save the library as RData
+#' save(lib3, file = "test_RMassBank_consensus_network.RData")}  # Save the library as RData
 #' 
 library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_file = NULL, 
                   polarity = c("Positive", "Negative")[1], mslevel = c(1, 2), add.adduct = TRUE, adductType = NULL,
@@ -137,9 +137,10 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   old_lib = old_consensus = old_network = NULL
   
   if (!is.null(input_library)){
-    old_lib = library_reader(input_library)$complete
-    old_consensus = input_library$consensus
-    old_network  = input_library$network
+    if (is.character(input_library)){input_library = library_reader(input_library)}
+      old_lib = input_library$complete
+      old_consensus = input_library$consensus
+      old_network  = input_library$network
   }
   
   if (!is.null(lcms_files)){
@@ -414,7 +415,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                             rt_search = params.search$rt_search, ppm_search = params.search$ppm_search, 
                             baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
                             recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
-      
+
       LL12 = length(dat12$sp) # Added library size
       
       if (LL12>0){
@@ -476,7 +477,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   if (!is.null(NN)){
     
     if (NN>1 & params.consensus$consensus){
-      
+    
     library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
         params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
         params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),

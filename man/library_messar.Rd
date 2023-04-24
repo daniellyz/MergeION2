@@ -34,11 +34,11 @@ The function recommends substructures for an unknown spectrum
 }
 \examples{
 
-url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
+\dontrun{ url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
 
-test = read.table(url_test, header = F, sep=" ")
+test = read.table(url_test, header = FALSE, sep=" ")
 
-results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))
+results = library_messar(query_spectrum = test, params.query.sp = list(prec_mz = 195.088, use_prec = T, compound.type = "Drug"))}
 
 }
 \author{

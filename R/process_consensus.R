@@ -56,7 +56,7 @@ process_consensus<-function(input_library, method = c("most_recent", "consensus"
     
     for (ID in ID_list1){
       
-      print(which(ID_list1==ID))
+      #print(which(ID_list1==ID))
       selected_rows = which(metadata1$ID==ID)
       NSR = length(selected_rows)
       

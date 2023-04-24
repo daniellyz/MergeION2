@@ -107,10 +107,10 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         temp_library$consensus$sp = consensus_library$sp[lib_range]
         temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
         temp_library$network$db_feature =  library_matrix$db_feature
-      
+        
         temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, 
-                                         input_library = temp_library, method = sim.method, 
-                                         prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
+                        input_library = temp_library, method = sim.method, 
+                        prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
 
         if (!is.null(temp_scores)){
           NSC = nrow(temp_scores)
@@ -199,6 +199,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
       rt_diff = rep(0, nrow(new_network))
   
       for (k in 1:nrow(new_network)){
+        
         II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
         II2 = which(as.character(metadata$ID) == as.character(new_network$ID2[k]))[1]
         MZ1 = as.numeric(metadata$PEPMASS[II1])
@@ -227,14 +228,15 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ######################################
   
   if (!is.null(new_network)){
-    
+    if (sim.method!="Messar"){
       new_network = new_network[new_network[,"MS2.Similarity"]>=min.score,,drop=FALSE]
+    }
     
-      if (use.reaction){
-        new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
-      }
+    if (use.reaction){
+      new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
+    }
       
-      if (nrow(new_network)==0){new_network = NULL}
+    if (nrow(new_network)==0){new_network = NULL}
     }
   }
   

@@ -36,7 +36,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  #####################
  
  MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
-
+ 
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
  
  if (nrow(ref)==0){MS2_Janssen=NULL}
@@ -57,8 +57,8 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
 
    dev_targets = sapply(as.numeric(ref$PEPMASS),function(x) min(abs(x-targets)))
    valid = which(dev_targets <= 1) #  Find targeted metadata in experimental file!! - faster!
- 
-   ref = ref[valid,]
+
+   ref = ref[valid,,drop=FALSE]
    prec_theo= as.numeric(ref$PEPMASS)
    prec_rt=as.numeric(ref$RT)*60 # Allow N/A
    
@@ -69,11 +69,10 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
    if (nrow(ref)>0){
 
       for (i in 1:nrow(ref)){
-
+        
         # 1. Define a wide search range based on targeted precursor mass
         
         scan_range = which(abs(MS2_prec_mz-prec_theo[i])<1 & MS2_tic>baseline) 
-        
         if (!is.na(prec_rt[i])){
             time_range = which(MS2_prec_rt >= prec_rt[i] - rt_search & MS2_prec_rt <= prec_rt[i] + rt_search)
             scan_range = intersect(scan_range,time_range)
@@ -168,7 +167,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
                 scan_merged = scan_merged$new_spectrum
                 
                 MS2_scan_list[[NNN+vvv]] = scan_merged
-                new_MS2_meta_data = rbind(new_MS2_meta_data,ref[i,])
+                new_MS2_meta_data = rbind(new_MS2_meta_data,ref[i,,drop=FALSE])
             }
             
        NNN=NNN+NV
@@ -219,8 +218,8 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
     id_kept = unique(new_MS2_meta_data$ID)
     ref = ref[match(id_kept,ref$ID),,drop=FALSE]
    } 
-  }}
-  
+   }}
+
   if (!is.null(new_MS2_meta_data)){
     if (nrow(new_MS2_meta_data)==0){  
       print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))

@@ -5,13 +5,58 @@ Version: 0.2
 Date: 2020-06-20
 Author: Youzhong LIU <YLiu186@ITS.JNJ.com>
 Maintainer: Youzhong LIU <YLiu186@ITS.JNJ.com>
-Depends: R (>= 3.6), Rcpp, rcdklibs, ggplot2
-Imports: BiocGenerics, RMassBank, RMassBankData, mzR, compMS2Miner, rcdk, webchem, MSnbase, tools, xcms, BiocStyle, stringr, utils, plyr, pracma, OrgMassSpecR, CAMERA, proxy, bigmemory, igraph
-Remotes: WMBEdmands/compMS2Miner
-SystemRequirements: OpenBabel
+Depends: 
+    R (>= 3.6)
+Imports: 
+    BiocGenerics,
+    RMassBank,
+    mzR,
+    compMS2Miner,
+    rcdk,
+    webchem,
+    MSnbase,
+    tools,
+    xcms,
+    BiocStyle,
+    stringr,
+    utils,
+    plyr,
+    pracma,
+    OrgMassSpecR,
+    CAMERA,
+    proxy,
+    bigmemory,
+    igraph,
+    ggplot2,
+    rex,
+    remotes,
+    plotly,
+    Rcpp,
+    rcdklibs,
+    shiny,
+    shinydashboard,
+    purrr,
+    magick,
+    dplyr,
+    DT,
+    dqshiny,
+    tibble,
+    magrittr,
+    rlang,
+    tidyr
+Remotes: WMBEdmands/compMS2Miner,
+         daqana/dqshiny
+SystemRequirements: OpenBabel, Java JDK 8 or higher
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GNU
 LazyData: true
-RoxygenNote: 7.1.2
-Suggests: knitr, rmarkdown, RMassBankData, gplots
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+Suggests: 
+    knitr,
+    rmarkdown,
+    RMassBankData,
+    gplots,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3

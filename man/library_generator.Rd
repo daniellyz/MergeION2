@@ -97,7 +97,7 @@ The function proposes three data processing algorithms to pick up MS1/MS2 scans 
 }
 \examples{
 
-library(RMassBankData)
+\dontrun{ library(RMassBankData)
 
 input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 lcms_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
@@ -105,7 +105,7 @@ metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names
 
 polarity = "Positive"
 mslevel= 2 # Only MS2 scans are extracted!
-add.adduct = F # No additional adducts are searched besides M+H 
+add.adduct = FALSE # No additional adducts are searched besides M+H 
 
 params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15, rt_gap = 30)
 params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
@@ -136,7 +136,7 @@ params.network = list(network = T, similarity_method = "Cosine", min_frag_match 
 lib3 = library_generator(input_library, lcms_files, metadata_file, 
                       polarity = "Positive", mslevel, add.adduct, processing.algorithm,
                       params.search, params.ms.preprocessing, params.consensus, params.network, params.user = params.user)
-save(lib3, file = "test_RMassBank_consensus_network.RData")  # Save the library as RData
+save(lib3, file = "test_RMassBank_consensus_network.RData")}  # Save the library as RData
 
 }
 \author{

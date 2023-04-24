@@ -15,7 +15,7 @@ process_compMS2Miner<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Pos
   
   options(stringsAsFactors = F)
   options(warn=-1)
-  #library(compMS2Miner)
+  library(compMS2Miner)
   
   output_metadata = c()
   output_sp = list()
