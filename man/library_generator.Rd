@@ -11,6 +11,7 @@ library_generator(
   polarity = c("Positive", "Negative")[1],
   mslevel = c(1, 2),
   add.adduct = TRUE,
+  adductType = NULL,
   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
@@ -84,6 +85,8 @@ library_generator(
   \item{user_name:}{ Character. User name who process the batch of lc-ms files.}
   \item{comments:}{ Character. Additional comments about the samples added.}
 }}
+
+\item{adductType.}{User-specified adduct type, default is NULL. Set `add.adduct` to TRUE and specify `adductType` to fiter records limited to `adductType` before appending the additional adduct types.}
 }
 \value{
 \itemize{
