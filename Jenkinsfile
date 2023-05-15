@@ -31,7 +31,7 @@ pipeline {
                         tty: true
                         resources:
                           requests:
-                              memory: "1024Mi"
+                              memory: "2048Mi"
                           limits:
                               memory: "4096Mi"
                         imagePullPolicy: Always
