@@ -42,12 +42,21 @@ Imports:
     dqshiny,
     tibble,
     magrittr,
-    rlang
-Remotes: WMBEdmands/compMS2Miner
+    rlang,
+    tidyr
+Remotes: WMBEdmands/compMS2Miner,
+         daqana/dqshiny
 SystemRequirements: OpenBabel, Java JDK 8 or higher
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GNU
 LazyData: true
-RoxygenNote: 7.1.2
-Suggests: knitr, rmarkdown, RMassBankData, gplots
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+Suggests: 
+    knitr,
+    rmarkdown,
+    RMassBankData,
+    gplots,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3

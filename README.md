@@ -1,3 +1,4 @@
+
 # MergeION: Batch processing of LC-MS/MS data into a spectral library and several additional functions
 
 Tandem mass spectrometry is a technique frequently used for small molecule identification. Automated structure elucidation is usually performed by spectral library search. Building a local high quality spectral library is an essentiel step thus often lacking in metabolomics and pharmaceutical laboratories. This is often due to the data confidentiality (e.g drug metadata) 
@@ -16,6 +17,7 @@ For WINDOWS users, please use the newest 64 bit version of R, and first make sur
 Sys.setenv(JAVA_HOME="C:/Program Files/Java/...)"
 library(rJava)
 ```
+Please check this forum post if you encounter errors: https://support.microsoft.com/en-us/topic/qa-when-i-try-to-load-the-rjava-package-using-the-library-command-i-get-an-error-531cb2e1-6ee1-5f5f-e4cf-40b819b5aaa3
 
 ```R
 # Install BiocManager if it has not been installed previously:
@@ -26,13 +28,14 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
 options(timeout=9999999)
 install.packages("remotes")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true") 
-remotes::install_github("daqana/dqshiny")
+remotes::install_github("daqana/dqshiny", force = T)
+remotes::install_github("schymane/RChemMass", force = T)
 BiocManager::install("daniellyz/MergeION2")
 ```
 
 ## Quick start guide for compound annotation
 
-We have pre-compiled a small molecule spectral database containing MS/MS spectra of about 15,000 metabolites, natural products and drugs. The database combines public repositories such as GNPS, MassBank and reference spectra of in-house standards of approved drugs. Currently ESI-MS/MS spectra in our collection are all in positive ion mode. We are constantly populating this spectral database by combining various repositories after careful inspection of spectra and metadata quality. Users can annotate an unknown MS/MS spectrum with confidence by searching this spectral library.
+We have pre-compiled a small molecule spectral database containing MS/MS spectra of 11,642 metabolites, natural products and drugs. The database combines public repositories such as GNPS, MassBank and reference spectra of in-house standards of approved drugs. Currently ESI-MS/MS spectra in our collection are all in positive ion mode. We are constantly populating this spectral database by combining various repositories after careful inspection of spectra and metadata quality. Users can annotate an unknown MS/MS spectrum with confidence by searching this spectral library.
 
 This library should be first downloaded to your R working directory and loaded to your R environment:
 
@@ -78,11 +81,22 @@ id_matched = search_result$consensus$metadata$ID
 library_visualizer(library1c, id = id_matched, query_spectrum = query.sp)
 ```
 
-![Alt text](https://raw.githubusercontent.com/daniellyz/MergeION/master/inst/Mirror3.PNG "Mirror Cinnarizine")
+![Alt text](https://github.com/daniellyz/MergeION2/raw/master/inst/mirror.png "Mirror Cinnarizine")
+
+## Calling a GUI for compound annotation
+
+Alternatively, you could perform spectral library by calling a webtool after successful installation of MergeION:
+
+```R
+library(MergeION) # First load MergeION
+library(RChemMass) # Load the RChemMass package for structure visualization
+runGUI()
+```
+A tutorial for the GUI is available at: https://github.com/daniellyz/mergeion.github.io/blob/gh-pages/Webtool_documentation.pdf
 
 # Tutorial 1: Building a local database
 
-Onging
+The tutorial is available at: https://daniellyz.github.io/mergeion.github.io/Library_Generation.html
 
 # Tutorial 2: Forced degradation data analysis
 

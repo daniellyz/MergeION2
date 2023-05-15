@@ -63,9 +63,6 @@ library_query(
 \description{
 The function queries the input (reference) spectral library based on a query expression and/or (a) query MS/MS spectra or query library or LC-MS/MS file
 }
-\examples{
-
-}
 \author{
 Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 }

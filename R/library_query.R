@@ -42,7 +42,6 @@
 #'
 #' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 #'
-#' @examples
 #'
 #' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom plyr rbind.fill

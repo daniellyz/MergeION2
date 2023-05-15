@@ -10,7 +10,8 @@ process_similarity(
   prec_mz = 100,
   use.prec = FALSE,
   input_library = NULL,
-  method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST"),
+  method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST", "HM",
+    "Entropy"),
   prec_ppm_search = 10,
   frag_mz_search = 0.005,
   min_frag_match = 6
