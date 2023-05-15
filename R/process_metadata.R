@@ -7,20 +7,29 @@
 #' @importFrom webchem is.smiles
 #' @importFrom tools file_ext
 #' @importFrom stringr str_detect
+#' @inheritParams library_generator
 #' 
 #' @export
 #
 process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
-                          polarity = c("Positive", "Negative"), add.adduct = T){
+                          polarity = c("Positive", "Negative"), add.adduct = T, adductType = NULL){
   
   ref0 = ref # Backup
   
   new_metadata = c()
   
+  if(add.adduct){
+	  
+	  if(is.null(adductType)){
   if (polarity == "Positive" & add.adduct){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
   if (polarity == "Positive" & !add.adduct){ref_adducts = "M+H"}
   if (polarity == "Negative" & add.adduct){ref_adducts = c("M-H","M+Cl", "M+HCOO-","M+CH3COO-")}
   if (polarity == "Negative" & !add.adduct){ref_adducts = "M-H"}
+}else{
+	ref_adducts <- adductType
+}
+}
+  
   
   ##########################
   ### Complete metadata ####
@@ -115,7 +124,12 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
   
   ref1 = ref[which(!ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
   ref2 = ref[which(ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
+  
+  if(nrow(ref2) != 0){
   ref2_new = expand_ref_adduct(ref2, polarity, add.adduct, adapt.smiles = processing.algorithm == "RMassBank")
+}else{
+	ref2_new = NULL
+}
   ref = rbind.data.frame(ref1, ref2_new)
   
   # Change column order:

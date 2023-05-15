@@ -11,7 +11,7 @@
 #'
 #' @examples
 #'
-#' \donttest{data(DRUG_THERMO_LIBRARY)
+#' \dontrun{data(DRUG_THERMO_LIBRARY)
 #' combined_lib = library_combiner(library1, library2)}
 #'
 #'

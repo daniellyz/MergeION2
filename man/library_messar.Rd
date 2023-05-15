@@ -34,7 +34,7 @@ The function recommends substructures for an unknown spectrum
 }
 \examples{
 
-\donttest{ url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
+\dontrun{ url_test = "https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/spectra/caffeine.txt"
 
 test = read.table(url_test, header = FALSE, sep=" ")
 

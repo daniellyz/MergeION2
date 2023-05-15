@@ -8,8 +8,16 @@ process_metadata(
   ref,
   processing.algorithm = c("Default", "compMS2Miner", "RMassBank"),
   polarity = c("Positive", "Negative"),
-  add.adduct = T
+  add.adduct = T,
+  adductType = NULL
 )
+}
+\arguments{
+\item{processing.algorithm}{A single character. "Default", "compMS2Miner" or "RMassBank".}
+
+\item{polarity}{A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files.}
+
+\item{add.adduct}{Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.}
 }
 \description{
 Function used by library_generator() to improve and adapt input metadata

@@ -11,6 +11,7 @@ library_generator(
   polarity = c("Positive", "Negative")[1],
   mslevel = c(1, 2),
   add.adduct = TRUE,
+  adductType = NULL,
   processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
   params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30),
   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
@@ -84,6 +85,8 @@ library_generator(
   \item{user_name:}{ Character. User name who process the batch of lc-ms files.}
   \item{comments:}{ Character. Additional comments about the samples added.}
 }}
+
+\item{adductType.}{User-specified adduct type, default is NULL. Set `add.adduct` to TRUE and specify `adductType` to fiter records limited to `adductType` before appending the additional adduct types.}
 }
 \value{
 \itemize{
@@ -97,7 +100,7 @@ The function proposes three data processing algorithms to pick up MS1/MS2 scans 
 }
 \examples{
 
-\donttest{ library(RMassBankData)
+\dontrun{ library(RMassBankData)
 
 input_library = NULL # There's no historical spectral library. We create a brand new spectral library here,
 lcms_files <- list.files(system.file("spectra", package="RMassBankData"), ".mzML", full.names = TRUE)
@@ -105,7 +108,7 @@ metadata_file <- list.files(system.file(package = "MergeION"),".csv", full.names
 
 polarity = "Positive"
 mslevel= 2 # Only MS2 scans are extracted!
-add.adduct = F # No additional adducts are searched besides M+H 
+add.adduct = FALSE # No additional adducts are searched besides M+H 
 
 params.search = list(mz_search = 0.005, ppm_search = 10, rt_search = 15, rt_gap = 30)
 params.ms.preprocessing = list(normalized = T, baseline = 1000, relative =0.01, max_peaks = 200, recalibration = 0)
