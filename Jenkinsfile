@@ -44,7 +44,7 @@ pipeline {
                           requests:
                               memory: "100Mi"
                           limits:
-                              memory: "1024Mi"'''
+                              memory: "2048Mi"'''
                     defaultContainer 'kaniko'
                 }
             }
