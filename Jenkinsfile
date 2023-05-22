@@ -35,7 +35,7 @@ pipeline {
                               ephemeral-storage: "2Gi"
                           limits:
                               memory: "4096Mi"
-                              ephemeral-storage: "4Gi"
+                              ephemeral-storage: "8Gi"
                         imagePullPolicy: Always
                       - name: aws-cli
                         image: amazon/aws-cli:2.1.33
