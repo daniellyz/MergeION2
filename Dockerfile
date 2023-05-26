@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libgmp10 \
     libgmp-dev \
     libmpc-dev \
-    ibmpfr-dev \
     libcurl4-openssl-dev \
     libpng-dev \
     librsvg2-dev \
