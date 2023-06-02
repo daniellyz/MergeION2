@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     liblzma-dev \
     libpcre3-dev \
     libbz2-dev \
+    libopenbabel-dev \
+    libeigen3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN R -e "cat(\"local(options(repos = c(BioCsoft = 'https://bioconductor.org/packages/3.16/bioc', BioCann = 'https://bioconductor.org/packages/3.16/data/annotation', BioCexp = 'https://bioconductor.org/packages/3.16/data/experiment', BioCworkflows = 'https://bioconductor.org/packages/3.16/workflows', CRAN = 'https://cloud.r-project.org')))\n\", file = R.home('etc/Rprofile.site'), append = TRUE)"
