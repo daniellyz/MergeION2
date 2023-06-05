@@ -30,6 +30,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libbz2-dev \
     libopenbabel-dev \
     libeigen3-dev \
+    tcl8.6-dev \
+    tk8.6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN R -e "cat(\"local(options(repos = c(BioCsoft = 'https://bioconductor.org/packages/3.16/bioc', BioCann = 'https://bioconductor.org/packages/3.16/data/annotation', BioCexp = 'https://bioconductor.org/packages/3.16/data/experiment', BioCworkflows = 'https://bioconductor.org/packages/3.16/workflows', CRAN = 'https://cloud.r-project.org')))\n\", file = R.home('etc/Rprofile.site'), append = TRUE)"
@@ -242,4 +244,6 @@ RUN R -q -e "install.packages('xcms')" && \
     R -q -e "remotes::install_github('WMBEdmands/compMS2Miner')" && \
     R -q -e "remotes::install_github('daqana/dqshiny')"
 
+VOLUME /root/Mergeion
+ 
 
