@@ -124,25 +124,25 @@ pipeline {
                             steps {
                                 dir('.') {
                                     sh '''R -q -e \'code <- "testthat::test_package(\\"MergeION\\", reporter = testthat::MultiReporter$new(list(testthat::SummaryReporter$new(file = file.path(getwd(), \\"test-results.txt\\")), testthat::JunitReporter$new(file = file.path(getwd(), \\"results.xml\\")))))"
-                                    packageCoverage <- covr::package_coverage(type = "none", code = code)
-                                    cat(readLines(file.path(getwd(), "test-results.txt")), sep = "\n")
-                                    covr::to_cobertura(packageCoverage)\''''
+                                   // packageCoverage <- covr::package_coverage(type = "none", code = code)
+                                    // cat(readLines(file.path(getwd(), "test-results.txt")), sep = "\n")
+                                    //covr::to_cobertura(packageCoverage)\''''
                                 }
                             }
-                            post {
+                            /*post {
                                 always {
                                     dir('.') {
                                         junit 'results.xml'
                                         cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'cobertura.xml', conditionalCoverageTargets: '70, 0, 0', failUnhealthy: false, failUnstable: false, lineCoverageTargets: '80, 0, 0', maxNumberOfBuilds: 0, methodCoverageTargets: '80, 0, 0', onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
                                     }
                                 }
-                            }
+                            } */
                         }
                     }
                 }
                 stage('Archive artifacts') {
                     steps {
-                        archiveArtifacts artifacts: '*.tar.gz, *.pdf, **/00check.log, test-results.txt', fingerprint: true
+                        archiveArtifacts artifacts: '*.tar.gz, *.pdf, **/00check.log', fingerprint: true
                     }
                 }
             }
