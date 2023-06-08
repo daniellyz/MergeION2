@@ -123,10 +123,10 @@ pipeline {
                         stage('Test and coverage') {
                             steps {
                                 dir('.') {
-                                    sh '''R -q -e \'code <- "testthat::test_package(\\"MergeION\\", reporter = testthat::MultiReporter$new(list(testthat::SummaryReporter$new(file = file.path(getwd(), \\"test-results.txt\\")), testthat::JunitReporter$new(file = file.path(getwd(), \\"results.xml\\")))))"
+                                    sh '''R -q -e \'code <- "testthat::test_package(\\"MergeION\\", reporter = testthat::MultiReporter$new(list(testthat::SummaryReporter$new(file = file.path(getwd(), \\"test-results.txt\\")), testthat::JunitReporter$new(file = file.path(getwd(), \\"results.xml\\")))))"\''''
                                    // packageCoverage <- covr::package_coverage(type = "none", code = code)
                                     // cat(readLines(file.path(getwd(), "test-results.txt")), sep = "\n")
-                                    //covr::to_cobertura(packageCoverage)\''''
+                                    //covr::to_cobertura(packageCoverage)
                                 }
                             }
                             /*post {
