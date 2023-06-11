@@ -92,7 +92,7 @@ process_RMassBank<-function(mzdatafiles = NULL, ref = NULL, polarity = c("Positi
       
       if (recalibration==0){w1 <- try(msmsWorkflow1(w = w0, cpdid = ref2$ID, mode = mode, steps = c(1:3), readMethod = "mzR"), silent = T)}
       if (recalibration>0){w1 <- try(msmsWorkflow1(w = w0, cpdid = ref2$ID, mode = mode, steps = c(1:6), readMethod = "mzR"), silent = T)}
-
+      
       if (class(w1)!="try-error"){
         
         temp_sp1 = w1@spectra[[1]]@parent
@@ -277,6 +277,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
   if (3 %in% steps) {
     message("msmsWorkflow: Step 3. Aggregate all spectra")
     w@aggregated <- aggregateSpectra1(w@spectra, addIncomplete = TRUE)
+    
   }
   
   if (allUnknown) {
@@ -297,7 +298,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
   if (4 %in% steps) {
     message("msmsWorkflow: Step 4. Recalibrate m/z values in raw spectra")
     if (newRecalibration) {
-      recal <- makeRecalibration1(w, mode, recalibrateBy = settings$recalibrateBy, 
+       recal <- makeRecalibration1(w, mode, recalibrateBy = settings$recalibrateBy, 
                                  recalibrateMS1 = settings$recalibrateMS1, recalibrator = settings$recalibrator, 
                                  recalibrateMS1Window = settings$recalibrateMS1Window)
       w@rc <- recal$rc
@@ -305,7 +306,7 @@ msmsWorkflow1<-function(w, cpdid, mode = "pH", steps = c(1:8), confirmMode = FAL
     }
     w@parent <- w
     w@aggregated <- data.frame()
-    spectra <- recalibrateSpectra(mode, w@spectra, w = w, 
+    spectra <- recalibrateSpectra(rawspec =  w@spectra, w = w, 
               recalibrateBy = settings$recalibrateBy, recalibrateMS1 = settings$recalibrateMS1)
     w@spectra <- spectra
   }
@@ -948,13 +949,17 @@ makeRecalibration1<-function (w, mode, recalibrateBy = getOption("RMassBank")$re
   rcdata <- rcdata[, c("mzFound", "dppm", "mzCalc")]
   if (nrow(rcdata) == 0) 
     stop("No peaks matched to generate recalibration curve.")
-  ms1data <- recalibrate.addMS1data(w@spectra, mode, recalibrateMS1Window)
+  
+  ms1data <- recalibrate.addMS1data(w@spectra, recalibrateMS1Window)
   ms1data <- ms1data[, c("mzFound", "dppm", "mzCalc")]
+
   if (recalibrateMS1 != "none") {
     rcdata <- rbind(rcdata, ms1data)
   }
+  
   rcdata$dmz <- rcdata$mzFound - rcdata$mzCalc
   ms1data$dmz <- ms1data$mzFound - ms1data$mzCalc
+  
   if (recalibrateBy == "dppm") {
     rcdata$recalfield <- rcdata$dppm
     ms1data$recalfield <- ms1data$dppm
@@ -963,13 +968,73 @@ makeRecalibration1<-function (w, mode, recalibrateBy = getOption("RMassBank")$re
     rcdata$recalfield <- rcdata$dmz
     ms1data$recalfield <- ms1data$dmz
   }
+  
   rc <- do.call(recalibrator$MS2, list(rcdata))
+
   if (recalibrateMS1 == "separate") 
     rc.ms1 <- do.call(recalibrator$MS1, list(ms1data))
   else rc.ms1 <- rc
   
   return(list(rc = rc, rc.ms1 = rc.ms1))
 }
+
+recalibrate.addMS1data<-function (spec, recalibrateMS1Window = getOption("RMassBank")$recalibrateMS1Window) 
+{
+  specFound <- selectSpectra(spec, "found", "object")
+  ms1peaks <- lapply(specFound, function(cpd) {
+    if (cpd@formula == "") 
+      return(NULL)
+    mzL <- findMz.formula(cpd@formula, cpd@mode, recalibrateMS1Window,0)
+    mzCalc <- mzL$mzCenter
+    ms1 <- cpd@parent@mz
+    mzFound <- ms1[which.min(abs(ms1 - mzL$mzCenter))]
+    if (!length(mzFound)) {
+      return(c(mzFound = NA, mzCalc = mzCalc, dppm = NA))
+    }
+    else {
+      dppmRc <- (mzFound/mzCalc - 1) * 1e+06
+      return(c(mzFound = mzFound, mzCalc = mzCalc, dppm = dppmRc, 
+               id = cpd@id))
+    }
+  })
+  ms1peaks <- ms1peaks[which(!unlist(lapply(ms1peaks, is.null)))]
+  ms1peaks <- as.data.frame(do.call(rbind, ms1peaks), stringsAsFactors = FALSE)
+  tonum <- c("mzFound", "dppm", "mzCalc")
+  ms1peaks[, tonum] <- as.numeric(unlist(ms1peaks[, tonum]))
+  ms1peaks <- ms1peaks[!is.na(ms1peaks$mzFound), ]
+  return(ms1peaks)
+}
+
+recalibrateSpectra <- function (rawspec = NULL, rc = NULL, rc.ms1 = NULL, w = NULL, 
+          recalibrateBy = getOption("RMassBank")$recalibrateBy, recalibrateMS1 = getOption("RMassBank")$recalibrateMS1) 
+{
+  if (!is.null(w)) {
+    rc <- w@rc
+    rc.ms1 <- w@rc.ms1
+  }
+  if (is.null(rc) || is.null(rc.ms1)) 
+    stop("Please specify the recalibration curves either via workspace (w) or via parameters rc, rc.ms1.")
+  if (!is.null(rawspec)) {
+    recalibratedSpecs <- lapply(rawspec, function(s) {
+      if (s@found) {
+        recalSpectra <- lapply(s@children, function(p) {
+          recalibrateSingleSpec(p, rc, recalibrateBy)
+        })
+        s@children <- as(recalSpectra, "SimpleList")
+        if (recalibrateMS1 != "none") {
+          s@parent <- recalibrateSingleSpec(s@parent, 
+                                            rc.ms1, recalibrateBy)
+        }
+      }
+      s@empty <- NA
+      s@complete <- NA
+      return(s)
+    })
+    return(as(recalibratedSpecs, "SimpleList"))
+  }
+  else return(list())
+}
+
 
 cut_mz_list<-function(mzlist, mz_window){
   

@@ -15,22 +15,17 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
                           polarity = c("Positive", "Negative"), add.adduct = T, adductType = NULL){
   
   ref0 = ref # Backup
-  
+
   new_metadata = c()
-  
-  if(add.adduct){
-	  
-	  if(is.null(adductType)){
-  if (polarity == "Positive" & add.adduct){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
-  if (polarity == "Positive" & !add.adduct){ref_adducts = "M+H"}
-  if (polarity == "Negative" & add.adduct){ref_adducts = c("M-H","M+Cl", "M+HCOO-","M+CH3COO-")}
-  if (polarity == "Negative" & !add.adduct){ref_adducts = "M-H"}
-}else{
-	ref_adducts <- adductType
-}
-}
-  
-  
+  ref_adducts = NULL
+    
+	 if(is.null(adductType)){
+      if (polarity == "Positive"){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
+      if (polarity == "Negative"){ref_adducts = c("M-H","M+Cl", "M+HCOO-","M+CH3COO-")}
+  } else {
+	    ref_adducts <- adductType
+  }
+
   ##########################
   ### Complete metadata ####
   ##########################
@@ -72,7 +67,7 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
     if (polarity=="Positive"){ref$ADDUCT = "M+H"}
     if (polarity=="Negative"){ref$ADDUCT = "M-H"}
   }
-  
+
   # Set default charge states:
   
   ref$CHARGE = 1
@@ -126,10 +121,11 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
   ref2 = ref[which(ref$ADDUCT %in% c("M-H", "M+H")),,drop=FALSE]
   
   if(nrow(ref2) != 0){
-  ref2_new = expand_ref_adduct(ref2, polarity, add.adduct, adapt.smiles = processing.algorithm == "RMassBank")
-}else{
-	ref2_new = NULL
-}
+    ref2_new = expand_ref_adduct(ref2, polarity, add.adduct, adapt.smiles = processing.algorithm == "RMassBank")
+  }else{
+	  ref2_new = NULL
+  }
+  
   ref = rbind.data.frame(ref1, ref2_new)
   
   # Change column order:
