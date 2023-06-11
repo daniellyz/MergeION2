@@ -24,7 +24,7 @@
 #'  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 #' }
 #'  
-#' @importFrom igraph E cluster_louvain graph_from_data_frame components
+#' @importFrom igraph E cluster_louvain graph_from_data_frame components vertex_attr get.vertex.attribute
 #' @export
 #'
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
@@ -84,6 +84,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   
   new_nodes = metadata
   new_network = c()
+  new_ig = NULL
   
   if (networking){
     
@@ -239,11 +240,21 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
       
       if (nrow(new_network)==0){new_network = NULL}
     }
+  
+    if (!is.null(new_network)){
+      links = new_network
+      colnames(links)[1:2] =  c("from", "to")
+      new_ig = graph_from_data_frame(links, directed = F)
+      vtcs = new_nodes[match(get.vertex.attribute(new_ig, "name"), new_nodes$ID),,drop= FALSE]
+      for (col_name in colnames(vtcs)){
+        igraph::vertex_attr(new_ig, col_name) =  vtcs[[col_name]]
+      }
+    }
   }
   
   output_network = list(db_profile = library_matrix$db_profile, 
                         db_feature = library_matrix$db_feature, 
-                        nodes = new_nodes, network = new_network)
+                        nodes = new_nodes, network = new_network, ig = new_ig)
   
   output_library = list(complete = complete_library, consensus = consensus_library0, network = output_network)
   
