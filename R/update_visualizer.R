@@ -5,7 +5,7 @@
 #' @param t numeric value specifying the tolerance used to align the m/z values of the two spectra (used in calculating consine similarity score), 0.25 by default. 
 #' @param b numeric value specifying the baseline threshold for peak identification. Expressed as a percent of the maximum intensity (used in calculating consine similarity score), 10 by default.
 #' @importFrom rex rex
-#' @importFrom dplyr filter group_by bind_cols bind_rows mutate
+#' @importFrom dplyr filter group_by bind_cols bind_rows mutate ungroup
 #' @importFrom magrittr %>%  %<>%
 #' @importFrom tidyr pivot_wider
 #' @importFrom tibble as_tibble

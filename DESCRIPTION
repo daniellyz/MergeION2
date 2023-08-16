@@ -46,7 +46,7 @@ Imports:
     tidyr
 Remotes: WMBEdmands/compMS2Miner,
          daqana/dqshiny
-SystemRequirements: OpenBabel, Java JDK 8 or higher
+SystemRequirements: OpenBabel, Java JDK 8 or higher,tcl8.6, tk8.6
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GNU
 LazyData: true

@@ -96,7 +96,7 @@ A tutorial for the GUI is available at: https://github.com/daniellyz/mergeion.gi
 
 # Tutorial 1: Building a local database
 
-The tutorial is available at: https://daniellyz.github.io/mergeion.github.io/Library_Generation.html
+The tutorial is available at: https://daniellyz.github.io/mergeion.github.io/Library_Generation_Tutorial.html
 
 # Tutorial 2: Forced degradation data analysis
 

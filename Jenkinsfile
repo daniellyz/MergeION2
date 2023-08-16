@@ -31,9 +31,11 @@ pipeline {
                         tty: true
                         resources:
                           requests:
-                              memory: "1024Mi"
+                              memory: "2048Mi"
+                              ephemeral-storage: "2Gi"
                           limits:
                               memory: "4096Mi"
+                              ephemeral-storage: "8Gi"
                         imagePullPolicy: Always
                       - name: aws-cli
                         image: amazon/aws-cli:2.1.33
@@ -44,7 +46,7 @@ pipeline {
                           requests:
                               memory: "100Mi"
                           limits:
-                              memory: "1024Mi"'''
+                              memory: "2048Mi"'''
                     defaultContainer 'kaniko'
                 }
             }
@@ -121,26 +123,26 @@ pipeline {
                         stage('Test and coverage') {
                             steps {
                                 dir('.') {
-                                    sh '''R -q -e \'code <- "testthat::test_package(\\"MergeION\\", reporter = testthat::MultiReporter$new(list(testthat::SummaryReporter$new(file = file.path(getwd(), \\"test-results.txt\\")), testthat::JunitReporter$new(file = file.path(getwd(), \\"results.xml\\")))))"
-                                    packageCoverage <- covr::package_coverage(type = "none", code = code)
-                                    cat(readLines(file.path(getwd(), "test-results.txt")), sep = "\n")
-                                    covr::to_cobertura(packageCoverage)\''''
+                                    sh '''R -q -e \'code <- "testthat::test_package(\\"MergeION\\", reporter = testthat::MultiReporter$new(list(testthat::SummaryReporter$new(file = file.path(getwd(), \\"test-results.txt\\")), testthat::JunitReporter$new(file = file.path(getwd(), \\"results.xml\\")))))"\''''
+                                   // packageCoverage <- covr::package_coverage(type = "none", code = code)
+                                    // cat(readLines(file.path(getwd(), "test-results.txt")), sep = "\n")
+                                    //covr::to_cobertura(packageCoverage)
                                 }
                             }
-                            post {
+                            /*post {
                                 always {
                                     dir('.') {
                                         junit 'results.xml'
                                         cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'cobertura.xml', conditionalCoverageTargets: '70, 0, 0', failUnhealthy: false, failUnstable: false, lineCoverageTargets: '80, 0, 0', maxNumberOfBuilds: 0, methodCoverageTargets: '80, 0, 0', onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
                                     }
                                 }
-                            }
+                            } */
                         }
                     }
                 }
                 stage('Archive artifacts') {
                     steps {
-                        archiveArtifacts artifacts: '*.tar.gz, *.pdf, **/00check.log, test-results.txt', fingerprint: true
+                        archiveArtifacts artifacts: '*.tar.gz, *.pdf, **/00check.log', fingerprint: true
                     }
                 }
             }

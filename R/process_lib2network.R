@@ -24,32 +24,32 @@
 #'  \item{use.reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
 #' }
 #'  
-#' @importFrom igraph E cluster_louvain graph_from_data_frame components
+#' @importFrom igraph E cluster_louvain graph_from_data_frame components vertex_attr get.vertex.attribute
 #' @export
 #'
 process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
-                  params.search = list(mz_search = 0.005, ppm_search = 10),
-                  params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
-                  params.network = list(topK = 10, max.comp.size = 50, reaction.type = "Metabolic", use.reaction = TRUE)){
+                              params.search = list(mz_search = 0.005, ppm_search = 10),
+                              params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
+                              params.network = list(topK = 10, max.comp.size = 50, reaction.type = "Metabolic", use.reaction = TRUE)){
   
   options(stringsAsFactors = FALSE)
   options(warn=-1)
-
+  
   ####################
   ###  Input Check ###
   ####################
-
+  
   input_library = library_reader(input_library)
   
   complete_library = input_library$complete
   consensus_library0 = input_library$consensus
-
+  
   if (is.null(consensus_library0)){stop("No consensus spectra available!")}
   consensus_library = process_query(consensus_library0, query = "MSLEVEL=2")$SELECTED
   if (is.null(consensus_library)){stop("No MS2 in consensus spectra available!")}
   
   NI = nrow(consensus_library$metadata)
-
+  
   metadata = consensus_library$metadata
   splist = consensus_library$sp
   IDList = metadata$ID
@@ -57,7 +57,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   
   mz_search = params.search$mz_search
   ppm_search = params.search$ppm_search
-
+  
   sim.method = params.similarity$method
   min.frag.match =  params.similarity$min.frag.match
   min.score = params.similarity$min.score
@@ -66,7 +66,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   max.comp.size = params.network$max.comp.size
   reaction.type = params.network$reaction.type
   use.reaction = params.network$use.reaction
-
+  
   if (!(reaction.type %in% c("Chemical", "Metabolic"))){
     stop("Reaction type for annotating network mass differences must be Chemical or Metabolic!")
   }
@@ -74,19 +74,20 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ###################################
   ### Transform spectra to matrix ###
   ###################################
-
+  
   if (!is.null(input_library$network)){
     library_matrix = list(db_profile = input_library$network$db_profile,
-              db_feature = input_library$network$db_feature)
+                          db_feature = input_library$network$db_feature)
   } else {
     library_matrix = matrix_generator(consensus_library, mz_window = mz_search)
   }
   
   new_nodes = metadata
   new_network = c()
+  new_ig = NULL
   
   if (networking){
-  
+    
     message("Generating molecular network...")
     
     #######################################
@@ -94,14 +95,14 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     #######################################
     
     if (sim.method!="Messar"){
-
+      
       for (i in 1:(NI-1)){
-  
+        
         temp_spectrum = splist[[i]]
         temp_library = list(complete = complete_library, consensus = NULL, network = NULL)
-      
+        
         # Search part of library
-      
+        
         lib_range = (i+1):NI
         temp_library$consensus$metadata = consensus_library$metadata[lib_range,,drop=FALSE]
         temp_library$consensus$sp = consensus_library$sp[lib_range]
@@ -109,9 +110,9 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         temp_library$network$db_feature =  library_matrix$db_feature
         
         temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, 
-                        input_library = temp_library, method = sim.method, 
-                        prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
-
+                                         input_library = temp_library, method = sim.method, 
+                                         prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
+        
         if (!is.null(temp_scores)){
           NSC = nrow(temp_scores)
           temp_network = cbind(ID1 = rep(IDList[i],NSC), ID2 = temp_scores[,1], 
@@ -119,15 +120,15 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
           new_network = rbind.data.frame(new_network, temp_network)
         }
       }
-
-    ### Top K filtering
-
+      
+      ### Top K filtering
+      
       if (!is.null(new_network)){
         new_network = mutual_filter(new_network, topK = topK)
         if (nrow(new_network)==0){new_network = NULL}
       }
       
-    ### Maxi Component filtering
+      ### Maxi Component filtering
       
       if (!is.null(new_network) & max.comp.size>2){
         new_network = max_comp_filter(new_network, max.comp = max.comp.size)
@@ -175,29 +176,29 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
       }
       
       if (nrow(new_network)>0){
-       colnames(new_network) = c("ID1", "ID2", "Common.Substructure.Count", "Common.Substructures")
-       rownames(new_network) = NULL
-       new_network = data.frame(new_network)
+        colnames(new_network) = c("ID1", "ID2", "Common.Substructure.Count", "Common.Substructures")
+        rownames(new_network) = NULL
+        new_network = data.frame(new_network)
       }
     }
     
     ##################################
     ### Mass difference annotation ###
     ##################################
-  
+    
     if (!is.null(new_network)){
-  
+      
       if (reaction.type=="Metabolic"){
         reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionBio.txt", sep = "\t")
       }
       if (reaction.type=="Chemical"){
         reactionList = read.csv("https://raw.githubusercontent.com/daniellyz/MergeION2/master/inst/reactionChem.txt", sep = "\t")
       }
-    
+      
       reaction_annotated = rep("N/A", nrow(new_network))
       reaction_formula = rep("N/A", nrow(new_network))
       rt_diff = rep(0, nrow(new_network))
-  
+      
       for (k in 1:nrow(new_network)){
         
         II1 = which(as.character(metadata$ID) == as.character(new_network$ID1[k]))[1]
@@ -208,7 +209,8 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         RT2 = as.numeric(metadata$RT[II2])
         
         MDiff = abs(MZ1 - MZ2)
-        MDiff_error = ppm_distance1(MDiff, reactionList$Mdiff)
+        
+        MDiff_error = ppm_distance_bis(MDiff, reactionList$Mdiff)
         RTDiff = abs(RT1 - RT2)
         if (is.na(RTDiff)){RTDiff = -1}
         rt_diff[k] = round(RTDiff, 1)
@@ -218,38 +220,48 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
           reaction_annotated[k] = reactionList$Reaction.Name[ind]
           reaction_formula[k] = reactionList$Formula[ind]
         }
-    }
-    
-    new_network = cbind.data.frame(new_network, rt_diff = rt_diff, reaction = reaction_annotated, reaction_formula = reaction_formula)
-  }
-  
-  ######################################
-  ### Final filtering and outputing  ###
-  ######################################
-  
-  if (!is.null(new_network)){
-    if (sim.method!="Messar"){
-      new_network = new_network[new_network[,"MS2.Similarity"]>=min.score,,drop=FALSE]
-    }
-    
-    if (use.reaction){
-      new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
-    }
+      }
       
-    if (nrow(new_network)==0){new_network = NULL}
+      new_network = cbind.data.frame(new_network, rt_diff = rt_diff, reaction = reaction_annotated, reaction_formula = reaction_formula)
+    }
+    
+    ######################################
+    ### Final filtering and outputing  ###
+    ######################################
+    
+    if (!is.null(new_network)){
+      if (sim.method!="Messar"){
+        new_network = new_network[new_network[,"MS2.Similarity"]>=min.score,,drop=FALSE]
+      }
+      
+      if (use.reaction){
+        new_network = new_network[which(new_network$reaction!="N/A"),,drop=FALSE]
+      }
+      
+      if (nrow(new_network)==0){new_network = NULL}
+    }
+  
+    if (!is.null(new_network)){
+      links = new_network
+      colnames(links)[1:2] =  c("from", "to")
+      new_ig = graph_from_data_frame(links, directed = F)
+      vtcs = new_nodes[match(get.vertex.attribute(new_ig, "name"), new_nodes$ID),,drop= FALSE]
+      for (col_name in colnames(vtcs)){
+        igraph::vertex_attr(new_ig, col_name) =  vtcs[[col_name]]
+      }
     }
   }
   
   output_network = list(db_profile = library_matrix$db_profile, 
                         db_feature = library_matrix$db_feature, 
-                        nodes = new_nodes, network = new_network)
+                        nodes = new_nodes, network = new_network, ig = new_ig)
   
   output_library = list(complete = complete_library, consensus = consensus_library0, network = output_network)
   
   return(output_library)
 }
-                  
-                  
+
+
 ############################################
 ### Transforming input library to matrix:###
 ############################################
@@ -304,7 +316,7 @@ matrix_generator<-function(input_library, mz_window = 0.02){
   }  
   
   ### Align spectra
-
+  
   sp_aligned = average_spectrum(splist, mz_window = mz_window)
   sp_profile = sp_aligned$I_matrix
   FID = paste0("Frag_", 1:nrow(sp_profile))
@@ -320,7 +332,7 @@ matrix_generator<-function(input_library, mz_window = 0.02){
   nl_feature = data.frame(NID = NID, Mass = nl_aligned$new_spectrum[,1])
   
   ### Reduce Existing Library
-
+  
   colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
   
   db_profile = rbind(sp_profile, nl_profile)
@@ -346,13 +358,13 @@ mutual_filter <- function(network, topK = 10){
   NI = length(temp_id)
   
   # Transformation to matrix:
-
+  
   NNN = matrix(0, NI, NI)  
   colnames(NNN) = rownames(NNN) = temp_id
   
   MMM = matrix(0, NI, NI)  
   colnames(MMM) = rownames(MMM) = temp_id
-
+  
   from_ind = match(network[,1], temp_id)
   to_ind = match(network[,2], temp_id) # Index in the temp_ind
   
@@ -401,7 +413,7 @@ max_comp_filter <- function(network, max.component = 50){
   
   g <- graph_from_data_frame(network, directed=FALSE)
   g_partition <- cluster_louvain(g, weights = E(g)$weight)
-   
+  
   tmp_node = cbind.data.frame(ID = g_partition$names, Group = g_partition$membership)
   NP = max(g_partition$membership)
   
@@ -425,7 +437,7 @@ max_comp_filter <- function(network, max.component = 50){
     NS = nrow(subnetwork)
     
     if (NC > max.component){
-        while (NC > max.component & NS>2){
+      while (NC > max.component & NS>2){
         
         subnetwork = subnetwork[-nrow(subnetwork),,drop=FALSE]
         sub_g = graph_from_data_frame(subnetwork, directed=FALSE)
@@ -433,7 +445,7 @@ max_comp_filter <- function(network, max.component = 50){
         sub_components = components(sub_g)
         NC = max(sub_components$csize)
         NS = nrow(subnetwork)
-    }}
+      }}
     new_network = rbind.data.frame(new_network, subnetwork)
   }
   
@@ -446,10 +458,10 @@ max_comp_filter <- function(network, max.component = 50){
 ### Internal functions:###
 ##########################
 
-ppm_distance1<-function(x,y){
+ppm_distance_bis<-function(x,y){
   x = as.numeric(x)
   y = as.numeric(y)
-  if (y>100){
+  if (x>100){
     ppm = abs((x-y))/y*1000000
   } else {
     ppm = abs(x-y)
