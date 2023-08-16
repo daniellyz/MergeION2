@@ -3,5 +3,5 @@
 .RData
 .Ruserdata
 MergeION.Rcheck/**
-\.gitignore
+.gitignore
 *.tar.gz
