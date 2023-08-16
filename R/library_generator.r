@@ -413,8 +413,11 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
       
       dat12 = process_RMassBank(lcms_files[ff], ref = target.ref, polarity = polarity, include.MS1 = include.MS1,
                             rt_search = params.search$rt_search, ppm_search = params.search$ppm_search, 
-                            baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, 
-                            recalibration = params.ms.preprocessing$recalibration, normalized = params.ms.preprocessing$normalized)
+                            baseline = params.ms.preprocessing$baseline, 
+							relative = params.ms.preprocessing$relative, 
+							max_peaks = params.ms.preprocessing$max_peaks, 
+                            recalibration = params.ms.preprocessing$recalibration, 
+							normalized = params.ms.preprocessing$normalized)
 
       LL12 = length(dat12$sp) # Added library size
       

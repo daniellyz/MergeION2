@@ -27,7 +27,7 @@ dataForPlotly <- function(input_library,
 		t = 0.25, b = 10){
 	# input_library is already filtered, plot will be based on the entir input_library
 	
-	stopifnot(!missing(input_library), !missing(id))	
+	stopifnot(!missing(input_library))	
 	
 	input_library <-  library_reader(input_library)
 	
@@ -75,6 +75,7 @@ dataForPlotly <- function(input_library,
 	
 # collapse all spectrum into one data frame
 	spectrum <- do.call("rbind", spectrum_list) %>% as_tibble()
+	
 	if(ncol(spectrum) == 2) colnames(spectrum) <- c("m/z", "Intensity")
 	
 # prepare all metadata
