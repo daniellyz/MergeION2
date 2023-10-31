@@ -20,7 +20,7 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
   
   if(is.null(input_library$complete)) stop(" Missing input library")
   
-  if(is.null(input_library$consensus)) missingInputConsensus <- TRUE
+  missingInputConsensus <- is.null(input_library$consensus)
   
   # scenario 1: missing input consensus, and append_lib = NULL
   if(missingInputConsensus & is.null( IDsUpdated )){
@@ -32,13 +32,13 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
     # scenario 2: missing input consensus, and append_lib != NULL
     #combine append_library to input_library
     
-    input_library <- library_combiner(input_library, append_library)
     generateConcensusCondition <- TRUE
-    message("Combining append_library to input_library, and generating consensus library")
-  }else if(!missingInputConsensus & !is.null( IDsUpdated )){
+    message("Missing consensus libary in input_library, generating consensus library for all compound present")
+    
+  }else if(!missingInputConsensus & is.null( IDsUpdated )){
     # scenario 3: input consensus is not missing, and append_lib = NULL
     generateConcensusCondition <- TRUE
-    message("No additional library is provided, the consensus library will be updated using input_library")
+    message("No additional compound IDs are provided, the consensus library will be updated using input_library")
   }else{
     # scenario 4: input consensus is not missing, and append_lib != NULL
     # the current consensus library will be udated
@@ -85,8 +85,9 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
     inputConsensus <- input_library$consensus
     idx <-  inputConsensus$metadata$ID %in% IDsUpdated
     
-    consensus_library = list(metadata = rbind( inputConsensus$metadata[-idx,], concensusLib$metadata),
-                             sp = c(inputConsensus$metadata[-idx],   concensusLib$sp) )
+    consensus_library = list(
+                             sp = c(inputConsensus$sp[!idx],   concensusLib$sp),
+                             metadata = rbind( inputConsensus$metadata[!idx,], concensusLib$metadata))
     
     output_library = list(complete = input_library$complete, consensus =      consensus_library, network = NULL)
     
