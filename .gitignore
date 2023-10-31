@@ -5,3 +5,5 @@
 MergeION.Rcheck/**
 .gitignore
 *.tar.gz
+*template.Dockerfile
+*.Rproj

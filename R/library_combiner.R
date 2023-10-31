@@ -47,5 +47,6 @@ library_combiner<-function(...){
                             consensus = list(metadata = combined_metadata2, sp = combined_sp2),
                             network = NULL)
     
+    
     return(combined_library)
 }

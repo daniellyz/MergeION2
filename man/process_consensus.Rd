@@ -6,12 +6,18 @@
 \usage{
 process_consensus(
   input_library,
-  method = c("most_recent", "consensus", "consensus2", "common_peaks")[1],
+  method = c("most_recent", "consensus", "consensus2", "common_peaks"),
   consensus_window = 0.01,
   relative = 0.01,
-  max_peaks = 200
+  max_peaks = 200,
+  IDsUpdated = NULL
 )
 }
+\arguments{
+\item{input_library}{Character or a list object. If character, name of the existing library into which new scans are added, the file extension must be mgf, msp or RData; please set to NULL if the new library has no dependency with previous ones.}
+
+\item{IDsUpadated}{new compound ID which were updated in the \bold{complete} library yet to update consensus library for.}
+}
 \description{
-Function used by library_generator to generate consensus scans
+Extracting or generating representative or consensus scans for each compound ID
 }
