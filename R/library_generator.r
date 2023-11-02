@@ -466,7 +466,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   if (NN>1 & params.consensus$consensus & is.null(old_consensus$metadata)){
     
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
-                  params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks)
+                  params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks, IDsUpdated = unique(temp.ref$ID))
     
     output_library = library_reader(library_consensus)
   }
