@@ -64,7 +64,7 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
   ##  denoise
   concensusLib <- list()
   denoisedSpectra <- sapply(concensusLibTemp$spNew, 
-                            denoise_spectrum, max_peak = max_peaks, min_relative = relative, , simplify = FALSE)
+                            denoise_spectrum, max_peak = max_peaks, min_relative = relative, simplify = FALSE)
   validOnes <- !unlist(lapply( denoisedSpectra, is.null))
   concensusLib$sp <-   denoisedSpectra[validOnes] 
   concensusLib$metadata <-  concensusLibTemp[  validOnes, -1]
