@@ -87,10 +87,17 @@ dataForPlotly <- function(input_library,
 		
  if(!requireNamespace("readr", quietly = TRUE)) install.packages("readr")
 # for each ID, MSLELVE select the largest scan
+		
+if(	type == "complete" & all(is.na(plotData$SCANS))) stop("No SCANS found in the data, we don't know which one to select")
+
 		plotData %<>% 
 				#.$SCANS %>% unique
 				mutate(ID = readr::parse_factor(ID)) %>%
-				group_by(ID, MSLEVEL) %>% filter(SCANS == max(SCANS)) %>%
+		    filter(SCANS == max(SCANS)) %>%
+				group_by(ID, MSLEVEL) 
+
+		
+		plotData %<>%
 				#mutate(prettyIntensity = format(Intensity, digits = 4, trim = TRUE)) %>%
 				#filter(Intensity > max(Intensity)*0.05) %>%
 				#slice(1:100) %>%
