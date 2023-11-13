@@ -18,6 +18,8 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
     stop("The library processing method does not exist!")
   }
   
+  if(all(c("metadata", "sp") %in% names(input_library)))  input_library <- list(complete = input_library)
+    
   if(is.null(input_library$complete)) stop(" Missing input library")
   
   missingInputConsensus <- is.null(input_library$consensus)
