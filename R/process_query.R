@@ -63,7 +63,6 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, s
 					}} else {
 					
 					# Search other things:
-					
 					target_variable = strsplit(eps,"=")[[1]][1]
 					target_value = gsub(paste0(target_variable,"="), "", eps)
 					target_variable = trimws(target_variable)
@@ -77,9 +76,8 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, s
 				# here we apply fuzzy search in R
 				target_variable = trimws(strsplit(eps, sepString)[[1]][1])
 				target_expression = strsplit(eps, sepString)[[1]][2]
-				indexes = which(grepl( target_expression, metadata[, target_variable], ignore.case = TRUE))
-				
-				grep( target_expression, metadata[, target_variable], value = T)
+				indexes = which(grepl( target_expression, metadata[, target_variable,drop = TRUE], ignore.case = TRUE))
+				#grep( target_expression, metadata[, target_variable], value = T)
 			}
 			
 			# Add valid indexes:

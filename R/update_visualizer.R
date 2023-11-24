@@ -23,7 +23,7 @@
 dataForPlotly <- function(input_library, 
 		id = NULL,
 		type = c("complete", "consensus"),
-		query_spectrum=NULL,
+		query_spectrum = NULL,
 		t = 0.25, b = 10){
 	# input_library is already filtered, plot will be based on the entir input_library
 	

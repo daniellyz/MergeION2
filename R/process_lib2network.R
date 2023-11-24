@@ -39,6 +39,8 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ###  Input Check ###
   ####################
   
+  polarity <- match.arg(polarity)
+  
   input_library = library_reader(input_library)
   
   complete_library = input_library$complete
