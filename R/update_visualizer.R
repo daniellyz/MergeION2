@@ -93,8 +93,9 @@ if(	type == "complete" & all(is.na(plotData$SCANS))) stop("No SCANS found in the
 		plotData %<>% 
 				#.$SCANS %>% unique
 				mutate(ID = readr::parse_factor(ID)) %>%
-		    filter(SCANS == max(SCANS)) %>%
-				group_by(ID, MSLEVEL) 
+		    group_by(ID, MSLEVEL) %>%
+		    filter(SCANS == max(SCANS)) 
+				
 
 		
 		plotData %<>%

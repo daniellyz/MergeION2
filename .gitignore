@@ -7,3 +7,4 @@ MergeION.Rcheck/**
 *.tar.gz
 *template.Dockerfile
 *.Rproj
+/Development

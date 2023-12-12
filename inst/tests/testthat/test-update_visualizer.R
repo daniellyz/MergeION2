@@ -8,3 +8,11 @@ test_that("plotlyData", {
 test_that("plotlyData", {
   expect_is(test$ID, "factor")
 })
+
+
+test_that("network visulisation", {
+  
+  skip("development")
+  
+  
+})
