@@ -204,20 +204,24 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     network_selected = input_library$network
   } 
       
-  if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
+  #if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
+  #TODO network is not generated, so should not be in the condition, split into two steps
+  
+
+  if (!is.null(complete_selected) & is.null(consensus_selected)  & !is.null(qs_sp)){
+    message("Generating consensus MS/MS spectral library...")
     
-      message("Generating consensus MS/MS spectral library...")
-       
-      tmp_library = complete_selected
-      
-      input_library <-library_generator(input_library = tmp_library, mslevel = 2,
-            params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
-            params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0, max_peaks = 200, recalibration = 0),
-            params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = mz_search*2),
-            params.network = list(network = FALSE, similarity_method = query_method, min_frag_match = query_min_frag, min_score = 0.6, topK = 10, reaction_type = query_reaction, use_reaction = FALSE))
-      consensus_selected =  input_library$consensus
+    tmp_library = complete_selected
+    
+    input_library <-library_generator(input_library = tmp_library, mslevel = 2,
+                                      params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
+                                      params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0, max_peaks = 200, recalibration = 0),
+                                      params.consensus = list(consensus = TRUE, consensus_method = "consensus", consensus_window = mz_search*2),
+                                      params.network = list(network = FALSE, similarity_method = query_method, min_frag_match = query_min_frag, min_score = 0.6, topK = 10, reaction_type = query_reaction, use_reaction = FALSE))
+    consensus_selected =  input_library$consensus
   } 
-      
+  
+    
   if (!is.null(consensus_selected) & !is.null(qs_sp)){
       
       id_selected = consensus_selected$metadata$ID

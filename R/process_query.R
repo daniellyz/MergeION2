@@ -89,7 +89,10 @@ process_query<-function(library0, query = "", ppm_search = 20, rt_search = 12, s
 		
 		indexes_list = Reduce(intersect,indexes_list)
 	} # end of if query not empty
-	
+	else{
+	  
+	  indexes_list  <- 1:nrow(metadata)
+	}
 	# Output results:
 	
 	NN = 1:length(spectrum_list)
