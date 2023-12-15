@@ -204,15 +204,13 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
     network_selected = input_library$network
   } 
       
-  #if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
-  #TODO network is not generated, so should not be in the condition, split into two steps
-  
+  if (!is.null(complete_selected) & (is.null(consensus_selected) || is.null(network_selected)) & !is.null(qs_sp)){
 
-  if (!is.null(complete_selected) & is.null(consensus_selected)  & !is.null(qs_sp)){
     message("Generating consensus MS/MS spectral library...")
     
-    tmp_library = complete_selected
-    
+    #tmp_library = complete_selected
+    tmp_library = input_library
+    # in library_generator, the input library is assumed to be library of list 3
     input_library <-library_generator(input_library = tmp_library, mslevel = 2,
                                       params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
                                       params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0, max_peaks = 200, recalibration = 0),
