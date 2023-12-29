@@ -1,12 +1,14 @@
 #' Searching a query spectrum in a spectral library
-#'
+#' @param query_spectrum two columns spectrum list
+#' @param use.loss boolean if natrual loss also be used, \code{prec_mz} can not be missing if set true.
+#' @inheritParams library_query
 #' The function calculates spectral similarity of a query spectrum to an existing spectral library
 #'
 #' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 #' 
 #' @export
 
-process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 100, use.prec = FALSE, input_library = NULL,  
+process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 100, use.loss = TRUE, use.prec = FALSE, input_library = NULL,  
                               method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST", "HM", "Entropy"), 
                               prec_ppm_search = 10, frag_mz_search = 0.005, min_frag_match = 6){
   
@@ -23,6 +25,8 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   ################################
   
   prec_mz = as.numeric(prec_mz)
+  if(is.na(prec_mz)) use.loss <- FALSE
+
   
   dat = denoise_query_spectrum(query_spectrum, prec_mz, 500, 0.01)
   NP = nrow(dat)
@@ -45,7 +49,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   db_feature = input_library$network$db_feature
   consensus_library  = input_library$consensus
   
-  if (use.prec){
+  if (use.prec & !is.na(prec_mz)){
     
     consensus_library = process_query(consensus_library, query = paste0("PEPMASS=", prec_mz), ppm_search = prec_ppm_search)
     consensus_library = consensus_library$SELECTED
@@ -76,16 +80,18 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   for (i in 1:NP){
 
     frags = dat[i,1]
-    nls = prec_mz - dat[i,1]
-    
     mze = abs(frags - db_feature[,2])
-    nle = abs(nls - db_feature[,2])
-  
-    valid1 = intersect(which(mze <= frag_mz_search), which(db_feature$Type == "Frag"))
-    valid2 = intersect(which(nle <= frag_mz_search), which(db_feature$Type == "Nloss"))
-    
-    valid = c(valid1, valid2)
 
+    valid1 = intersect(which(mze <= frag_mz_search), which(db_feature$Type == "Frag"))
+   
+	if(use.loss){
+		nle = abs(nls - db_feature[,2])
+		
+    valid2 = intersect(which(nle <= frag_mz_search), which(db_feature$Type == "Nloss"))  
+    valid = c(valid1, valid2)
+}else{
+	valid = valid1
+}
     if (length(valid)>0){
       tmp_profile =  apply(db_profile[valid,,drop=FALSE], 2, max)
       for (rk in 1:length(valid)){
@@ -141,6 +147,7 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   NP_query = nrow(dat) # Nb of peaks in query
   NP_reference = sapply(consensus_library1$sp, nrow)
   NP_reference = as.numeric(as.character(NP_reference)) # Convert NULL to NA
+
   nb_matches = apply(db_profile, 2, function(x) sum(x>0))
   nb_matches = as.numeric(as.character(nb_matches))
 
@@ -267,7 +274,7 @@ denoise_query_spectrum<-function(sp, mz0, max_peak, min_relative){
     
     # Relative Intensity filter:
     
-    filter = which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
+		filter =if(is.na(mz0)) which(sp1[,2]>=min_relative) else which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
     sp = sp1
     sp = sp[filter,,drop=FALSE]
     

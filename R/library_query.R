@@ -24,7 +24,7 @@
 #'        \item{Precision:}{ Percentage of fragment or neutral loss matched in query spectrum.}
 #'        \item{Recall:}{ Percentage of fragment or neutral loss matched in reference spectrum.}
 #'        \item{F1:}{ Harmonic mean of precision and recall.}
-#'        \item{Cosine:}{ COsine similarity score based on intensity vectors of fragments.}
+#'        \item{Cosine:}{ Cosine similarity score based on intensity vectors of fragments.}
 #'        \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
 #'        \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}
 #'        \item{NIST:}{Similarity score used by NIST using weighted pearson score}}
@@ -208,8 +208,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
 
     message("Generating consensus MS/MS spectral library...")
     
-    tmp_library = complete_selected
-
+    # tmp_library = complete_selected
+	## tmp_library needs to be full library
+	tmp_library = list(complete = complete_selected, consensus = consensus_selected, network = input_library$network)
+	
     input_library <-library_generator(input_library = tmp_library, mslevel = 2,
                                       params.search = list(mz_search = mz_search, ppm_search = ppm_search, rt_search = rt_search, rt_gap = 30), 
                                       params.ms.preprocessing = list(normalized = TRUE, baseline = 0, relative = 0, max_peaks = 200, recalibration = 0),
@@ -228,7 +230,11 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
       for (jjj in 1:NQS){
         
         qs_mz = as.numeric(qs_metadata$PEPMASS[jjj])
-
+        
+		# handel the NA situation
+		
+		if(is.na(qs_mz)) qs_mz <- 0 
+			
         tmp_scores = process_similarity(qs_sp[[jjj]], 
               polarity = query_polarity, prec_mz = qs_mz, 
               use.prec = query_use_prec, input_library = tmp_library,  
@@ -236,6 +242,9 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
 
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
+		tmp_pepmass <- as.numric(tmp_ref$PEPMASS)
+		
+		if(is.na(tmp_pepmass)) tmp_pepmass <- 0
 
         if (!is.null(tmp_scores)){
           if (nrow(tmp_scores)>0 & NQS>1){
@@ -245,7 +254,9 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             idx = match(tmp_scores$ID, id_selected)
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
             
-            mdiff = round(abs(qs_mz - as.numeric(tmp_ref$PEPMASS)),3)
+			 
+					
+            mdiff = round(abs(qs_mz -tmp_pepmass),3)
           
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff
@@ -255,7 +266,7 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
           if (nrow(tmp_scores)>0 & NQS==1){
             idx = match(tmp_scores$ID, id_selected)
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
-            mdiff = round(abs(qs_mz - as.numeric(tmp_ref$PEPMASS)),3)
+            mdiff = round(abs(qs_mz -tmp_pepmass),3)
             
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff
@@ -353,10 +364,13 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
            
         II1 = which(node_id == as.character(query_network$ID1[k]))[1]
         MZ1 = as.numeric(query_nodes$PEPMASS[II1])
-      
+        
+		if(is.na(MZ1)) MZ1 <- 0
+		
         II2 = which(node_id == as.character(query_network$ID2[k]))[1]
         MZ2 = as.numeric(query_nodes$PEPMASS[II2])
-           
+		if(is.na(MZ2)) MZ2 <- 0 
+		
         MDiff = abs(MZ1 - MZ2)
         MDiff_error = ppm_distance1(MDiff, reactionList$Mdiff)
 

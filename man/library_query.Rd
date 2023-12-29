@@ -44,7 +44,7 @@ library_query(
        \item{Precision:}{ Percentage of fragment or neutral loss matched in query spectrum.}
        \item{Recall:}{ Percentage of fragment or neutral loss matched in reference spectrum.}
        \item{F1:}{ Harmonic mean of precision and recall.}
-       \item{Cosine:}{ COsine similarity score based on intensity vectors of fragments.}
+       \item{Cosine:}{ Cosine similarity score based on intensity vectors of fragments.}
        \item{Spearman:}{ Spearman similarity based on intensity ranks of fragments.}
        \item{MassBank:}{Similarity score used by MassBank using weighted pearson score}
        \item{NIST:}{Similarity score used by NIST using weighted pearson score}}

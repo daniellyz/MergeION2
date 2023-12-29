@@ -20,8 +20,15 @@ average_spectrum<-function(splist, mz_window = 0.01){
   ####################################################
   
   NBS = length(splist) # Number of spectra to average
+  splist <- lapply(splist, function(x){
+			  colnames(x) <-  c("mz", "I")
+			  x
+		  })
+  
   samples = c()
-  for (i in 1:NBS){samples = rbind(samples,cbind(i,splist[[i]]))} # Create a big matrix
+  for (i in 1:NBS){
+	  samples = rbind(samples,cbind(i,splist[[i]]))
+  } # Create a big matrix
   samples = data.frame(samples)
   colnames(samples)=c("File_num","mz","I")
   samples = samples[order(samples$mz,decreasing = F),]

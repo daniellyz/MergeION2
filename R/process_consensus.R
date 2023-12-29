@@ -92,7 +92,7 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
                              sp = c(inputConsensus$sp[!idx],   concensusLib$sp),
                              metadata = rbind( inputConsensus$metadata[!idx,], concensusLib$metadata))
     
-    output_library = list(complete = input_library$complete, consensus =      consensus_library, network = NULL)
+    output_library = list(complete = input_library$complete, consensus =  consensus_library, network = NULL)
     
     
   }
@@ -160,6 +160,7 @@ updateSpecOneID <- function(listSpec, method = c("most_recent", "consensus", "co
   
   if (method == "most_recent" || nrRecord == 1){
     newSpectrum <- listSpec[[  maxRecord ]]
+	newSpectrum <- newSpectrum[order(newSpectrum[,1]),,drop = FALSE]
   }else{
     
     if (method %in% c("consensus", "consensus2", "common_peaks") && nrRecord > 1){
@@ -175,6 +176,8 @@ updateSpecOneID <- function(listSpec, method = c("most_recent", "consensus", "co
       }
     }
   }
+  
+  colnames(newSpectrum)  <- c("m/z","Intensity")
   
   return(newSpectrum)
   

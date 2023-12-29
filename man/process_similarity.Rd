@@ -8,6 +8,7 @@ process_similarity(
   query_spectrum,
   polarity = "Positive",
   prec_mz = 100,
+  use.loss = TRUE,
   use.prec = FALSE,
   input_library = NULL,
   method = c("Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST", "HM",

@@ -12,7 +12,7 @@
 #' }
 #' @param params.similarity Parameters for MS/MS spectral similarity determination, used for both molecular networking and spectral library search.
 #' \itemize{
-#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" or "All" (library_query for more details).}
+#'  \item{method:}{ Characeter.Similarity metrics for networking and spectral library search. Must be either "Messar" (library_messar for more details) or "Precision", "Recall", "F1", "Cosine", "Spearman", "MassBank", "NIST" or "All", default is  "Cosine" (library_query for more details).}
 #'  \item{min.frag.match:}{ Integer. Minimum number of common fragment ions (or neutral losses) that are shared to be considered for spectral similarity evaluation. We suggest setting this value to at least 6 for statistical meaningfulness. Not applicable if method = "Messar".}
 #'  \item{min.score:}{ Numeric between 0 and 1. Minimum similarity score to annotate an unknown feature with spectral library or to connect two unknown features because they are similar. Not applicable if method = "Messar".}
 #' }
@@ -96,6 +96,9 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
     
     if (sim.method!="Messar"){
       
+		# is not all PEPEMASS exists, just rwa mz instead
+		if(any( is.na(MZList) )) use.loss <- FALSE
+		
       for (i in 1:(NI-1)){
         
         temp_spectrum = splist[[i]]
@@ -109,7 +112,9 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
         temp_library$network$db_profile =  library_matrix$db_profile[,lib_range,drop=FALSE] 
         temp_library$network$db_feature =  library_matrix$db_feature
         
-        temp_scores = process_similarity(query_spectrum = temp_spectrum, polarity = polarity, prec_mz = MZList[i], use.prec = FALSE, 
+        temp_scores = process_similarity(query_spectrum = temp_spectrum, 
+				                  use.loss = use.loss, polarity = polarity,
+								  prec_mz = MZList[i], use.prec = FALSE, 
                                          input_library = temp_library, method = sim.method, 
                                          prec_ppm_search = ppm_search, frag_mz_search = mz_search, min_frag_match = min.frag.match)
         
@@ -145,7 +150,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
       messar_output = list()
       
       # Messar substructure prediction:
-      
+      # TODO metadata$PEPMASS missing situation
       for (i in 1:NI){
         
         tmp_sp = splist[[i]]
@@ -280,8 +285,10 @@ matrix_generator<-function(input_library, mz_window = 0.02){
     
     frags =  input_library$sp[[1]][,1]
     ints =  input_library$sp[[1]][,2]
+	 
     nls = as.numeric(input_library$metadata$PEPMASS)-frags
-    FID = paste0("Frag_", 1:length(frags))
+    
+	FID = paste0("Frag_", 1:length(frags))
     NID = paste0("Nloss_", 1:length(nls))
     
     sp_profile =  nl_profile = t(t(ints))
@@ -289,10 +296,18 @@ matrix_generator<-function(input_library, mz_window = 0.02){
     sp_feature =  cbind.data.frame(FID = FID, Mass = frags)
     nl_feature =  cbind.data.frame(FID = NID, Mass = nls)
     colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
-    
-    db_profile = rbind(sp_profile, nl_profile)
-    db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
-    
+	
+	
+    if(is.na(as.numeric(input_library$metadata$PEPMASS))){
+		db_profile = rbind(sp_profile)
+		db_feature = cbind(sp_feature, Type = c(rep("Frag", nrow(sp_feature))))
+		
+	}else{
+		db_profile = rbind(sp_profile, nl_profile)
+		db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
+		
+	}
+   
     return(list(db_profile = db_profile, db_feature = db_feature))
   }
   
@@ -304,17 +319,22 @@ matrix_generator<-function(input_library, mz_window = 0.02){
   NM = nrow(metadata)
   
   ### Neutral loss spectra:
+  useLoss <- !any(is.na(as.numeric(input_library$metadata$PEPMASS)))
   
   nllist = list()
   for (i in 1:NM){
-    sp = splist[[i]]
-    prec.mz = as.numeric(metadata$PEPMASS[i])
-    nl = cbind(prec.mz - sp[,1], sp[,2])
-    nl = nl[nl[,1]>2,,drop=FALSE]
-    nl = nl[order(nl[,1]),,drop=FALSE]
-    nllist[[i]] = nl
+	  sp = splist[[i]]
+	  if(useLoss){
+		  prec.mz = as.numeric(metadata$PEPMASS[i])
+		  nl = cbind(prec.mz - sp[,1], sp[,2])}else{
+		  nl = sp
+	  }
+	  nl = nl[nl[,1]>2,,drop=FALSE]
+	  nl = nl[order(nl[,1]),,drop=FALSE]
+	  nllist[[i]] = nl
   }  
   
+ 
   ### Align spectra
   
   sp_aligned = average_spectrum(splist, mz_window = mz_window)
@@ -323,21 +343,30 @@ matrix_generator<-function(input_library, mz_window = 0.02){
   rownames(sp_profile) = FID
   colnames(sp_profile) = IDlist
   sp_feature = data.frame(FID = FID, Mass = sp_aligned$new_spectrum[,1])
-  
+ 
+  if( useLoss ){
   nl_aligned = average_spectrum(nllist, mz_window = mz_window)
   nl_profile = nl_aligned$I_matrix
   NID = paste0("Nloss_", 1:nrow(nl_profile))
   rownames(nl_profile) = NID
   colnames(nl_profile) = IDlist
   nl_feature = data.frame(NID = NID, Mass = nl_aligned$new_spectrum[,1])
-  
+
   ### Reduce Existing Library
   
   colnames(sp_feature) = colnames(nl_feature) = c("ID", "Mass")
   
   db_profile = rbind(sp_profile, nl_profile)
   db_feature = cbind(rbind(sp_feature, nl_feature), Type = c(rep("Frag", nrow(sp_feature)), rep("Nloss", nrow(nl_feature))))
-  
+}else{
+# not doing natural loss search	
+	colnames(sp_feature)  = c("ID", "Mass")
+	
+	db_profile = sp_profile
+	db_feature = cbind(sp_feature,  Type = c(rep("Frag", nrow(sp_feature))))	
+}
+
+
   valid = which(apply(db_profile, 1, sum)>0)
   db_profile = db_profile[valid,,drop=FALSE]
   db_feature = db_feature[valid,,drop=FALSE]
