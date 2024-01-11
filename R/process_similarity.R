@@ -79,12 +79,13 @@ process_similarity<- function(query_spectrum, polarity = "Positive", prec_mz = 1
   
   for (i in 1:NP){
 
-    frags = dat[i,1]
+    frags = dat[i,1, drop = TRUE]
     mze = abs(frags - db_feature[,2])
 
     valid1 = intersect(which(mze <= frag_mz_search), which(db_feature$Type == "Frag"))
    
 	if(use.loss){
+		nls = prec_mz - dat[i,1, drop = TRUE]
 		nle = abs(nls - db_feature[,2])
 		
     valid2 = intersect(which(nle <= frag_mz_search), which(db_feature$Type == "Nloss"))  

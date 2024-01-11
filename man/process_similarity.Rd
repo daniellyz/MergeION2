@@ -18,8 +18,13 @@ process_similarity(
   min_frag_match = 6
 )
 }
+\arguments{
+\item{query_spectrum}{two columns spectrum list}
+
+\item{use.loss}{boolean if natrual loss also be used, \code{prec_mz} can not be missing if set true.}
+}
 \description{
-The function calculates spectral similarity of a query spectrum to an existing spectral library
+Searching a query spectrum in a spectral library
 }
 \author{
 Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}

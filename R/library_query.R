@@ -231,10 +231,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
         
         qs_mz = as.numeric(qs_metadata$PEPMASS[jjj])
         
-		# handel the NA situation
-		
-		if(is.na(qs_mz)) qs_mz <- 0 
-			
+		# handel the NA situation 
+	
         tmp_scores = process_similarity(qs_sp[[jjj]], 
               polarity = query_polarity, prec_mz = qs_mz, 
               use.prec = query_use_prec, input_library = tmp_library,  
@@ -242,10 +240,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
               frag_mz_search = mz_search, min_frag_match = query_min_frag)
 
         tmp_scores = tmp_scores[tmp_scores$SCORES>=query_min_score,,drop=FALSE]
-		tmp_pepmass <- as.numric(tmp_ref$PEPMASS)
-		
-		if(is.na(tmp_pepmass)) tmp_pepmass <- 0
 
+	
         if (!is.null(tmp_scores)){
           if (nrow(tmp_scores)>0 & NQS>1){
             valid = which(round(tmp_scores$SCORES, 1) == max(round(tmp_scores$SCORES,1)))
@@ -253,10 +249,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             tmp_scores = tmp_scores[which(!duplicated(tmp_scores$ID)),,drop=FALSE]
             idx = match(tmp_scores$ID, id_selected)
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
-            
-			 
-					
-            mdiff = round(abs(qs_mz -tmp_pepmass),3)
+			
+			tmp_pepmass <- as.numeric(tmp_ref$PEPMASS)
+			
+			if(is.na(tmp_pepmass))  mdiff <- NA else  mdiff = round(abs(qs_mz -tmp_pepmass),3)
           
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff
@@ -266,7 +262,9 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
           if (nrow(tmp_scores)>0 & NQS==1){
             idx = match(tmp_scores$ID, id_selected)
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
-            mdiff = round(abs(qs_mz -tmp_pepmass),3)
+			tmp_pepmass <- as.numeric(tmp_ref$PEPMASS)
+			
+			if(any(is.na(tmp_pepmass))) mdiff = rep(NA, length(tmp_pepmass)) else mdiff = round(abs(qs_mz -tmp_pepmass),3)
             
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff

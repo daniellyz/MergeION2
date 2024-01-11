@@ -148,6 +148,7 @@ denoise_spectrum <- function(sp, max_peak, min_relative){
 #' @param listSpec list of spectra
 #' @inheritParams  library_generator
 #' @param scans the "SCANS" from the metadata
+#' ' @importFrom tibble as_tibble
 
 
 updateSpecOneID <- function(listSpec, method = c("most_recent", "consensus", "consensus2", "common_peaks"),
@@ -176,7 +177,7 @@ updateSpecOneID <- function(listSpec, method = c("most_recent", "consensus", "co
       }
     }
   }
-  
+  newSpectrum <-  as_tibble(newSpectrum)
   colnames(newSpectrum)  <- c("m/z","Intensity")
   
   return(newSpectrum)

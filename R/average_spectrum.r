@@ -2,7 +2,7 @@
 #'
 #' Function used by process_consensus and process_lib2matrix for m/z alignment
 #' 
-#' @importFrom bigmemory big.matrix
+##' @importFrom bigmemory big.matrix
 #' @export
 #'
 average_spectrum<-function(splist, mz_window = 0.01){
@@ -29,6 +29,10 @@ average_spectrum<-function(splist, mz_window = 0.01){
   for (i in 1:NBS){
 	  samples = rbind(samples,cbind(i,splist[[i]]))
   } # Create a big matrix
+  
+  
+
+  
   samples = data.frame(samples)
   colnames(samples)=c("File_num","mz","I")
   samples = samples[order(samples$mz,decreasing = F),]
@@ -58,7 +62,7 @@ average_spectrum<-function(splist, mz_window = 0.01){
     avg_mzlist[i] = mean(samples$mz[valid])
     dev_matrix[i, samples$File_num[valid]] = samples$mz[valid] - avg_mzlist[i]
     
-    for (j in 1:length(valid)){ # Actualize intensity matrix
+    for (j in 1:length(valid)){ # Actualize intensity matrix (taking the sum)
       I_matrix[i,samples$File_num[valid[j]]]= I_matrix[i,samples$File_num[valid[j]]]+samples$I[valid[j]]
   }}
   
