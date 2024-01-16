@@ -252,7 +252,10 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
 			
 			tmp_pepmass <- as.numeric(tmp_ref$PEPMASS)
 			
-			if(is.na(tmp_pepmass))  mdiff <- NA else  mdiff = round(abs(qs_mz -tmp_pepmass),3)
+			if(is.na(tmp_pepmass)){
+				message("PEPEMASS is missing, MDIFF is not reported")	
+				mdiff <- NA
+			}else{mdiff = round(abs(qs_mz -tmp_pepmass),3)}
           
             tmp_scores$QS = qs_metadata$ID[jjj]
             tmp_scores$MDIFF = mdiff
