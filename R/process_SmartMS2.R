@@ -34,12 +34,13 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
  #####################
  ### Load MS2 Scans###
  #####################
+ if (nrow(ref)==0){MS2_Janssen=NULL}else{
  
- MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
+  MS2_Janssen <- try(readMSData(mzdatafiles, msLevel = 2, verbose = FALSE, mode = "inMemory",  centroided = T),silent=T)
  
  if (class(MS2_Janssen)=="try-error"){MS2_Janssen=NULL}
- 
- if (nrow(ref)==0){MS2_Janssen=NULL}
+ }
+
  
  if (!is.null(MS2_Janssen)){ # If data contains MS2 scan
 
@@ -296,7 +297,9 @@ denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
     
     # Relative Intensity filter:
     
-    filter = which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
+    #filter = which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
+    ## keep the PEPMASS in the final spectra libary 
+    filter = which(sp1[,2]>=min_relative & sp1[,1] <= mz0)
     if (normalized){sp = sp1}  
     sp = sp[filter,,drop=FALSE]
     
