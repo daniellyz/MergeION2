@@ -14,7 +14,8 @@ updateSpecOneID(
 \arguments{
 \item{listSpec}{list of spectra}
 
-\item{scans}{the "SCANS" from the metadata}
+\item{scans}{the "SCANS" from the metadata
+' @importFrom tibble as_tibble}
 }
 \description{
 Genereate consensus library for a given compound ID

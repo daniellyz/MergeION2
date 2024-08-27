@@ -2,7 +2,8 @@
 % Please edit documentation in R/process_similarity.R
 \name{process_similarity}
 \alias{process_similarity}
-\title{Searching a query spectrum in a spectral library}
+\title{Searching a query spectrum in a spectral library
+The function calculates spectral similarity of a query spectrum to an existing spectral library}
 \usage{
 process_similarity(
   query_spectrum,
@@ -22,9 +23,12 @@ process_similarity(
 \item{query_spectrum}{two columns spectrum list}
 
 \item{use.loss}{boolean if natrual loss also be used, \code{prec_mz} can not be missing if set true.}
+
+\item{input_library}{Character or a list object. If character, file name with extension mgf, msp or RData. If list, must contain "complete", "consensus" and "network".}
 }
 \description{
 Searching a query spectrum in a spectral library
+The function calculates spectral similarity of a query spectrum to an existing spectral library
 }
 \author{
 Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}

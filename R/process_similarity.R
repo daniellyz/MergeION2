@@ -1,9 +1,10 @@
 #' Searching a query spectrum in a spectral library
+#' The function calculates spectral similarity of a query spectrum to an existing spectral library
+#'
 #' @param query_spectrum two columns spectrum list
 #' @param use.loss boolean if natrual loss also be used, \code{prec_mz} can not be missing if set true.
 #' @inheritParams library_query
-#' The function calculates spectral similarity of a query spectrum to an existing spectral library
-#'
+
 #' @author Youzhong Liu, \email{Youzhong.Liu@uantwerpen.be}
 #' 
 #' @export

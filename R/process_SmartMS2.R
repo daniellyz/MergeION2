@@ -233,7 +233,9 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
 ### Internal functions:####
 ###########################
 
-# ppm error calculation:
+#' ppm error calculation:
+#' @param x
+#' @param y
 
 ppm_distance<-function(x,y){
   x = as.numeric(x)
@@ -247,7 +249,11 @@ ppm_distance<-function(x,y){
   return(ppm)
 }
 
-# Find indexes from "ranges": separated isomer peaks according to rt and intensity
+#' Find indexes from "ranges": separated isomer peaks according to rt and intensity
+#'@param ranges
+#'@param rts
+#'@param tics
+#'@param rt_gap
 
 separated_peaks2<-function(ranges, rts, tics, rt_gap){
 
@@ -272,7 +278,12 @@ separated_peaks2<-function(ranges, rts, tics, rt_gap){
   return(ind_features)
 }
 
-# Keep top peaks
+#' Keep top peaks
+#'@param sp
+#'@param mz0
+#'@param max_peak
+#'@param min_relative
+#'@param normalized
 
 denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   

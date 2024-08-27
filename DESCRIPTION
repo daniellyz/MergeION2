@@ -50,7 +50,7 @@ SystemRequirements: OpenBabel, Java JDK 8 or higher,tcl8.6, tk8.6
 Description: Building tandem mass spectral library from sensitive pharmaceutical data. Searching spectral library for partial identification and drug discovery 
 License: GNU
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Encoding: UTF-8
 Suggests: 
     knitr,
