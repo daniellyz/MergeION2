@@ -195,28 +195,29 @@ process_mzmine<-function(mzmine_file, polarity = c("Positive", "Negative"),
 #############################
 ######Internal function######
 #############################
+##### duplciated function 
 
-cut_mz_list<-function(mzlist, mz_window){
-  
-  N=length(mzlist)
-  
-  f=1
-  mz_feature=c(0, N) 
-  t0 = 1 # Start index of a cluster
-  
-  for (k in 2:N){
-    min_mz = min(mzlist[t0:(k-1)])
-    avg_mz = mean(mzlist[t0:(k-1)])
-    
-    if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
-      mz_feature[t0:(k-1)] = f 
-      f = f + 1
-      t0 = k
-    }
-  }
-  mz_feature[t0:N] = f
-  return(mz_feature)
-}
+# cut_mz_list<-function(mzlist, mz_window){
+#   
+#   N=length(mzlist)
+#   
+#   f=1
+#   mz_feature=c(0, N) 
+#   t0 = 1 # Start index of a cluster
+#   
+#   for (k in 2:N){
+#     min_mz = min(mzlist[t0:(k-1)])
+#     avg_mz = mean(mzlist[t0:(k-1)])
+#     
+#     if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
+#       mz_feature[t0:(k-1)] = f 
+#       f = f + 1
+#       t0 = k
+#     }
+#   }
+#   mz_feature[t0:N] = f
+#   return(mz_feature)
+# }
 
 cut_rt_list_mzmine<-function(rtlist, rt_window){
   

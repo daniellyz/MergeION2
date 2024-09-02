@@ -220,8 +220,14 @@ separated_peaks1<-function(ranges, rts, tics, rt_gap){
   return(unique(valid_k))
 }
 
-# Keep top peaks
-
+#' Keep top peaks
+#'@param sp spectra
+#'@param mz0 pepmass
+#'@param max_peak maxial number o peaks to be retained 
+#'@param min_relative minimal relative intensity to be retained
+#'@param normalized boolean 
+#'
+#'
 denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   
   denoised_spectrum = matrix(c(0,0),1,2)
@@ -259,10 +265,10 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   return(denoised_spectrum)
 }
 
-decimalplaces <- function(x){
-  if ((x %% 1) != 0) {
-    nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed=TRUE)[[1]][[2]])
-  } else {
-    return(0)
-  }
-}
+# decimalplaces <- function(x){
+#   if ((x %% 1) != 0) {
+#     nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed=TRUE)[[1]][[2]])
+#   } else {
+#     return(0)
+#   }
+# }

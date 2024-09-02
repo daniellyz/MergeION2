@@ -22,7 +22,7 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
     
   if(is.null(input_library$complete)) stop(" Missing input library")
   
-  missingInputConsensus <- is.null(input_library$consensus)
+  missingInputConsensus <- is.null(input_library$consensus$metadata)
   
   # scenario 1: missing input consensus, and append_lib = NULL
   if(missingInputConsensus & is.null( IDsUpdated )){
@@ -117,7 +117,7 @@ denoise_spectrum <- function(sp, max_peak, min_relative){
     
     # Filter top peaks:
     
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+    sp = sp[order(sp[[2]], decreasing = T),,drop=FALSE]
     tops = min(max_peak, nrow(sp))  
     sp = sp[1:tops,,drop=FALSE]
     
@@ -135,7 +135,7 @@ denoise_spectrum <- function(sp, max_peak, min_relative){
     # Check validity:
     
     if (nrow(sp)>=2){
-      sp = sp[order(sp[,1]),]
+      sp = sp[order(sp[[1]]),]
       sp[,2] = sp[,2]/max(sp[,2])
       denoised_spectrum = sp
     }
@@ -161,7 +161,7 @@ updateSpecOneID <- function(listSpec, method = c("most_recent", "consensus", "co
   
   if (method == "most_recent" || nrRecord == 1){
     newSpectrum <- listSpec[[  maxRecord ]]
-	newSpectrum <- newSpectrum[order(newSpectrum[,1]),,drop = FALSE]
+	newSpectrum <- newSpectrum[order(newSpectrum[[1]]),,drop = FALSE]
   }else{
     
     if (method %in% c("consensus", "consensus2", "common_peaks") && nrRecord > 1){

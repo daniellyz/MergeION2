@@ -279,11 +279,11 @@ separated_peaks2<-function(ranges, rts, tics, rt_gap){
 }
 
 #' Keep top peaks
-#'@param sp
-#'@param mz0
-#'@param max_peak
-#'@param min_relative
-#'@param normalized
+#'@param sp spectra
+#'@param mz0 pepmass
+#'@param max_peak maxial number o peaks to be retained 
+#'@param min_relative minimal relative intensity to be retained
+#'@param normalized boolean 
 
 denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   

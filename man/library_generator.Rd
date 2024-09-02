@@ -17,7 +17,8 @@ library_generator(
   params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1,
     max_peaks = 200, recalibration = 0),
   params.consensus = list(consensus = FALSE, consensus_method = c("consensus",
-    "consensus2", "common_peaks", "most_recent")[1], consensus_window = 0.02),
+    "consensus2", "common_peaks", "most_recent")[1], consensus_window = 0.02, IDsUpdated
+    = NULL),
   params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match =
     6, min_score = 0.6, topK = 10, max_comp_size = 100, reaction_type = "Metabolic",
     use_reaction = FALSE),
@@ -65,6 +66,7 @@ library_generator(
     \item{common_peaks:}{ Peaks detected in ALL duplicated spectra were kept and averaged.}
     \item{most_recent:}{ The most recent record was kept if duplicates are detected.}}
  \item{consensus_window}{ m/z window (in Dalton) for spectra alignment, only used when method = "consensus" or "common_peaks". To generate consensus spectra, mass peaks in different spectra within the mass window were aligned by averaging their mass values and intensities. The metadata was kept only for the most recent spectrum.}
+ \item{IDsUpdated}{ Compound IDs for which the consensus records need to be constructed, default is NULL, then all compounds will be used in constructing consensus library}
 }}
 
 \item{params.network}{Parameters for networking consensus spectra library into a molecular network

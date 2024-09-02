@@ -624,43 +624,45 @@ MS1MatchSpectra1 <- function(metaData=NULL, MS2file=NULL, mz=NULL, RT=NULL,
   }
 }
 
-denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
-  
-  denoised_spectrum = matrix(c(0,0),1,2)
-  
-  if (nrow(sp)>0){
-    
-    # Check resolution:
-    
-    checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
-    
-    # Filter top peaks:
-    
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
-    tops = min(max_peak, nrow(sp))  
-    sp = sp[1:tops,,drop=FALSE]
-    
-    # Normalize to 100:
-    
-    sp1 = sp
-    sp1[,2] = sp1[,2]/max(sp1[,2])*100
-    
-    # Relative Intensity filter:
-    
-    filter = which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
-    if (normalized){sp = sp1}  
-    sp = sp[filter,,drop=FALSE]
-    
-    # Check validity:
-    
-    if (nrow(sp)>0 & checked){
-      sp = sp[order(sp[,1]),,drop=FALSE]
-      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
-      denoised_spectrum = sp
-    }
-  }
-  return(denoised_spectrum)
-}
+## duplicated function defination
+
+# denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
+#   
+#   denoised_spectrum = matrix(c(0,0),1,2)
+#   
+#   if (nrow(sp)>0){
+#     
+#     # Check resolution:
+#     
+#     checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
+#     
+#     # Filter top peaks:
+#     
+#     sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+#     tops = min(max_peak, nrow(sp))  
+#     sp = sp[1:tops,,drop=FALSE]
+#     
+#     # Normalize to 100:
+#     
+#     sp1 = sp
+#     sp1[,2] = sp1[,2]/max(sp1[,2])*100
+#     
+#     # Relative Intensity filter:
+#     
+#     filter = which(sp1[,2]>=min_relative & sp1[,1]<= mz0)
+#     if (normalized){sp = sp1}  
+#     sp = sp[filter,,drop=FALSE]
+#     
+#     # Check validity:
+#     
+#     if (nrow(sp)>0 & checked){
+#       sp = sp[order(sp[,1]),,drop=FALSE]
+#       if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
+#       denoised_spectrum = sp
+#     }
+#   }
+#   return(denoised_spectrum)
+# }
 
 denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   
@@ -701,10 +703,10 @@ denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   return(denoised_spectrum)
 }
 
-decimalplaces <- function(x){
-  if ((x %% 1) != 0) {
-    nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed=TRUE)[[1]][[2]])
-  } else {
-    return(0)
-  }
-}
+# decimalplaces <- function(x){
+#   if ((x %% 1) != 0) {
+#     nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed=TRUE)[[1]][[2]])
+#   } else {
+#     return(0)
+#   }
+# }

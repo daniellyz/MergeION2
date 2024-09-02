@@ -850,44 +850,44 @@ aggregateSpectra1 <- function (spec, addIncomplete = FALSE){
 ###############################
 ###Post-Processing functions ##
 ###############################
-
-denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
-  
-  denoised_spectrum = matrix(c(0,0),1,2)
-  
-  if (nrow(sp)>0){
-    
-    # Check resolution:
-    
-    checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
-    
-    # Filter top peaks:
-    
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
-    tops = min(max_peak, nrow(sp))  
-    sp = sp[1:tops,,drop=FALSE]
-    
-    # Normalize to 100:
-    
-    sp1 = sp
-    sp1[,2] = sp1[,2]/max(sp1[,2])*100
-    
-    # Relative Intensity filter:
-    
-    filter = which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
-    if (normalized){sp = sp1}  
-    sp = sp[filter,,drop=FALSE]
-    
-    # Check validity:
-    
-    if (nrow(sp)>0 & checked){
-      sp = sp[order(sp[,1]),,drop=FALSE]
-      if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
-      denoised_spectrum = sp
-    }
-  }
-  return(denoised_spectrum)
-}
+## duplicated function defination
+# denoise_ms2_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
+#   
+#   denoised_spectrum = matrix(c(0,0),1,2)
+#   
+#   if (nrow(sp)>0){
+#     
+#     # Check resolution:
+#     
+#     checked = any(sapply(sp[,1], decimalplaces)>2) # At least 2 values after decimal
+#     
+#     # Filter top peaks:
+#     
+#     sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+#     tops = min(max_peak, nrow(sp))  
+#     sp = sp[1:tops,,drop=FALSE]
+#     
+#     # Normalize to 100:
+#     
+#     sp1 = sp
+#     sp1[,2] = sp1[,2]/max(sp1[,2])*100
+#     
+#     # Relative Intensity filter:
+#     
+#     filter = which(sp1[,2]>=min_relative & sp1[,1]<=mz0)
+#     if (normalized){sp = sp1}  
+#     sp = sp[filter,,drop=FALSE]
+#     
+#     # Check validity:
+#     
+#     if (nrow(sp)>0 & checked){
+#       sp = sp[order(sp[,1]),,drop=FALSE]
+#       if (normalized){sp[,2] = sp[,2]/max(sp[,2])*100}
+#       denoised_spectrum = sp
+#     }
+#   }
+#   return(denoised_spectrum)
+# }
 
 denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   
@@ -1035,27 +1035,27 @@ recalibrateSpectra <- function (rawspec = NULL, rc = NULL, rc.ms1 = NULL, w = NU
   else return(list())
 }
 
-
-cut_mz_list<-function(mzlist, mz_window){
-  
-  N=length(mzlist)
-  
-  f=1
-  mz_feature=c(0, N) 
-  t0 = 1 # Start index of a cluster
-  
-  for (k in 2:N){
-    min_mz = min(mzlist[t0:(k-1)])
-    avg_mz = mean(mzlist[t0:(k-1)])
-    
-    if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
-      mz_feature[t0:(k-1)] = f 
-      f = f + 1
-      t0 = k
-    }
-  }
-  mz_feature[t0:N] = f
-  return(mz_feature)
-}
-
+## duplicated function difination
+# cut_mz_list<-function(mzlist, mz_window){
+#   
+#   N=length(mzlist)
+#   
+#   f=1
+#   mz_feature=c(0, N) 
+#   t0 = 1 # Start index of a cluster
+#   
+#   for (k in 2:N){
+#     min_mz = min(mzlist[t0:(k-1)])
+#     avg_mz = mean(mzlist[t0:(k-1)])
+#     
+#     if (mzlist[k] - min_mz > mz_window & mzlist[k] - avg_mz > mz_window/2){
+#       mz_feature[t0:(k-1)] = f 
+#       f = f + 1
+#       t0 = k
+#     }
+#   }
+#   mz_feature[t0:N] = f
+#   return(mz_feature)
+# }
+# 
 

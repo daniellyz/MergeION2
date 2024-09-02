@@ -84,6 +84,9 @@ average_spectrum<-function(splist, mz_window = 0.01){
 ##########################
 ### Internal functions:###
 ##########################
+#' segment mz list
+#' @param mzlist mass list
+#' @param mz_window cut off window width
 
 cut_mz_list<-function(mzlist, mz_window){
   
