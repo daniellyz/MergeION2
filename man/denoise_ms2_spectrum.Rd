@@ -6,6 +6,17 @@
 \usage{
 denoise_ms2_spectrum(sp, mz0, max_peak, min_relative, normalized = T)
 }
+\arguments{
+\item{sp}{spectra}
+
+\item{mz0}{pepmass}
+
+\item{max_peak}{maxial number o peaks to be retained}
+
+\item{min_relative}{minimal relative intensity to be retained}
+
+\item{normalized}{boolean}
+}
 \description{
 Keep top peaks
 }

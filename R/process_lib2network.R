@@ -3,6 +3,7 @@
 #' Function used by library_generator to create molecular networks
 #'
 #' @param input_library A list object. Must contain consensus library.
+#' @param forceRegeneration boolean whehter to force regenerate network library even old network library exists
 #' @param networking Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching
 #' @param polarity character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file. 
 #' @param params.search List of parameters for feature screening, combining precursor ions and fragments in the input file, as well as for searching in the spectral library. The list must contain following elements:
@@ -27,7 +28,7 @@
 #' @importFrom igraph E cluster_louvain graph_from_data_frame components vertex_attr get.vertex.attribute
 #' @export
 #'
-process_lib2network<-function(input_library, networking = T, polarity = c("Positive", "Negative"),
+process_lib2network<-function(input_library, networking = T, forceRegeneration = FALSE, polarity = c("Positive", "Negative"),
                               params.search = list(mz_search = 0.005, ppm_search = 10),
                               params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
                               params.network = list(topK = 10, max.comp.size = 50, reaction.type = "Metabolic", use.reaction = TRUE)){
@@ -75,7 +76,7 @@ process_lib2network<-function(input_library, networking = T, polarity = c("Posit
   ### Transform spectra to matrix ###
   ###################################
   
-  if (!is.null(input_library$network)){
+  if (!is.null(input_library$network) & !forceRegeneration){
     library_matrix = list(db_profile = input_library$network$db_profile,
                           db_feature = input_library$network$db_feature)
   } else {

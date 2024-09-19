@@ -227,7 +227,6 @@ separated_peaks1<-function(ranges, rts, tics, rt_gap){
 #'@param min_relative minimal relative intensity to be retained
 #'@param normalized boolean 
 #'
-#'
 denoise_ms1_spectrum<-function(sp, mz0, max_peak, min_relative, normalized = T){
   
   denoised_spectrum = matrix(c(0,0),1,2)

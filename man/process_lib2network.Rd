@@ -7,6 +7,7 @@
 process_lib2network(
   input_library,
   networking = T,
+  forceRegeneration = FALSE,
   polarity = c("Positive", "Negative"),
   params.search = list(mz_search = 0.005, ppm_search = 10),
   params.similarity = list(method = "Cosine", min.frag.match = 6, min.score = 0.6),
@@ -18,6 +19,8 @@ process_lib2network(
 \item{input_library}{A list object. Must contain consensus library.}
 
 \item{networking}{Boolean. TRUE to go through the entire molecular networking process. FALSE if only spectra alignment is performed, necessary for spectral library searching}
+
+\item{forceRegeneration}{boolean whehter to force regenerate network library even old network library exists}
 
 \item{polarity}{character. Either "Positive" or "Negative". Ion mode of the LC-MS/MS file.}
 

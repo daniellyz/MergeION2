@@ -35,6 +35,7 @@
 #'     \item{most_recent:}{ The most recent record was kept if duplicates are detected.}}
 #'  \item{consensus_window}{ m/z window (in Dalton) for spectra alignment, only used when method = "consensus" or "common_peaks". To generate consensus spectra, mass peaks in different spectra within the mass window were aligned by averaging their mass values and intensities. The metadata was kept only for the most recent spectrum.}
 #'  \item{IDsUpdated}{ Compound IDs for which the consensus records need to be constructed, default is NULL, then all compounds will be used in constructing consensus library}
+#'   \item{force_regeneration:}{Boolean. TRUE to regenerate consensus library }
 #' }
 #' @param params.network Parameters for networking consensus spectra library into a molecular network
 #' \itemize{
@@ -46,6 +47,7 @@
 #'   \item{max_comp_size:}{ Numeric between 0 and 200. Maximum size of nodes allowed in each network component. Default value is 100. Network component = Cluster of connected node. Set to 0 if no limitation on componet size.}
 #'   \item{reaction_type:}{ Character. Either "Metabolic" and "Chemical". Type of transformation list used to annotate mass difference between connected features in molecular network.}
 #'   \item{use_reaction:}{ Boolean. TRUE if keep only edges whose mass difference can be annotated to known metabolic or chemical reactions.}
+#'   \item{force_regeneration:}{Boolean. TRUE to regenerate network library \code{db_profile} and \code{db_feature}}
 #' }
 #' @param params.user A list of additional parameters.
 #' \itemize{
@@ -117,8 +119,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                             processing.algorithm = c("Default", "compMS2Miner", "RMassBank")[1],
                             params.search = list(mz_search = 0.01, ppm_search = 10, rt_search = 15, rt_gap = 30), 
                             params.ms.preprocessing = list(normalized = TRUE, baseline = 1000, relative = 0.1, max_peaks = 200, recalibration = 0),
-                            params.consensus = list(consensus = FALSE, consensus_method = c("consensus", "consensus2", "common_peaks","most_recent")[1], consensus_window = 0.02, IDsUpdated = NULL),
-                            params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, max_comp_size = 100, reaction_type = "Metabolic", use_reaction = FALSE),
+                            params.consensus = list(consensus = FALSE, consensus_method = c("consensus", "consensus2", "common_peaks","most_recent")[1], consensus_window = 0.02, IDsUpdated = NULL, force_regeneration = FALSE),
+                            params.network = list(network = FALSE, similarity_method = "Cosine", min_frag_match = 6, min_score = 0.6, topK = 10, max_comp_size = 100, reaction_type = "Metabolic", use_reaction = FALSE, force_regeneration = FALSE),
                             params.user = list(sample_type = "", user_name = "", comments = "")){
   
   options(stringsAsFactors = FALSE)
@@ -466,16 +468,19 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   ##############################
   ### Post-processing library###
   ##############################
+  #update when no old consensus or consensus regarding a new ID need to be updated
   
-  if (NN>1 & params.consensus$consensus & is.null(old_consensus$metadata)){
-    IDsSpecified <- IDsUpdated
+  if (NN>1 & params.consensus$consensus & (is.null(old_consensus$metadata) | !is.null(params.consensus$IDsUpdated) | params.consensus$force_regeneration)){
+    IDsSpecified <- params.consensus$IDsUpdated
     library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
-                                          params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks, IDsUpdated = ifelse( is.null( IDsSpecified),unique( target.ref$ID), IDsSpecified))
+                                          params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks, 
+                                          IDsUpdated = ifelse( is.null( IDsSpecified),unique( library_complete$metadata$ID), 
+                                                               IDsSpecified))
     
     output_library = library_reader(library_consensus)
   }
   
-  if (NN>1 & !is.null(old_consensus$metadata)){
+  if (NN>1 & !is.null(old_consensus$metadata) & !params.consensus$force_regeneration){
     output_library = list(complete = library_complete, consensus = old_consensus, network = old_network)
   }
   
@@ -483,9 +488,10 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (!is.null(NN)){
     
-    if (NN>1 & params.consensus$consensus){
+    if (NN>1 & (params.consensus$consensus | params.network$force_regeneration)){
       
       library_network = process_lib2network(output_library, networking = params.network$network, polarity = polarity, 
+                                            forceRegeneration = params.network$force_regeneration,
                                             params.search = list(mz_search = params.consensus$consensus_window, ppm_search = params.search$ppm_search),
                                             params.similarity = list(method = params.network$similarity_method, min.frag.match = params.network$min_frag_match, min.score = params.network$min_score),
                                             params.network = list(topK = params.network$topK, max.comp.size = params.network$max_comp_size, reaction.type = params.network$reaction_type, use.reaction = params.network$use_reaction))
