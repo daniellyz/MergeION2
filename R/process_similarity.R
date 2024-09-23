@@ -265,25 +265,25 @@ denoise_query_spectrum<-function(sp, mz0, max_peak, min_relative){
 
     # Filter top peaks:
     
-    sp = sp[order(sp[,2], decreasing = T),,drop=FALSE]
+    sp = sp[order(sp[,2, drop = TRUE], decreasing = T),,drop=FALSE]
     tops = min(max_peak, nrow(sp))  
     sp = sp[1:tops,,drop=FALSE]
     
     # Normalize to 100:
     
     sp1 = sp
-    sp1[,2] = sp1[,2]/max(sp1[,2])*100
+    sp1[,2] = sp1[,2,drop = TRUE]/max(sp1[,2,drop = TRUE])*100
     
     # Relative Intensity filter:
-    
-		filter =if(is.na(mz0)) which(sp1[,2]>=min_relative) else which(sp1[,2]>=min_relative & sp1[,1]<mz0-1)
+    ## change sp1[,1, drop = TRUE] < mz0-1 to sp1[,1, drop = TRUE] <= mz0 to include PEPMASS
+		filter =if(is.na(mz0)) which(sp1[,2, drop = TRUE] >= min_relative) else which(sp1[,2, drop =  TRUE] >= min_relative & sp1[,1, drop = TRUE] <= mz0)
     sp = sp1
     sp = sp[filter,,drop=FALSE]
     
     # Check validity:
     
     if (nrow(sp)>0){
-      sp = sp[order(sp[,1]),,drop=FALSE]
+      sp = sp[order(sp[,1, drop = TRUE]),,drop=FALSE]
       denoised_spectrum = sp
     }
   }

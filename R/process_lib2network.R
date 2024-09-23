@@ -331,7 +331,7 @@ matrix_generator<-function(input_library, mz_window = 0.02){
 		  nl = sp
 	  }
 	  nl = nl[nl[,1]>2,,drop=FALSE]
-	  nl = nl[order(nl[,1]),,drop=FALSE]
+	  nl = nl[order(nl[,1, drop =TRUE]),,drop=FALSE]
 	  nllist[[i]] = nl
   }  
   
