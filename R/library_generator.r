@@ -461,7 +461,11 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
     library_complete$sp = spectrum_list
     library_complete$metadata = metadata
     library_complete = remove_blanks(library_complete)
+    
     output_library = library_reader(library_complete)
+    if(!is.null(old_consensus)){
+     output_library$consensus <- old_consensus 
+    }
     NN = nrow(output_library$complete$metadata)
   }
 
@@ -472,7 +476,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (NN>1 & params.consensus$consensus & (is.null(old_consensus$metadata) | !is.null(params.consensus$IDsUpdated) | params.consensus$force_regeneration)){
     IDsSpecified <- params.consensus$IDsUpdated
-    library_consensus = process_consensus(library_complete, params.consensus$consensus_method, params.consensus$consensus_window, 
+    # if IDsSpecified is empty, all IDs are used
+    library_consensus = process_consensus(output_library, params.consensus$consensus_method, params.consensus$consensus_window, 
                                           params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks, 
                                           IDsUpdated = ifelse( is.null( IDsSpecified),unique( library_complete$metadata$ID), 
                                                                IDsSpecified))

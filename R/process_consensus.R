@@ -56,7 +56,7 @@ process_consensus <- function(input_library, method = c("most_recent", "consensu
   #updateSpecOneID(listSpec =  test$sp, method = method, scans =  test$SCANS, consensus_window = 0.01)
   
   
-  if( !generateConcensusCondition ) libraryTB <-   libraryTB %>% filter(ID %in%  IDsUpdated)
+  if( !generateConcensusCondition & all(IDsUpdated %in% libraryTB$ID) ) libraryTB <-   libraryTB %>% filter(ID %in%  IDsUpdated)
   
   concensusLibTemp <- libraryTB %>% group_by(ID, IONMODE,MSLEVEL) %>%
     mutate(spNew = list(updateSpecOneID(listSpec = sp, method = method, scans =  SCANS, consensus_window = consensus_window))) %>%
