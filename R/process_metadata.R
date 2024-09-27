@@ -112,6 +112,7 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
     if (!is.null(k)){
       ref$PEPMASS[i] = k$pepmass
       ref$FORMULA[i] = k$formula
+      ref$THEOMASS[i] = k$theomass
     }
   }
   
@@ -203,6 +204,7 @@ metadata_from_smiles<-function(smiles, adduct){
     if (adduct=="M+K"){pepmass = NM +38.963158}
     if (adduct=="M+NH4"){pepmass = NM +18.033826}
     if (adduct=="M+"){pepmass = NM +1.007276 - 1.007825}
+    if (adduct=="M+H-H2O"){pepmass = NM -17.0033} 
     
     if (adduct=="M-H"){pepmass = NM -1.007276}
     if (adduct=="M-2H"){pepmass = (NM - 1.007276*2)/2}
@@ -211,7 +213,7 @@ metadata_from_smiles<-function(smiles, adduct){
     if (adduct=="M+HCOO-"){pepmass = NM + 44.998203}
     if (adduct=="M-"){pepmass = NM -1.007276+ 1.007825}
     
-    output = list(smile = smiles1, formula = formula1, pepmass = pepmass)
+    output = list(smile = smiles1, formula = formula1, pepmass = pepmass, theomass = NM)
   }
   
   return(output)  

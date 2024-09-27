@@ -330,7 +330,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                                          PARAM_SAMPLE_TYPE = params.user$sample_type, 
                                          PARAM_COMMENTS = params.user$comments, 
                                          PARAM_ALGORITHM = "SmartION",
-                                         PARAM_CREATION_TIME = Sys.time(), SCANS = new_scans2)
+                                         PARAM_CREATION_TIME = format(Sys.time(), "%Y/%m/%d %H:%M:%S"),
+                                         SCANS = new_scans2)
             for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
             temp_metadata = rbind(temp_metadata, metadata2)
             NN=NN+LL2
