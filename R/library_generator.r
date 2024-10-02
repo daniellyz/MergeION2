@@ -8,7 +8,7 @@
 #' @param polarity A single character. Either "Positive" or "Negative". Ion mode of LC-MS/MS files. 
 #' @param mslevel A numeric vector. 1 or 2 or c(1,2). 2 if MS2 scans are extracted, 1 if isotopic pattern of the precursor mass in the MS1 scan is extracted. c(1,2) if both MS1 and MS2 scans are extracted. Note: High-quality isotopic patterns in MS1 scans are useful for determining precursor formula!
 #' @param add.adduct Logical. If TRUE, additional adduct types will be calculated based on precursor masses of "M+H" and "M-H" adducts in the input metadata: "M+2H", "M+Na","M+K","M+NH4","M+" will be searched for positive ion mode, "M+COO-", "M+Cl" and "M+CH3COO-" for negative ion mode. If FALSE, no additional adduct types will be searched.
-#' @param adductType. User-specified adduct type, default is NULL. Set `add.adduct` to TRUE and specify `adductType` to fiter records limited to `adductType` before appending the additional adduct types.
+#' @param adductType. User-specified adduct type, default is NULL. Set `add.adduct` to TRUE and specify `adductType` to filter records limited to `adductType` before appending the additional adduct types.
 #' @param processing.algorithm A single character. "Default", "compMS2Miner" or "RMassBank". 
 #' @param params.search Parameters for searching and collecting ions from chromatogram files in a list. These parameters define the tolerance window when input metadata is searched. The list must contain following elements:
 #' \itemize{
@@ -330,7 +330,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                                          PARAM_SAMPLE_TYPE = params.user$sample_type, 
                                          PARAM_COMMENTS = params.user$comments, 
                                          PARAM_ALGORITHM = "SmartION",
-                                         PARAM_CREATION_TIME = format(Sys.time(), "%Y/%m/%d %H:%M:%S"),
+                                         PARAM_CREATION_TIME = Sys.time(),
                                          SCANS = new_scans2)
             for (n in 1:LL2){spectrum_list[[NN+n]]=dat2$sp[[n]]} # Update spectrum list
             temp_metadata = rbind(temp_metadata, metadata2)

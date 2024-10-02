@@ -20,7 +20,7 @@ process_metadata<-function(ref, processing.algorithm = c("Default", "compMS2Mine
   ref_adducts = NULL
     
 	 if(is.null(adductType)){
-      if (polarity == "Positive"){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+")}
+      if (polarity == "Positive"){ref_adducts = c("M+H","M+2H","M+Na","M+K","M+NH4", "M+", "M+H-H20")}
       if (polarity == "Negative"){ref_adducts = c("M-H","M+Cl", "M+HCOO-","M+CH3COO-")}
   } else {
 	    ref_adducts <- adductType
