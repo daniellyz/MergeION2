@@ -263,6 +263,8 @@ library_query<-function(input_library = NULL, query_ids = NULL, query_expression
             score_summary = rbind.data.frame(score_summary, tmp_scores)
           }
           if (nrow(tmp_scores)>0 & NQS==1){
+            # YZ: add here to filter out only single ID identified, just as when NQS>1;
+            tmp_scores = tmp_scores[which(!duplicated(tmp_scores$ID)),,drop=FALSE]
             idx = match(tmp_scores$ID, id_selected)
             tmp_ref = consensus_selected$metadata[idx,,drop=FALSE] 
 			tmp_pepmass <- as.numeric(tmp_ref$PEPMASS)
