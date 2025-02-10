@@ -477,11 +477,12 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   
   if (NN>1 & params.consensus$consensus & (is.null(old_consensus$metadata) | !is.null(params.consensus$IDsUpdated) | params.consensus$force_regeneration)){
     IDsSpecified <- params.consensus$IDsUpdated
+    if(is.null(IDsSpecified))   message("Updating whole consensus library\n\n") 
     # if IDsSpecified is empty, all IDs are used
     library_consensus = process_consensus(output_library, params.consensus$consensus_method, params.consensus$consensus_window, 
                                           params.ms.preprocessing$relative, params.ms.preprocessing$max_peaks, 
-                                          IDsUpdated = ifelse( is.null( IDsSpecified),unique( library_complete$metadata$ID), 
-                                                               IDsSpecified))
+                                          IDsUpdated = if( is.null( IDsSpecified)) unique( library_complete$metadata$ID) else IDsSpecified
+                                          )
     
     output_library = library_reader(library_consensus)
   }
