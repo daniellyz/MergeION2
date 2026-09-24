@@ -58,7 +58,12 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
 
    dev_targets = sapply(as.numeric(ref$PEPMASS),function(x) min(abs(x-targets)))
    valid = which(dev_targets <= 1) #  Find targeted metadata in experimental file!! - faster!
-
+   invalid = which(dev_targets >1)
+   invalid_table = data.frame(
+		   ID = ref[invalid, "ID"],
+		   deviation = dev_targets[invalid]
+   )
+   
    ref = ref[valid,,drop=FALSE]
    prec_theo= as.numeric(ref$PEPMASS)
    prec_rt=as.numeric(ref$RT)*60 # Allow N/A
@@ -226,7 +231,7 @@ process_SmartMS2<-function(mzdatafiles = NULL, ref = NULL,
       print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))
   }} else { print(paste0("No MS2 scan in the data file ",mzdatafiles," matches with metadata!"))}
 
-  return(list(sp=spectrum_list,metadata=new_MS2_meta_data,ref_MS2=ref))
+  return(list(sp=spectrum_list,metadata=new_MS2_meta_data,ref_MS2=ref, ms2_pepmass_invalid = invalid_table))
 }
 
 ###########################

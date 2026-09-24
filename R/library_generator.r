@@ -128,6 +128,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
   gc()
   
   output_library = NULL
+  invalid_table = NULL
   
   #####################################
   ### Check general function inputs:###
@@ -319,7 +320,8 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                                   baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
           
           LL2 = length(dat2$sp) # Added library size
-          
+          invalid_table = dat2$ms2_pepmass_invalid
+		  
           if (LL2>0){
             temp.ref = dat2$ref_MS2 # Filter again metadata data for MS1 searcch
             new_scans2 = (max_scan+1):(max_scan+LL2)
@@ -506,7 +508,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
       output_library = library_reader(library_network)
     }}
   
-  return(output_library)
+  return(list(output_library = output_library, invalid_table = invalid_table))
 }
 
 #############################
