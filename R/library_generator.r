@@ -320,7 +320,7 @@ library_generator<-function(input_library = NULL, lcms_files = NULL, metadata_fi
                                   baseline = params.ms.preprocessing$baseline, relative = params.ms.preprocessing$relative, max_peaks = params.ms.preprocessing$max_peaks, normalized = params.ms.preprocessing$normalized)
           
           LL2 = length(dat2$sp) # Added library size
-          invalid_table = dat2$ms2_pepmass_invalid
+          invalid_table = rbind(invalid_table, dat2$ms2_pepmass_invalid)
 		  
           if (LL2>0){
             temp.ref = dat2$ref_MS2 # Filter again metadata data for MS1 searcch
